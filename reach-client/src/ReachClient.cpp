@@ -12,18 +12,54 @@ ReachClient::~ReachClient()
 
 }
 
+bool ReachClient::createDataFiles()
+{
+    rightHandPositionRealFilePath = savePath + "/rightHandPositionReal.txt";
+    rightHandPositionRefFilePath = savePath + "/rightHandPositionRef.txt";
+    comPositionRealFilePath = savePath + "/comPositionReal.txt";
+    comPositionRefFilePath = savePath + "/comPositionRef.txt";
+    torquesFilePath = savePath + "/torques.txt";
+    rightHandPositionRealFile.open(rightHandPositionRealFilePath);
+    rightHandPositionRefFile.open(rightHandPositionRefFilePath);
+    comPositionRealFile.open(comPositionRealFilePath);
+    comPositionRefFile.open(comPositionRefFilePath);
+    torquesFile.open(torquesFilePath);
+
+    bool ok = true;
+    ok &= rightHandPositionRealFile.is_open();
+    ok &= rightHandPositionRefFile.is_open();
+    ok &= comPositionRealFile.is_open();
+    ok &= comPositionRefFile.is_open();
+    ok &= torquesFile.is_open();
+    return ok;
+}
+
+
+void ReachClient::closeDataFiles()
+{
+    rightHandPositionRealFile.close();
+    rightHandPositionRefFile.close();
+    comPositionRealFile.close();
+    comPositionRefFile.close();
+    torquesFile.close();
+}
+
 bool ReachClient::configure(yarp::os::ResourceFinder &rf)
 {
-    if (rf.check("rightHandWptFile") && rf.check("comWptFile") ) {
+    if (rf.check("rightHandWptFile") && rf.check("comWptFile") && rf.check("savePath") ) {
         rightHandWaypointFilePath = rf.find("rightHandWptFile").asString().c_str();
         comWaypointFilePath = rf.find("comWptFile").asString().c_str();
+        savePath = rf.find("savePath").asString().c_str();
         rightHandWaypointFilePath = boost::filesystem::canonical(rightHandWaypointFilePath).string();
         comWaypointFilePath = boost::filesystem::canonical(comWaypointFilePath).string();
+        savePath = boost::filesystem::canonical(savePath).string();
 
-        std::cout << "rightHandWaypointFilePath & comWaypointFilePath" << "\n" << rightHandWaypointFilePath << "\n" << comWaypointFilePath << std::endl;
+        std::cout << "rightHandWaypointFilePath: \n" << rightHandWaypointFilePath << std::endl;
+        std::cout << "comWaypointFilePath: \n" << comWaypointFilePath << std::endl;
+        std::cout << "savePath: \n" << savePath << std::endl;
         bool ok = getWaypointDataFromFile(rightHandWaypointFilePath, rightHandWaypointList);
         ok &= getWaypointDataFromFile(comWaypointFilePath, comWaypointList);
-
+        ok &= createDataFiles();
         if (ok) {
             rightHandGoalPosition = *rightHandWaypointList.rbegin();
             comGoalPosition = *comWaypointList.rbegin();
@@ -67,29 +103,6 @@ bool ReachClient::getWaypointDataFromFile(const std::string& filePath, std::list
         std::cout << "Unable to open file";
         return false;
     }
-
-
-    // waypoint << 0.24, -0.27, 0.64;
-    // rightHandWaypointList.push_back(waypoint);
-    // waypoint << 0.30, -0.10, 0.54;
-    // rightHandWaypointList.push_back(waypoint);
-    // waypoint << 0.36,  0.00, 0.44;
-    // rightHandWaypointList.push_back(waypoint);
-    //
-    //
-    //
-    // waypoint << 0.024, -0.060, 0.500;
-    // comWaypointList.push_back(waypoint);
-    // waypoint << 0.025, -0.061, 0.501;
-    // comWaypointList.push_back(waypoint);
-    // waypoint << 0.026, -0.062, 0.502;
-    // comWaypointList.push_back(waypoint);
-
-    // rightHandGoalPosition = *rightHandWaypointList.rbegin();
-    // comGoalPosition = *comWaypointList.rbegin();
-    //
-    //
-    // return true;
 }
 
 bool ReachClient::initialize()
@@ -113,7 +126,8 @@ bool ReachClient::initialize()
 void ReachClient::release()
 {
     if(rightHandTrajThread){rightHandTrajThread->stop();}
-    // if(comTrajThread){comTrajThread->stop();}
+    if(comTrajThread){comTrajThread->stop();}
+    closeDataFiles();
 }
 
 void ReachClient::loop()
@@ -131,15 +145,12 @@ void ReachClient::loop()
     }
 
     logClientData();
-    // std::cout << "rightHandPosition: " << rightHandPosition.transpose() << std::endl;
 
 }
 
 void ReachClient::logClientData()
 {
-    rightHandPosition = model->getSegmentPosition("r_hand").getTranslation();
-    comPosition = model->getCoMPosition();
-    torques = model->getJointTorques();
-
-
+    rightHandPositionRealFile << model->getSegmentPosition("r_hand").getTranslation().transpose() << "\n";
+    comPositionRealFile << model->getCoMPosition().transpose() << "\n";
+    torquesFile << model->getJointTorques().transpose() << "\n";
 }

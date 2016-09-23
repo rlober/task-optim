@@ -28,11 +28,26 @@ protected:
 private:
     bool getWaypointDataFromFile(const std::string& filePath, std::list<Eigen::VectorXd>& waypointList);
     void logClientData();
+    bool createDataFiles();
+    void closeDataFiles();
+
 
 private:
     // Waypoint files
     std::string rightHandWaypointFilePath;
     std::string comWaypointFilePath;
+    std::string savePath;
+    std::string rightHandPositionRealFilePath;
+    std::string rightHandPositionRefFilePath;
+    std::string comPositionRealFilePath;
+    std::string comPositionRefFilePath;
+    std::string torquesFilePath;
+
+    std::ofstream rightHandPositionRealFile;
+    std::ofstream rightHandPositionRefFile;
+    std::ofstream comPositionRealFile;
+    std::ofstream comPositionRefFile;
+    std::ofstream torquesFile;
 
     // Waypoint lists
     std::list<Eigen::VectorXd> rightHandWaypointList;
