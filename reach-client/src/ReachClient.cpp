@@ -17,35 +17,79 @@ bool ReachClient::configure(yarp::os::ResourceFinder &rf)
     if (rf.check("rightHandWptFile") && rf.check("comWptFile") ) {
         rightHandWaypointFilePath = rf.find("rightHandWptFile").asString().c_str();
         comWaypointFilePath = rf.find("comWptFile").asString().c_str();
+        rightHandWaypointFilePath = boost::filesystem::canonical(rightHandWaypointFilePath).string();
+        comWaypointFilePath = boost::filesystem::canonical(comWaypointFilePath).string();
 
-        bool ok = getWaypointDataFromFile(rightHandWaypointFilePath);
-        ok &= getWaypointDataFromFile(comWaypointFilePath);
+        std::cout << "rightHandWaypointFilePath & comWaypointFilePath" << "\n" << rightHandWaypointFilePath << "\n" << comWaypointFilePath << std::endl;
+        bool ok = getWaypointDataFromFile(rightHandWaypointFilePath, rightHandWaypointList);
+        ok &= getWaypointDataFromFile(comWaypointFilePath, comWaypointList);
 
-        return ok;
+        if (ok) {
+            rightHandGoalPosition = *rightHandWaypointList.rbegin();
+            comGoalPosition = *comWaypointList.rbegin();
+            std::cout << "-------------------------------------------------------------------" << std::endl;
+            std::cout << "Right Hand" << std::endl;
+            std::cout << "-------------------------------------------------------------------" << std::endl;
+            std::cout << "Starting position: " <<  model->getSegmentPosition("r_hand").getTranslation().transpose()  << std::endl;
+            std::cout << "Goal position: " <<  rightHandGoalPosition.transpose()  << std::endl;
+            std::cout << "Waypoints: \n";
+            for (auto v:rightHandWaypointList){std::cout << v.transpose() << std::endl;}
+            std::cout << "\n";
+            std::cout << "-------------------------------------------------------------------" << std::endl;
+            std::cout << "CoM" << std::endl;
+            std::cout << "-------------------------------------------------------------------" << std::endl;
+            std::cout << "Starting position: " <<  model->getCoMPosition().transpose()  << std::endl;
+            std::cout << "Goal position: " <<  comGoalPosition.transpose()  << std::endl;
+            std::cout << "Waypoints: \n";
+            for (auto v:comWaypointList){std::cout << v.transpose() << std::endl;}
+            std::cout << "\n";
+            return true;
+        } else {
+            return false;
+        }
 
     } else {
         return false;
     }
 }
 
-bool ReachClient::getWaypointDataFromFile(const std::string& filePath)
+bool ReachClient::getWaypointDataFromFile(const std::string& filePath, std::list<Eigen::VectorXd>& waypointList)
 {
+    std::ifstream waypointFile(filePath);
+    std::string line;
+    if (waypointFile.is_open()) {
+        while ( std::getline(waypointFile, line) ) {
+            waypointList.push_back(ocra::util::stringToVectorXd(line.c_str()));
+        }
+        waypointFile.close();
+        return true;
+    } else {
+        std::cout << "Unable to open file";
+        return false;
+    }
 
-    waypoint.resize(3);
-    waypoint << 0.25, -0.2, 0.6;
-    rightHandWaypointList.push_back(waypoint);
-    waypoint << 0.25, 0.0, 0.6;
-    rightHandWaypointList.push_back(waypoint);
-    waypoint << 0.25, 0.0, 0.7;
-    rightHandWaypointList.push_back(waypoint);
-    waypoint << 0.25, -0.2, 0.7;
-    rightHandWaypointList.push_back(waypoint);
 
-    rightHandGoalPosition = *rightHandWaypointList.rbegin();
-    // comGoalPosition = *comWaypointList.rbegin()
+    // waypoint << 0.24, -0.27, 0.64;
+    // rightHandWaypointList.push_back(waypoint);
+    // waypoint << 0.30, -0.10, 0.54;
+    // rightHandWaypointList.push_back(waypoint);
+    // waypoint << 0.36,  0.00, 0.44;
+    // rightHandWaypointList.push_back(waypoint);
+    //
+    //
+    //
+    // waypoint << 0.024, -0.060, 0.500;
+    // comWaypointList.push_back(waypoint);
+    // waypoint << 0.025, -0.061, 0.501;
+    // comWaypointList.push_back(waypoint);
+    // waypoint << 0.026, -0.062, 0.502;
+    // comWaypointList.push_back(waypoint);
 
-
-    return true;
+    // rightHandGoalPosition = *rightHandWaypointList.rbegin();
+    // comGoalPosition = *comWaypointList.rbegin();
+    //
+    //
+    // return true;
 }
 
 bool ReachClient::initialize()
@@ -58,9 +102,9 @@ bool ReachClient::initialize()
 
 
 
-    // termStrategy = ocra_recipes::WAIT;
-    // comTrajThread = std::make_shared<ocra_recipes::TrajectoryThread>(10, "ComTask", comWaypointList, trajType, termStrategy);
-    // // comTrajThread->start();
+    termStrategy = ocra_recipes::WAIT;
+    comTrajThread = std::make_shared<ocra_recipes::TrajectoryThread>(10, "ComTask", comWaypointList, trajType, termStrategy);
+    comTrajThread->start();
     rightHandTrajThread->start();
     startTime = yarp::os::Time::now();
     return true;
@@ -69,21 +113,22 @@ bool ReachClient::initialize()
 void ReachClient::release()
 {
     if(rightHandTrajThread){rightHandTrajThread->stop();}
+    // if(comTrajThread){comTrajThread->stop();}
 }
 
 void ReachClient::loop()
 {
     relativeTime = yarp::os::Time::now() - startTime;
 
-    // if (!rightHandTrajThread->goalAttained()) {
-    //     std::cout << "Attained Goal. Stopping." << std::endl;
-    //     stop();
-    // }
+    if (rightHandTrajThread->goalAttained()) {
+        std::cout << "Attained Goal. Stopping." << std::endl;
+        stop();
+    }
 
-    // if (relativeTime > LOOP_TIME_LIMIT) {
-    //     std::cout << "Loop time limit exceeded. Stopping." << std::endl;
-    //     this->stop();
-    // }
+    if (relativeTime > LOOP_TIME_LIMIT) {
+        std::cout << "Loop time limit exceeded. Stopping." << std::endl;
+        stop();
+    }
 
     logClientData();
     // std::cout << "rightHandPosition: " << rightHandPosition.transpose() << std::endl;
@@ -92,8 +137,9 @@ void ReachClient::loop()
 
 void ReachClient::logClientData()
 {
-    rightHandPosition = model->getSegmentPosition(model->getSegmentIndex("r_hand")).getTranslation();
+    rightHandPosition = model->getSegmentPosition("r_hand").getTranslation();
     comPosition = model->getCoMPosition();
     torques = model->getJointTorques();
+
 
 }

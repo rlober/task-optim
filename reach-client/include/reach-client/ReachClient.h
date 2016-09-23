@@ -5,6 +5,9 @@
 #include <ocra-recipes/TrajectoryThread.h>
 #include <ocra-recipes/ControllerClient.h>
 #include <list>
+#include <fstream>
+
+#include <ocra/util/StringUtilities.h>
 
 class ReachClient : public ocra_recipes::ControllerClient
 {
@@ -23,7 +26,7 @@ protected:
     virtual void loop();
 
 private:
-    bool getWaypointDataFromFile(const std::string& filePath);
+    bool getWaypointDataFromFile(const std::string& filePath, std::list<Eigen::VectorXd>& waypointList);
     void logClientData();
 
 private:
@@ -34,7 +37,6 @@ private:
     // Waypoint lists
     std::list<Eigen::VectorXd> rightHandWaypointList;
     std::list<Eigen::VectorXd> comWaypointList;
-    Eigen::VectorXd waypoint;
 
     // Trajectory threads
     ocra_recipes::TrajectoryThread::Ptr rightHandTrajThread;
