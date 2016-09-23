@@ -4,7 +4,7 @@ import shlex
 
 rootPath = "/home/ryan"
 
-def executeWaypoints(pathToRightHandWptFile, pathToComWptFile):
+def executeWaypoints(pathToRightHandWptFile, pathToComWptFile, savePath):
 
     # Gazebo world file
     pathToIcubGazeboWorlds = rootPath + "/icub-gazebo/world"
@@ -32,7 +32,7 @@ def executeWaypoints(pathToRightHandWptFile, pathToComWptFile):
 
     time.sleep(5)
 
-    args1 = "reach-client --rightHandWptFile "+pathToRightHandWptFile+" --comWptFile "+pathToComWptFile
+    args1 = "reach-client --rightHandWptFile "+pathToRightHandWptFile+" --comWptFile " + pathToComWptFile + " --savePath " + savePath
     args = shlex.split(args1)
     print('-- Launching reach-client with args: ', args)
     client = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -51,8 +51,8 @@ def executeWaypoints(pathToRightHandWptFile, pathToComWptFile):
 
 
 
-
+savePath = "/home/ryan/bayesian-task-optimization/tmp/"
 pathToRightHandWptFile = "/home/ryan/bayesian-task-optimization/rightHandWaypoints.txt"
 pathToComWptFile = "/home/ryan/bayesian-task-optimization/comWaypoints.txt"
 
-executeWaypoints(pathToRightHandWptFile, pathToComWptFile)
+executeWaypoints(pathToRightHandWptFile, pathToComWptFile, savePath)
