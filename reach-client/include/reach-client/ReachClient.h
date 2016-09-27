@@ -70,6 +70,9 @@ private:
     Eigen::Vector3d comPosition;
     Eigen::VectorXd torques;
 
+    ocra_recipes::TaskConnection::Ptr rightHandTask;
+    ocra_recipes::TaskConnection::Ptr comTask;
+
 };
 
 

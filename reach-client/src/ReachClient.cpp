@@ -107,6 +107,8 @@ bool ReachClient::getWaypointDataFromFile(const std::string& filePath, std::list
 
 bool ReachClient::initialize()
 {
+    rightHandTask = std::make_shared<ocra_recipes::TaskConnection>("RightHandCartesian");
+    comTask = std::make_shared<ocra_recipes::TaskConnection>("ComTask");
 
     ocra_recipes::TRAJECTORY_TYPE trajType = ocra_recipes::TIME_OPTIMAL;
     ocra_recipes::TERMINATION_STRATEGY termStrategy = ocra_recipes::CYCLE;
@@ -150,7 +152,9 @@ void ReachClient::loop()
 
 void ReachClient::logClientData()
 {
+    rightHandPositionRefFile << rightHandTask->getDesiredTaskState().getPosition().getTranslation().transpose() << "\n";
     rightHandPositionRealFile << model->getSegmentPosition("r_hand").getTranslation().transpose() << "\n";
+    comPositionRefFile << comTask->getDesiredTaskState().getPosition().getTranslation().transpose() << "\n";
     comPositionRealFile << model->getCoMPosition().transpose() << "\n";
     torquesFile << model->getJointTorques().transpose() << "\n";
 }
