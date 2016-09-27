@@ -116,8 +116,6 @@ bool ReachClient::getWaypointDataFromFile(const std::string& filePath, std::list
 
 bool ReachClient::initialize()
 {
-    rightHandTask = std::make_shared<ocra_recipes::TaskConnection>("RightHandCartesian");
-    comTask = std::make_shared<ocra_recipes::TaskConnection>("ComTask");
 
     ocra_recipes::TRAJECTORY_TYPE trajType = ocra_recipes::TIME_OPTIMAL;
     ocra_recipes::TERMINATION_STRATEGY termStrategy = ocra_recipes::CYCLE;
@@ -128,6 +126,10 @@ bool ReachClient::initialize()
 
     termStrategy = ocra_recipes::WAIT;
     comTrajThread = std::make_shared<ocra_recipes::TrajectoryThread>(10, "ComTask", comWaypointList, trajType, termStrategy);
+
+    rightHandTask = std::make_shared<ocra_recipes::TaskConnection>("RightHandCartesian");
+    comTask = std::make_shared<ocra_recipes::TaskConnection>("ComTask");
+
     comTrajThread->start();
     rightHandTrajThread->start();
     startTime = yarp::os::Time::now();
