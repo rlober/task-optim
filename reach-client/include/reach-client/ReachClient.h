@@ -30,6 +30,7 @@ private:
     void logClientData();
     bool createDataFiles();
     void closeDataFiles();
+    void writeWaypointsToFile();
 
 
 private:
@@ -42,12 +43,16 @@ private:
     std::string comPositionRealFilePath;
     std::string comPositionRefFilePath;
     std::string torquesFilePath;
+    std::string comWaypointsFilePath;
+    std::string rightHandWaypointsFilePath;
 
     std::ofstream rightHandPositionRealFile;
     std::ofstream rightHandPositionRefFile;
     std::ofstream comPositionRealFile;
     std::ofstream comPositionRefFile;
     std::ofstream torquesFile;
+    std::ofstream comWaypointsFile;
+    std::ofstream rightHandWaypointsFile;
 
     // Waypoint lists
     std::list<Eigen::VectorXd> rightHandWaypointList;

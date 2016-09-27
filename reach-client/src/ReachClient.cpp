@@ -19,11 +19,16 @@ bool ReachClient::createDataFiles()
     comPositionRealFilePath = savePath + "/comPositionReal.txt";
     comPositionRefFilePath = savePath + "/comPositionRef.txt";
     torquesFilePath = savePath + "/torques.txt";
+    comWaypointsFilePath = savePath + "/comWaypoints.txt";
+    rightHandWaypointsFilePath = savePath + "/rightHandWaypoints.txt";
+
     rightHandPositionRealFile.open(rightHandPositionRealFilePath);
     rightHandPositionRefFile.open(rightHandPositionRefFilePath);
     comPositionRealFile.open(comPositionRealFilePath);
     comPositionRefFile.open(comPositionRefFilePath);
     torquesFile.open(torquesFilePath);
+    comWaypointsFile.open(comWaypointsFilePath);
+    rightHandWaypointsFile.open(rightHandWaypointsFilePath);
 
     bool ok = true;
     ok &= rightHandPositionRealFile.is_open();
@@ -31,6 +36,8 @@ bool ReachClient::createDataFiles()
     ok &= comPositionRealFile.is_open();
     ok &= comPositionRefFile.is_open();
     ok &= torquesFile.is_open();
+    ok &= comWaypointsFile.is_open();
+    ok &= rightHandWaypointsFile.is_open();
     return ok;
 }
 
@@ -42,6 +49,8 @@ void ReachClient::closeDataFiles()
     comPositionRealFile.close();
     comPositionRefFile.close();
     torquesFile.close();
+    comWaypointsFile.close();
+    rightHandWaypointsFile.close();
 }
 
 bool ReachClient::configure(yarp::os::ResourceFinder &rf)
@@ -127,6 +136,7 @@ bool ReachClient::initialize()
 
 void ReachClient::release()
 {
+    writeWaypointsToFile();
     if(rightHandTrajThread){rightHandTrajThread->stop();}
     if(comTrajThread){comTrajThread->stop();}
     closeDataFiles();
@@ -157,4 +167,14 @@ void ReachClient::logClientData()
     comPositionRefFile << comTask->getDesiredTaskState().getPosition().getTranslation().transpose() << "\n";
     comPositionRealFile << model->getCoMPosition().transpose() << "\n";
     torquesFile << model->getJointTorques().transpose() << "\n";
+}
+
+void ReachClient::writeWaypointsToFile()
+{
+    for (auto w : comTrajThread->getWaypointList()) {
+        comWaypointsFile << w.transpose() << "\n";
+    }
+    for (auto w : rightHandTrajThread->getWaypointList()) {
+        rightHandWaypointsFile << w.transpose() << "\n";
+    }
 }
