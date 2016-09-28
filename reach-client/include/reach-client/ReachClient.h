@@ -31,6 +31,8 @@ private:
     bool createDataFiles();
     void closeDataFiles();
     void writeWaypointsToFile();
+    void setLoopTimeLimit();
+
 
 
 private:
@@ -45,6 +47,9 @@ private:
     std::string torquesFilePath;
     std::string comWaypointsFilePath;
     std::string rightHandWaypointsFilePath;
+    std::string timelineFilePath;
+    std::string comExpectedDurationFilePath;
+    std::string rightHandExpectedDurationFilePath;
 
     std::ofstream rightHandPositionRealFile;
     std::ofstream rightHandPositionRefFile;
@@ -53,6 +58,9 @@ private:
     std::ofstream torquesFile;
     std::ofstream comWaypointsFile;
     std::ofstream rightHandWaypointsFile;
+    std::ofstream timelineFile;
+    std::ofstream comExpectedDurationFile;
+    std::ofstream rightHandExpectedDurationFile;
 
     // Waypoint lists
     std::list<Eigen::VectorXd> rightHandWaypointList;

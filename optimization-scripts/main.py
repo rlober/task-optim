@@ -1,58 +1,35 @@
-import subprocess
-import time
-import shlex
+import numpy as np
+from files import *
+from simulate import *
+import os
 
-rootPath = "/home/ryan"
+home_path = os.path.expanduser("~")
 
-def executeWaypoints(pathToRightHandWptFile, pathToComWptFile, savePath):
-
-    # Gazebo world file
-    pathToIcubGazeboWorlds = rootPath + "/icub-gazebo/world"
-    icubWorldPath = pathToIcubGazeboWorlds + "/icub.world"
-
-    # Task set path
-    allTaskSets = rootPath + "/bayesian-task-optimization/reaching-task-sets/icubGazeboSim"
-    taskSetPath = allTaskSets + "/TaskOptimizationTaskSet.xml"
-
-
-    print('Starting script...')
-    print('-- Launching yarpserver')
-    yarp = subprocess.Popen(["yarpserver"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    time.sleep(1)
-
-    print('-- Launching gzserver with icub.world @', icubWorldPath)
-    gazebo = subprocess.Popen(["gzserver", icubWorldPath], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    time.sleep(4)
-
-
-    args1 = "ocra-icub-server --floatingBase --controllerType HOCRA --solver QPOASES --taskSet " + taskSetPath + " --absolutePath"
-    args = shlex.split(args1)
-    print('-- Launching ocra-icub-server with args: ', args)
-    controller = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-    time.sleep(5)
-
-    args1 = "reach-client --rightHandWptFile "+pathToRightHandWptFile+" --comWptFile " + pathToComWptFile + " --savePath " + savePath
-    args = shlex.split(args1)
-    print('-- Launching reach-client with args: ', args)
-    client = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-    client.wait()
-
-
-    print('-- Terminating controller')
-    controller.terminate()
-    controller.wait()
-    print('-- Terminating gzserver')
-    gazebo.terminate()
-    gazebo.wait()
-    print('-- Terminating yarpserver')
-    yarp.terminate()
+rightHandStartingWaypoints = np.array([[0.24, -0.27, 0.64],[0.30, -0.10, 0.54],[0.36,  0.00, 0.44]])
+comStartingWaypoints = np.array([[0.024, -0.060, 0.500],[0.025, -0.061, 0.501],[0.026, -0.062, 0.502]])
 
 
 
-savePath = "/home/ryan/bayesian-task-optimization/tmp/"
-pathToRightHandWptFile = "/home/ryan/bayesian-task-optimization/rightHandWaypoints.txt"
-pathToComWptFile = "/home/ryan/bayesian-task-optimization/comWaypoints.txt"
+root_path = home_path + "/Optimization_Tests/"
+trial_dir_name = "Test_" + getDateAndTimeString()
+trial_dir_path = root_path + trial_dir_name + "/"
+os.makedirs(trial_dir_path)
 
-executeWaypoints(pathToRightHandWptFile, pathToComWptFile, savePath)
+
+optimization_iteration = 0
+iteration_dir_name = "Iteration_" + str(optimization_iteration).zfill(3)
+iteration_dir_path = trial_dir_path + iteration_dir_name + "/"
+os.makedirs(iteration_dir_path)
+
+pathToRightHandWptFile = iteration_dir_path + "/rightHandWaypoints.txt"
+pathToComWptFile = iteration_dir_path + "/comWaypoints.txt"
+
+np.savetxt(pathToRightHandWptFile, rightHandStartingWaypoints)
+np.savetxt(pathToComWptFile, comStartingWaypoints)
+
+executeWaypoints(pathToRightHandWptFile, pathToComWptFile, iteration_dir_path)
+
+taskData = getDataFromFiles(iteration_dir_path)
+
+for t in taskData:
+    t.printData()

@@ -2,7 +2,7 @@
 ReachClient::ReachClient(std::shared_ptr<ocra::Model> modelPtr, const int loopPeriod)
 : ocra_recipes::ControllerClient(modelPtr, loopPeriod)
 , trigger(true)
-, LOOP_TIME_LIMIT(15.0)
+, LOOP_TIME_LIMIT(5.0)
 {
 
 }
@@ -21,6 +21,9 @@ bool ReachClient::createDataFiles()
     torquesFilePath = savePath + "/torques.txt";
     comWaypointsFilePath = savePath + "/comWaypoints.txt";
     rightHandWaypointsFilePath = savePath + "/rightHandWaypoints.txt";
+    timelineFilePath = savePath + "/timeline.txt";
+    comExpectedDurationFilePath = savePath + "/comExpectedDuration.txt";
+    rightHandExpectedDurationFilePath = savePath + "/rightHandExpectedDuration.txt";
 
     rightHandPositionRealFile.open(rightHandPositionRealFilePath);
     rightHandPositionRefFile.open(rightHandPositionRefFilePath);
@@ -29,6 +32,9 @@ bool ReachClient::createDataFiles()
     torquesFile.open(torquesFilePath);
     comWaypointsFile.open(comWaypointsFilePath);
     rightHandWaypointsFile.open(rightHandWaypointsFilePath);
+    timelineFile.open(timelineFilePath);
+    comExpectedDurationFile.open(comExpectedDurationFilePath);
+    rightHandExpectedDurationFile.open(rightHandExpectedDurationFilePath);
 
     bool ok = true;
     ok &= rightHandPositionRealFile.is_open();
@@ -38,6 +44,9 @@ bool ReachClient::createDataFiles()
     ok &= torquesFile.is_open();
     ok &= comWaypointsFile.is_open();
     ok &= rightHandWaypointsFile.is_open();
+    ok &= timelineFile.is_open();
+    ok &= comExpectedDurationFile.is_open();
+    ok &= rightHandExpectedDurationFile.is_open();
     return ok;
 }
 
@@ -51,6 +60,9 @@ void ReachClient::closeDataFiles()
     torquesFile.close();
     comWaypointsFile.close();
     rightHandWaypointsFile.close();
+    timelineFile.close();
+    comExpectedDurationFile.close();
+    rightHandExpectedDurationFile.close();
 }
 
 bool ReachClient::configure(yarp::os::ResourceFinder &rf)
@@ -130,9 +142,6 @@ bool ReachClient::initialize()
     rightHandTask = std::make_shared<ocra_recipes::TaskConnection>("RightHandCartesian");
     comTask = std::make_shared<ocra_recipes::TaskConnection>("ComTask");
 
-    comTrajThread->start();
-    rightHandTrajThread->start();
-    startTime = yarp::os::Time::now();
     return true;
 }
 
@@ -146,6 +155,13 @@ void ReachClient::release()
 
 void ReachClient::loop()
 {
+    if (trigger) {
+        comTrajThread->start();
+        rightHandTrajThread->start();
+        startTime = yarp::os::Time::now();
+        setLoopTimeLimit();
+        trigger = false;
+    }
     relativeTime = yarp::os::Time::now() - startTime;
 
     if (rightHandTrajThread->goalAttained()) {
@@ -164,6 +180,7 @@ void ReachClient::loop()
 
 void ReachClient::logClientData()
 {
+    timelineFile << relativeTime << "\n";
     rightHandPositionRefFile << rightHandTask->getDesiredTaskState().getPosition().getTranslation().transpose() << "\n";
     rightHandPositionRealFile << model->getSegmentPosition("r_hand").getTranslation().transpose() << "\n";
     comPositionRefFile << comTask->getDesiredTaskState().getPosition().getTranslation().transpose() << "\n";
@@ -179,4 +196,15 @@ void ReachClient::writeWaypointsToFile()
     for (auto w : rightHandTrajThread->getWaypointList()) {
         rightHandWaypointsFile << w.transpose() << "\n";
     }
+}
+
+void ReachClient::setLoopTimeLimit()
+{
+    double comExpectedDuration = comTrajThread->getDuration();
+    double rightHandExpectedDuration = rightHandTrajThread->getDuration();
+    comExpectedDurationFile << comExpectedDuration;
+    rightHandExpectedDurationFile << rightHandExpectedDuration;
+
+    // Make time limit 3x the longest traj.
+    LOOP_TIME_LIMIT = std::fmax(comExpectedDuration, rightHandExpectedDuration)*3.0;
 }
