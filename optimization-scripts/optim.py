@@ -122,13 +122,13 @@ class ReachingWithBalance(BaseTask):
         np.savetxt(self.iteration_dir_path + "/J_energy.txt", [j_energy])
         np.savetxt(self.iteration_dir_path + "/J_total.txt", [j_total])
 
-        return -1.0 * j_total
+        return np.array([[-1.0 * j_total]])
 
     def getInitialX(self):
         X = np.array([])
         for t in self.task_data:
             X = np.hstack( (X, t.middleWaypointsFlattened()) )
-        return X
+        return np.array([X])
 
 
 
