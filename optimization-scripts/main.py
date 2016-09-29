@@ -16,8 +16,8 @@ X = robo_task.X_init
 Y = robo_task.Y_init
 for i in range(max_iter):
     X_new = solver.choose_next(X, Y)
-    # print(X_new)
+    print(X_new)
     Y_new = robo_task.objective_function(X_new)
-    # print(Y_new)
+    print(Y_new)
     X = np.vstack((X, X_new))
     Y = np.vstack((Y, Y_new))
