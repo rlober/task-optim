@@ -80,7 +80,6 @@ class ReachingWithBalance(BaseTask):
     def iterateSimulation(self):
         print("Simulating new parameters...")
         self.createIterationDir()
-        executeWaypoints(self.right_hand_waypoint_file_path, self.com_waypoint_file_path, self.iteration_dir_path)
         simulate(self.right_hand_waypoint_file_path, self.com_waypoint_file_path, self.iteration_dir_path)
         self.task_data = getDataFromFiles(self.iteration_dir_path)
         self.n_tasks = len(self.task_data)
@@ -88,21 +87,22 @@ class ReachingWithBalance(BaseTask):
         print("Simulation complete.")
 
     def objective_function(self, x):
-        self.extractTaskWaypointsFromSolutionVector(x)
-        print(self.com_waypoints)
-        print(self.right_hand_waypoints)
+        self.extractTaskWaypointsFromSolutionVector(x.flatten())
         self.iterateSimulation()
         return self.calculateTotalCost()
 
     def extractTaskWaypointsFromSolutionVector(self, x):
         i = 0
-        waypoint_list = [self.com_waypoints, self.right_hand_waypoints]
-        for t, wpts in zip(self.task_data, waypoint_list):
+        waypoint_list = []
+        for t in self.task_data:
             j = i + t.nDof() * t.nMiddleWaypoints()
             wpts = x[i:j].reshape((t.nMiddleWaypoints(),t.nDof()))
-            wpts.vstack((wpts, t.goal()))
+            wpts = np.vstack((wpts, t.goal()))
+            waypoint_list.append(wpts)
             i=j
 
+        self.com_waypoints = waypoint_list[0]
+        self.right_hand_waypoints = waypoint_list[1]
 
     def calculateTotalCost(self):
         j_tracking = 0.0
