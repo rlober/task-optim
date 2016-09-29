@@ -1,10 +1,10 @@
 import subprocess
 import time
 import shlex
+import os
 
-rootPath = "/home/ryan"
+rootPath = os.path.expanduser("~")
 
-def executeWaypoints(pathToRightHandWptFile, pathToComWptFile, savePath):
 def simulate(pathToRightHandWptFile, pathToComWptFile, savePath=None, verbose=False, visual=False):
 
     # Gazebo world file
@@ -16,41 +16,60 @@ def simulate(pathToRightHandWptFile, pathToComWptFile, savePath=None, verbose=Fa
     taskSetPath = allTaskSets + "/TaskOptimizationTaskSet.xml"
 
 
-    print('Starting script...')
-    print('-- Launching yarpserver')
+    if verbose:
+        print('Starting script...')
+    if verbose:
+        print('-- Launching yarpserver')
     yarp = subprocess.Popen(["yarpserver"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     time.sleep(1)
 
-    print('-- Launching gzserver with icub.world @', icubWorldPath)
-    gazebo = subprocess.Popen(["gzserver", icubWorldPath], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    if visual:
+        if verbose:
+            print('-- Launching gazebo with icub.world @', icubWorldPath)
+        gazebo = subprocess.Popen(["gazebo", icubWorldPath], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    else:
+        if verbose:
+            print('-- Launching gzserver with icub.world @', icubWorldPath)
+        gazebo = subprocess.Popen(["gzserver", icubWorldPath], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     time.sleep(4)
 
 
     args1 = "ocra-icub-server --floatingBase --controllerType HOCRA --solver QPOASES --taskSet " + taskSetPath + " --absolutePath"
     args = shlex.split(args1)
-    print('-- Launching ocra-icub-server with args: ', args)
+    if verbose:
+        print('-- Launching ocra-icub-server with args: ', args)
     controller = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     time.sleep(5)
 
-    args1 = "reach-client --rightHandWptFile "+pathToRightHandWptFile+" --comWptFile " + pathToComWptFile + " --savePath " + savePath
+    if savePath != None:
+        save_args = " --savePath " + savePath
+    else:
+        save_args = ""
+
+    args1 = "reach-client --rightHandWptFile "+pathToRightHandWptFile+" --comWptFile " + pathToComWptFile + save_args
     args = shlex.split(args1)
-    print('-- Launching reach-client with args: ', args)
+    if verbose:
+        print('-- Launching reach-client with args: ', args)
     client = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     client.wait()
 
 
-    print('-- Terminating controller')
+    if verbose:
+        print('-- Terminating controller')
     controller.terminate()
     controller.wait()
-    print('-- Terminating gzserver')
+    if verbose:
+        print('-- Terminating gzserver')
     gazebo.terminate()
     gazebo.wait()
-    print('-- Cleaning up ports')
+    if verbose:
+        print('-- Cleaning up ports')
     args1 = "yarp clean"
     args = shlex.split(args1)
     cleanYarp = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     cleanYarp.wait()
-    print('-- Terminating yarpserver')
+    if verbose:
+        print('-- Terminating yarpserver')
     yarp.terminate()
