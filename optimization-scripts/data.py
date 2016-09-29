@@ -41,6 +41,9 @@ class TaskData(object):
     def goal(self):
         return self.waypoints[-1, :]
 
+    def nMiddleWaypoints(self):
+        return self.waypoints.shape[0]-2
+        
     def middleWaypoints(self):
         return self.waypoints[1:-1, :]
 
