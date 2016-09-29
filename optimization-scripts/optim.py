@@ -26,6 +26,8 @@ class ReachingWithBalance(BaseTask):
         self.Y_init = self.calculateTotalCost()
 
         self.setBounds()
+        print("Lower bounds: ", self.X_lower)
+        print("Upper bounds: ", self.X_upper)
         super(ReachingWithBalance, self).__init__(self.X_lower, self.X_upper)
 
     def setBounds(self):
@@ -76,11 +78,14 @@ class ReachingWithBalance(BaseTask):
         np.savetxt(self.com_waypoint_file_path, self.com_waypoints)
 
     def iterateSimulation(self):
+        print("Simulating new parameters...")
         self.createIterationDir()
         executeWaypoints(self.right_hand_waypoint_file_path, self.com_waypoint_file_path, self.iteration_dir_path)
+        simulate(self.right_hand_waypoint_file_path, self.com_waypoint_file_path, self.iteration_dir_path)
         self.task_data = getDataFromFiles(self.iteration_dir_path)
         self.n_tasks = len(self.task_data)
         self.optimization_iteration += 1
+        print("Simulation complete.")
 
     def objective_function(self, x):
         self.extractTaskWaypointsFromSolutionVector(x)

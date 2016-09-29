@@ -5,6 +5,7 @@ import shlex
 rootPath = "/home/ryan"
 
 def executeWaypoints(pathToRightHandWptFile, pathToComWptFile, savePath):
+def simulate(pathToRightHandWptFile, pathToComWptFile, savePath=None, verbose=False, visual=False):
 
     # Gazebo world file
     pathToIcubGazeboWorlds = rootPath + "/icub-gazebo/world"
