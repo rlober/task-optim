@@ -11,5 +11,13 @@ com_starting_waypoints = np.array([[0.024, -0.060, 0.500],[0.025, -0.061, 0.501]
 robo_task = ReachingWithBalance(root_path, right_hand_starting_waypoints, com_starting_waypoints)
 solver = initializeRoboSolver(robo_task)
 
-max_iter = 2
-solver.run(max_iter, robo_task.X_init, robo_task.Y_init)
+max_iter = 20
+X = robo_task.X_init
+Y = robo_task.Y_init
+for i in range(max_iter):
+    X_new = solver.choose_next(X, Y)
+    # print(X_new)
+    Y_new = robo_task.objective_function(X_new)
+    # print(Y_new)
+    X = np.vstack((X, X_new))
+    Y = np.vstack((Y, Y_new))
