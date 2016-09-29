@@ -3,6 +3,7 @@ ReachClient::ReachClient(std::shared_ptr<ocra::Model> modelPtr, const int loopPe
 : ocra_recipes::ControllerClient(modelPtr, loopPeriod)
 , trigger(true)
 , LOOP_TIME_LIMIT(5.0)
+, logData(false)
 {
 
 }
@@ -67,20 +68,23 @@ void ReachClient::closeDataFiles()
 
 bool ReachClient::configure(yarp::os::ResourceFinder &rf)
 {
-    if (rf.check("rightHandWptFile") && rf.check("comWptFile") && rf.check("savePath") ) {
+    if (rf.check("rightHandWptFile") && rf.check("comWptFile") ) {
         rightHandWaypointFilePath = rf.find("rightHandWptFile").asString().c_str();
         comWaypointFilePath = rf.find("comWptFile").asString().c_str();
-        savePath = rf.find("savePath").asString().c_str();
         rightHandWaypointFilePath = boost::filesystem::canonical(rightHandWaypointFilePath).string();
         comWaypointFilePath = boost::filesystem::canonical(comWaypointFilePath).string();
-        savePath = boost::filesystem::canonical(savePath).string();
 
         std::cout << "rightHandWaypointFilePath: \n" << rightHandWaypointFilePath << std::endl;
         std::cout << "comWaypointFilePath: \n" << comWaypointFilePath << std::endl;
-        std::cout << "savePath: \n" << savePath << std::endl;
         bool ok = getWaypointDataFromFile(rightHandWaypointFilePath, rightHandWaypointList);
         ok &= getWaypointDataFromFile(comWaypointFilePath, comWaypointList);
-        ok &= createDataFiles();
+        if (rf.check("savePath")) {
+            logData = true;
+            savePath = rf.find("savePath").asString().c_str();
+            savePath = boost::filesystem::canonical(savePath).string();
+            std::cout << "savePath: \n" << savePath << std::endl;
+            ok &= createDataFiles();
+        }
         if (ok) {
             rightHandGoalPosition = *rightHandWaypointList.rbegin();
             comGoalPosition = *comWaypointList.rbegin();
@@ -147,10 +151,12 @@ bool ReachClient::initialize()
 
 void ReachClient::release()
 {
-    writeWaypointsToFile();
+    if (logData) {
+        writeWaypointsToFile();
+        closeDataFiles();
+    }
     if(rightHandTrajThread){rightHandTrajThread->stop();}
     if(comTrajThread){comTrajThread->stop();}
-    closeDataFiles();
 }
 
 void ReachClient::loop()
@@ -174,7 +180,9 @@ void ReachClient::loop()
         stop();
     }
 
-    logClientData();
+    if (logData) {
+        logClientData();
+    }
 
 }
 

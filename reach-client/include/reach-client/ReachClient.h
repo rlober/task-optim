@@ -72,6 +72,7 @@ private:
 
     // Loop logic variables.
     bool trigger;
+    bool logData;
     double startTime;
     double LOOP_TIME_LIMIT;
     double relativeTime;
