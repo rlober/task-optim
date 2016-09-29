@@ -36,9 +36,9 @@ def getDataFromFiles(root_dir):
 def getDateAndTimeString():
     dt = datetime.now()
     y = dt.year
-    m = dt.month
+    mo = dt.month
     d = dt.day
     h = dt.hour
     m = dt.minute
     s = dt.second
-    return str(y)+"-"+str(m).zfill(2)+"-"+str(d).zfill(2)+"_"+str(h).zfill(2)+":"+str(m).zfill(2)+":"+str(s).zfill(2)
+    return str(y)+"-"+str(mo).zfill(2)+"-"+str(d).zfill(2)+"_"+str(h).zfill(2)+":"+str(m).zfill(2)+":"+str(s).zfill(2)
