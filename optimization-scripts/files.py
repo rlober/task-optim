@@ -30,7 +30,7 @@ def getDataFromFiles(root_dir):
     torques = np.loadtxt(root_dir_path + "/torques.txt")
 
     comData = TaskData(timeline, comExpectedDuration, comPositionReal, comPositionRef, comWaypoints, torques, "CoM")
-    rightHandData = TaskData(timeline, rightHandExpectedDuration, rightHandPositionReal, rightHandPositionRef, rightHandWaypoints, torques, "Right Hand")
+    rightHandData = TaskData(timeline, rightHandExpectedDuration, rightHandPositionReal, rightHandPositionRef, rightHandWaypoints, torques, "Right_Hand")
     return [comData, rightHandData]
 
 def getDateAndTimeString():
