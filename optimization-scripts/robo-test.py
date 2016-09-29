@@ -39,4 +39,4 @@ bo = BayesianOptimization(acquisition_func=acquisition_func,
                           maximize_func=maximizer,
                           task=task)
 
-print bo.choose_next()
+bo.run()
