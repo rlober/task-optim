@@ -7,6 +7,14 @@ import GPy
 from robo.models.gpy_model import GPyModel
 from robo.acquisition.lcb import LCB
 from robo.maximizers.cmaes import CMAES
+from robo.maximizers.direct import Direct
+from robo.maximizers.gradient_ascent import GradientAscent
+from robo.maximizers.grid_search import GridSearch
+from robo.maximizers.scipy_optimizer import SciPyOptimizer
+from robo.maximizers.stochastic_local_search import StochasticLocalSearch
+
+
+
 from robo.solver.bayesian_optimization import BayesianOptimization
 from robo.task.base_task import BaseTask
 import numpy as np
@@ -24,6 +32,9 @@ class ReachingWithBalance(BaseTask):
         self.iterateSimulation()
         self.X_init = self.getInitialX()
         self.Y_init = self.calculateTotalCost()
+
+        print("X_init: ", self.X_init)
+        print("Y_init: ", self.Y_init)
 
         self.setBounds()
         print("Lower bounds: ", self.X_lower)
@@ -46,7 +57,7 @@ class ReachingWithBalance(BaseTask):
         com_bounds_y_lower = -0.2
         com_bounds_y_upper = 0.2
         com_bounds_z_lower = 0.2
-        com_bounds_z_upper = 0.4
+        com_bounds_z_upper = 0.6
 
         com_bounds_lower = [com_bounds_x_lower, com_bounds_y_lower, com_bounds_z_lower]
         com_bounds_upper = [com_bounds_x_upper, com_bounds_y_upper, com_bounds_z_upper]
@@ -143,7 +154,9 @@ def initializeRoboSolver(solver_task):
                          X_lower=solver_task.X_lower,
                          par=0.1)
 
-    maximizer = CMAES(acquisition_func, solver_task.X_lower, solver_task.X_upper)
+    # maximizer = CMAES(acquisition_func, solver_task.X_lower, solver_task.X_upper)
+    # maximizer = SciPyOptimizer(acquisition_func, solver_task.X_lower, solver_task.X_upper)
+    maximizer = GradientAscent(acquisition_func, solver_task.X_lower, solver_task.X_upper)
 
     bo = BayesianOptimization(acquisition_func=acquisition_func,
                               model=model,

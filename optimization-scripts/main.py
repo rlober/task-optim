@@ -9,9 +9,10 @@ right_hand_starting_waypoints = np.array([[0.24, -0.27, 0.64],[0.30, -0.10, 0.54
 com_starting_waypoints = np.array([[0.024, -0.060, 0.500],[0.025, -0.061, 0.501],[0.026, -0.062, 0.502]])
 
 robo_task = ReachingWithBalance(root_path, right_hand_starting_waypoints, com_starting_waypoints)
+
 solver = initializeRoboSolver(robo_task)
 
-max_iter = 20
+max_iter = 2
 X = robo_task.X_init
 Y = robo_task.Y_init
 for i in range(max_iter):
