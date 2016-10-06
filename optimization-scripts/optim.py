@@ -71,6 +71,9 @@ class ReachingWithBalance(BaseTask):
             lower_bounds += l_bnds * t.nMiddleWaypoints()
             upper_bounds += u_bnds * t.nMiddleWaypoints()
 
+        for lb, ub in zip(lower_bounds, upper_bounds):
+            if lb >= ub:
+                print("\n\n\n\n\n\n ERROR: your bounds are contradictory (lb>=ub):", lb, ">=", ub)
         self.X_lower = np.array(lower_bounds)
         self.X_upper = np.array(upper_bounds)
 
@@ -133,7 +136,7 @@ class ReachingWithBalance(BaseTask):
         np.savetxt(self.iteration_dir_path + "/J_energy.txt", [j_energy])
         np.savetxt(self.iteration_dir_path + "/J_total.txt", [j_total])
 
-        return np.array([[-1.0 * j_total]])
+        return np.array([[j_total]])
 
     def getInitialX(self):
         X = np.array([])

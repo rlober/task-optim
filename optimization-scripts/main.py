@@ -1,5 +1,6 @@
 import numpy as np
 from optim import *
+from bayes_opt import *
 import os
 
 home_path = os.path.expanduser("~")
@@ -10,15 +11,25 @@ com_starting_waypoints = np.array([[0.024, -0.060, 0.500],[0.025, -0.061, 0.501]
 
 robo_task = ReachingWithBalance(root_path, right_hand_starting_waypoints, com_starting_waypoints)
 
-solver = initializeRoboSolver(robo_task)
+# solver = initializeRoboSolver(robo_task)
+#
+# max_iter = 2
+# X = robo_task.X_init
+# Y = robo_task.Y_init
+# for i in range(max_iter):
+#     X_new = solver.choose_next(X, Y)
+#     print(X_new)
+#     Y_new = robo_task.objective_function(X_new)
+#     print(Y_new)
+#     X = np.vstack((X, X_new))
+#     Y = np.vstack((Y, Y_new))
 
-max_iter = 2
-X = robo_task.X_init
-Y = robo_task.Y_init
+solver = BayesOpt(robo_task.X_init,  robo_task.Y_init, robo_task.X_lower, robo_task.X_upper)
+
+X_new = solver.getFirstGuess()
+max_iter = 3
 for i in range(max_iter):
-    X_new = solver.choose_next(X, Y)
-    print(X_new)
+    print("New parameters to test:\n", X_new)
     Y_new = robo_task.objective_function(X_new)
-    print(Y_new)
-    X = np.vstack((X, X_new))
-    Y = np.vstack((Y, Y_new))
+    print("Their cost: \n", Y_new)
+    X_new = solver.update(X_new, Y_new)
