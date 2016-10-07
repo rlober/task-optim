@@ -9,13 +9,18 @@ class BayesOpt:
     def __init__(self, X_init, Y_init, X_lower, X_upper):
         self.X_init = X_init
         self.Y_init = Y_init
-        self.X = self.X_init
-        self.Y = self.Y_init
+        self.X = self.normalizeX(self.X_init)
+        self.Y = self.normalizeY(self.Y_init)
         self.X_lower = X_lower
         self.X_upper = X_upper
-        self.bounds = list(zip(self.X_lower, self.X_upper))
-
+        self.X_range = self.X_upper - self.X_lower
         self.input_dimension = self.X_init.shape[1]
+
+        zeros = np.zeros((self.input_dimension,))
+        ones = np.ones((self.input_dimension,))
+        self.bounds = list(zip(zeros, ones))
+        # self.bounds = list(zip(self.X_lower, self.X_upper))
+
         self.gamma = 1.0
         self.last_solution =  self.X_init.flatten()
         self.solutions = []
@@ -28,6 +33,18 @@ class BayesOpt:
         self.gpy_model.optimize(messages=False)
         self.first_guess = self.minimizeAcquisitionFunction()
 
+    def normalizeX(self, X):
+        return (X - self.X_lower)/self.X_range
+
+    def unNormalizeX(self, X):
+        return X * self.X_range + self.X_lower
+
+    def normalizeY(self, Y):
+        return Y/self.Y_init
+
+    def unNormalizeY(self, Y):
+        pass Y*self.Y_init
+
     def getFirstGuess(self):
         return self.first_guess
 
@@ -35,8 +52,8 @@ class BayesOpt:
         self.bounds = bounds
 
     def updateModel(self, newX, newY, optimize=False):
-        self.X = np.vstack((self.X, newX))
-        self.Y = np.vstack((self.Y, newY))
+        self.X = np.vstack((self.X, self.normalizeX(newX) ))
+        self.Y = np.vstack((self.Y, self.normalizeY(newY) ))
 
         print("\n\nX:\n", self.X)
         print("\n\nY:\n", self.Y)
@@ -52,10 +69,15 @@ class BayesOpt:
 
     def minimizeAcquisitionFunction(self):
         self.solutions.append(optimize.minimize(self.LCB, x0=self.X_init.flatten(), method='L-BFGS-B', bounds=self.bounds))
+
+
         self.last_solution = np.array([self.solutions[-1].x])
+        self.last_solution = self.unNormalizeX(self.last_solution)
         self.last_solution = np.where((self.last_solution > self.X_upper), self.X_upper, self.last_solution)
         self.last_solution = np.where((self.last_solution < self.X_lower), self.X_lower, self.last_solution)
-        est_cost_mean, est_cost_var = self.gpy_model.predict(self.last_solution)
+
+
+        est_cost_mean, est_cost_var = self.gpy_model.predict(self.normalizeX(self.last_solution))
         print("\n\n cost estimate: ", est_cost_mean, " with variance of: ", est_cost_var)
         return self.last_solution
 
