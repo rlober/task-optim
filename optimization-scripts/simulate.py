@@ -53,23 +53,36 @@ def simulate(pathToRightHandWptFile, pathToComWptFile, savePath=None, verbose=Fa
         print('-- Launching reach-client with args: ', args)
     client = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-    client.wait()
+    timeout = 10.0
+    try:
+        client.wait(timeout)
+    except TimeoutExpired: 
+        client.kill()
 
 
     if verbose:
         print('-- Terminating controller')
     controller.terminate()
-    controller.wait()
+    try:
+        controller.wait(timeout)
+    except TimeoutExpired: 
+        controller.kill()
     if verbose:
         print('-- Terminating gzserver')
     gazebo.terminate()
-    gazebo.wait()
+    try:
+        gazebo.wait(timeout)
+    except TimeoutExpired: 
+        gazebo.kill()
     if verbose:
         print('-- Cleaning up ports')
     args1 = "yarp clean"
     args = shlex.split(args1)
     cleanYarp = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    cleanYarp.wait()
+    try:
+        cleanYarp.wait(timeout)
+    except TimeoutExpired: 
+        cleanYarp.kill()
     if verbose:
         print('-- Terminating yarpserver')
     yarp.terminate()
