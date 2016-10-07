@@ -35,11 +35,16 @@ class ReachingWithBalance(BaseTask):
 
         print("X_init: ", self.X_init)
         print("Y_init: ", self.Y_init)
+        self.X_init_original = self.X_init
+        self.Y_init_original = self.Y_init
 
         self.setBounds()
         print("Lower bounds: ", self.X_lower)
         print("Upper bounds: ", self.X_upper)
-#        super(ReachingWithBalance, self).__init__(self.X_lower, self.X_upper)
+
+        self.X_lower_original = self.X_lower
+        self.X_upper_original = self.X_upper
+        super(ReachingWithBalance, self).__init__(self.X_lower, self.X_upper)
 
     def setBounds(self):
         right_hand_bounds_x_lower = 0.0
@@ -76,6 +81,7 @@ class ReachingWithBalance(BaseTask):
                 print("\n\n\n\n\n\n ERROR: your bounds are contradictory (lb>=ub):", lb, ">=", ub)
         self.X_lower = np.array(lower_bounds)
         self.X_upper = np.array(upper_bounds)
+
 
     def createTrialDir(self):
         self.trial_dir_name = "Test_" + getDateAndTimeString()
@@ -157,9 +163,9 @@ def initializeRoboSolver(solver_task):
                          X_lower=solver_task.X_lower,
                          par=0.1)
 
-    # maximizer = CMAES(acquisition_func, solver_task.X_lower, solver_task.X_upper)
+    maximizer = CMAES(acquisition_func, solver_task.X_lower, solver_task.X_upper)
     # maximizer = SciPyOptimizer(acquisition_func, solver_task.X_lower, solver_task.X_upper)
-    maximizer = GradientAscent(acquisition_func, solver_task.X_lower, solver_task.X_upper)
+    # maximizer = GradientAscent(acquisition_func, solver_task.X_lower, solver_task.X_upper)
 
     bo = BayesianOptimization(acquisition_func=acquisition_func,
                               model=model,
