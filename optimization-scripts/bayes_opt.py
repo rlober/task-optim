@@ -9,12 +9,13 @@ class BayesOpt:
     def __init__(self, X_init, Y_init, X_lower, X_upper):
         self.X_init = X_init
         self.Y_init = Y_init
-        self.X = self.normalizeX(self.X_init)
-        self.Y = self.normalizeY(self.Y_init)
         self.X_lower = X_lower
         self.X_upper = X_upper
+#        print('x_l:', X_lower, '\n\nx_u:', X_upper)
         self.X_range = self.X_upper - self.X_lower
         self.input_dimension = self.X_init.shape[1]
+        self.X = self.normalizeX(self.X_init)
+        self.Y = self.normalizeY(self.Y_init)
 
         zeros = np.zeros((self.input_dimension,))
         ones = np.ones((self.input_dimension,))
@@ -28,22 +29,26 @@ class BayesOpt:
         # self.shouldOptimize = False
         self.shouldOptimize = True
 
-        self.gpy_kernel = GPy.kern.RBF(input_dim=self.input_dimension, variance=0.00001, lengthscale=100.0)
+        self.gpy_kernel = GPy.kern.RBF(input_dim=self.input_dimension, variance=0.01, lengthscale=0.10)
         self.gpy_model = GPy.models.GPRegression(self.X,self.Y,self.gpy_kernel)
         self.gpy_model.optimize(messages=False)
         self.first_guess = self.minimizeAcquisitionFunction()
 
     def normalizeX(self, X):
-        return (X - self.X_lower)/self.X_range
+        x_norm = (X - self.X_lower)/self.X_range
+ #       print(X, '\n', self.X_lower, '\n', self.X_range, '\n', x_norm, '\n')
+        return x_norm
 
     def unNormalizeX(self, X):
         return X * self.X_range + self.X_lower
 
     def normalizeY(self, Y):
-        return Y/self.Y_init
+        y_norm = Y/self.Y_init
+        y_norm = np.where((y_norm>2), 2, y_norm)
+        return y_norm
 
     def unNormalizeY(self, Y):
-        pass Y*self.Y_init
+        return Y*self.Y_init
 
     def getFirstGuess(self):
         return self.first_guess
@@ -55,8 +60,8 @@ class BayesOpt:
         self.X = np.vstack((self.X, self.normalizeX(newX) ))
         self.Y = np.vstack((self.Y, self.normalizeY(newY) ))
 
-        print("\n\nX:\n", self.X)
-        print("\n\nY:\n", self.Y)
+#        print("\n\nX:\n", self.X)
+ #       print("\n\nY:\n", self.Y)
         self.gpy_model.set_XY(self.X, self.Y)
         if optimize:
             self.gpy_model.optimize(messages=False)
@@ -68,17 +73,19 @@ class BayesOpt:
         return mean - self.gamma * variance
 
     def minimizeAcquisitionFunction(self):
-        self.solutions.append(optimize.minimize(self.LCB, x0=self.X_init.flatten(), method='L-BFGS-B', bounds=self.bounds))
 
+  #      print(self.bounds)
+   #     print(self.normalizeX(self.X_init).flatten())
+        self.solutions.append(optimize.minimize(self.LCB, x0=self.normalizeX(self.X_init).flatten(), method='L-BFGS-B', bounds=self.bounds))
 
+  #      print("normalized solution: ", np.array([self.solutions[-1].x]))
         self.last_solution = np.array([self.solutions[-1].x])
         self.last_solution = self.unNormalizeX(self.last_solution)
         self.last_solution = np.where((self.last_solution > self.X_upper), self.X_upper, self.last_solution)
         self.last_solution = np.where((self.last_solution < self.X_lower), self.X_lower, self.last_solution)
 
 
-        est_cost_mean, est_cost_var = self.gpy_model.predict(self.normalizeX(self.last_solution))
-        print("\n\n cost estimate: ", est_cost_mean, " with variance of: ", est_cost_var)
+        self.est_cost_mean, self.est_cost_var = self.gpy_model.predict(self.normalizeX(self.last_solution))
         return self.last_solution
 
     def update(self, newX, newY):

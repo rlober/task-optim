@@ -39,7 +39,7 @@ class ReachingWithBalance(BaseTask):
         self.setBounds()
         print("Lower bounds: ", self.X_lower)
         print("Upper bounds: ", self.X_upper)
-        super(ReachingWithBalance, self).__init__(self.X_lower, self.X_upper)
+#        super(ReachingWithBalance, self).__init__(self.X_lower, self.X_upper)
 
     def setBounds(self):
         right_hand_bounds_x_lower = 0.0

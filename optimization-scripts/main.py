@@ -24,12 +24,17 @@ robo_task = ReachingWithBalance(root_path, right_hand_starting_waypoints, com_st
 #     X = np.vstack((X, X_new))
 #     Y = np.vstack((Y, Y_new))
 
+#print('wndjkawndkjwndjknawjkd', robo_task.X_lower, robo_task.X_upper)
+
 solver = BayesOpt(robo_task.X_init,  robo_task.Y_init, robo_task.X_lower, robo_task.X_upper)
 
 X_new = solver.getFirstGuess()
-max_iter = 3
+max_iter = 30
 for i in range(max_iter):
-    print("New parameters to test:\n", X_new)
+    print("------\nObserved costs:\n", solver.Y.flatten(), "\n-------")
+    print("New parameters to test:\nCOM [x, y, z]\n", X_new.reshape(4,3)[0:2,:], '\nRight Hand [x, y, z]\n', X_new.reshape(4,3)[2:,:])
+    print("--Parameter estimations--\nCost mean: ", solver.est_cost_mean, " and  variance: ", solver.est_cost_var)
+
     Y_new = robo_task.objective_function(X_new)
-    print("Their cost: \n", Y_new)
+    print("Actual cost after simulation: \n", Y_new)
     X_new = solver.update(X_new, Y_new)
