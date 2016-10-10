@@ -88,8 +88,12 @@ class ReachingWithBalance(BaseTask):
         self.trial_dir_path = self.root_path + self.trial_dir_name + "/"
         os.makedirs(self.trial_dir_path)
 
-    def createIterationDir(self):
-        self.iteration_dir_name = "Iteration_" + str(self.optimization_iteration).zfill(3)
+    def createIterationDir(self, isOptimal=False):
+        if isOptimal:
+            self.iteration_dir_name = "Optimal_Solution"
+        else:
+            self.iteration_dir_name = "Iteration_" + str(self.optimization_iteration).zfill(3)
+
         self.iteration_dir_path = self.trial_dir_path + self.iteration_dir_name + "/"
         os.makedirs(self.iteration_dir_path)
         self.right_hand_waypoint_file_path = self.iteration_dir_path + "/rightHandWaypoints.txt"
@@ -110,6 +114,18 @@ class ReachingWithBalance(BaseTask):
         self.extractTaskWaypointsFromSolutionVector(x.flatten())
         self.iterateSimulation()
         return self.calculateTotalCost()
+
+    def playOptimalSolution(self, x):
+        self.extractTaskWaypointsFromSolutionVector(x.flatten())
+        print("Simulating optimal parameters...")
+        self.createIterationDir(isOptimal=True)
+        simulate(self.right_hand_waypoint_file_path, self.com_waypoint_file_path, self.iteration_dir_path, verbose=True, visual=True)
+        self.task_data = getDataFromFiles(self.iteration_dir_path)
+        self.n_tasks = len(self.task_data)
+        observed_cost = self.calculateTotalCost()
+        print("Simulation complete.")
+        print("Observed cost: ", observed_cost)
+        return observed_cost
 
     def extractTaskWaypointsFromSolutionVector(self, x):
         i = 0
