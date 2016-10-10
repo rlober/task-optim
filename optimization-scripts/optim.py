@@ -175,4 +175,53 @@ def initializeRoboSolver(solver_task):
     return bo
 
 
-# print bo.choose_next()
+def runOptimization(robo_task, max_iter=20, useRoBO=True, cost_saturation=2.0):
+    optimal_params = []
+    optimal_cost = []
+    original_cost = []
+
+    optimization_converged = False
+    if useRoBO:
+        solver = initializeRoboSolver(robo_task)
+
+        X = robo_task.X_init
+        Y = -1.0 * (robo_task.Y_init / robo_task.Y_init)
+        original_cost = Y.copy()
+        while (robo_task.optimization_iteration <= max_iter) and not optimization_converged:
+            print("\n\nIteration: ", robo_task.optimization_iteration)
+            print("------\nObserved costs:\n",Y.flatten(), "\n-------")
+            X_new = robo_task.retransform(solver.choose_next(X, Y))
+            print("New parameters to test:\nCOM [x, y, z]\n", X_new.reshape(4,3)[0:2,:], '\nRight Hand [x, y, z]\n', X_new.reshape(4,3)[2:,:])
+            Y_new = -1.0 * (robo_task.objective_function(X_new) / robo_task.Y_init)
+            Y_new = np.where((Y_new < -1*cost_saturation),  -1*cost_saturation, Y_new)
+
+            print("Actual cost after simulation: \n", Y_new)
+            X = np.vstack((X, X_new))
+            Y = np.vstack((Y, Y_new))
+
+        opt_row, opt_col = np.unravel_index(np.argmax(Y), np.shape(Y))
+        optimal_params = X[[opt_row], :].copy()
+        #  Correct for maximization
+        optimal_cost = -1*robo_task.Y_init*Y[[opt_row], :].copy()
+        original_cost = -1*robo_task.Y_init*original_cost
+        print("\n\n\n==================================================\n")
+        print("Best solution taken from iteration ", opt_row, ": ")
+        print("COM [x, y, z]\n", optimal_params.reshape(4,3)[0:2,:], '\nRight Hand [x, y, z]\n', optimal_params.reshape(4,3)[2:,:])
+        print("Orignal Cost: ", original_cost, "Optimal Cost: ", optimal_cost)
+        print("Testing optimal solution...")
+        observed_optimal_cost = robo_task.playOptimalSolution(optimal_params)
+        print("==================================================\n")
+
+    else:
+        solver = BayesOpt(robo_task.X_init_original,  robo_task.Y_init_original, robo_task.X_lower_original, robo_task.X_upper_original, cost_saturation)
+
+        X_new = solver.getFirstGuess()
+
+        while (robo_task.optimization_iteration <= max_iter) and not optimization_converged:
+            print("------\nObserved costs:\n", solver.Y.flatten(), "\n-------")
+            print("New parameters to test:\nCOM [x, y, z]\n", X_new.reshape(4,3)[0:2,:], '\nRight Hand [x, y, z]\n', X_new.reshape(4,3)[2:,:])
+            print("--Parameter estimations--\nCost mean: ", solver.est_cost_mean, " and  variance: ", solver.est_cost_var)
+
+            Y_new = robo_task.objective_function(X_new)
+            print("Actual cost after simulation: \n", Y_new)
+            X_new = solver.update(X_new, Y_new)
