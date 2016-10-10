@@ -105,7 +105,14 @@ class ReachingWithBalance(BaseTask):
         print("Simulating new parameters...")
         self.createIterationDir()
         simulate(self.right_hand_waypoint_file_path, self.com_waypoint_file_path, self.iteration_dir_path)
-        self.task_data = getDataFromFiles(self.iteration_dir_path)
+        try:
+            self.task_data = getDataFromFiles(self.iteration_dir_path)
+        except:
+            print("Simulation failed. Re-running.")
+            killProcesses()
+            simulate(self.right_hand_waypoint_file_path, self.com_waypoint_file_path, self.iteration_dir_path)
+            self.task_data = getDataFromFiles(self.iteration_dir_path)
+
         self.n_tasks = len(self.task_data)
         self.optimization_iteration += 1
         print("Simulation complete.")
