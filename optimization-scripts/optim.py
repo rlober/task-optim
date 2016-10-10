@@ -6,6 +6,7 @@ import os
 import GPy
 from robo.models.gpy_model import GPyModel
 from robo.acquisition.lcb import LCB
+from robo.acquisition.ei import EI
 from robo.maximizers.cmaes import CMAES
 from robo.maximizers.direct import Direct
 from robo.maximizers.gradient_ascent import GradientAscent
@@ -181,10 +182,8 @@ def initializeRoboSolver(solver_task):
     kernel = GPy.kern.RBF(input_dim=solver_task.n_dims)
     model = GPyModel(kernel)
 
-    acquisition_func = LCB(model,
-                         X_upper=solver_task.X_upper,
-                         X_lower=solver_task.X_lower,
-                         par=0.1)
+    # acquisition_func = LCB(model, X_upper=solver_task.X_upper, X_lower=solver_task.X_lower, par=0.1)
+    acquisition_func = EI(model, X_upper=solver_task.X_upper, X_lower=solver_task.X_lower, par=0.01)
 
     maximizer = CMAES(acquisition_func, solver_task.X_lower, solver_task.X_upper)
     # maximizer = SciPyOptimizer(acquisition_func, solver_task.X_lower, solver_task.X_upper)
