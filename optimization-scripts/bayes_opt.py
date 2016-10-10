@@ -6,7 +6,8 @@ from scipy import optimize
 
 class BayesOpt:
     """docstring for BayesOpt."""
-    def __init__(self, X_init, Y_init, X_lower, X_upper):
+    def __init__(self, X_init, Y_init, X_lower, X_upper, cost_saturation=2):
+        self.cost_saturation = cost_saturation
         self.X_init = X_init
         self.Y_init = Y_init
         self.X_lower = X_lower
@@ -44,7 +45,7 @@ class BayesOpt:
 
     def normalizeY(self, Y):
         y_norm = Y/self.Y_init
-        y_norm = np.where((y_norm>2), 2, y_norm)
+        y_norm = np.where((y_norm>self.cost_saturation), self.cost_saturation, y_norm)
         return y_norm
 
     def unNormalizeY(self, Y):
