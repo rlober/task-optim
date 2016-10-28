@@ -1,6 +1,5 @@
 import numpy as np
 from optim import *
-from bayes_opt import *
 import os
 
 home_path = os.path.expanduser("~")
@@ -11,4 +10,4 @@ com_starting_waypoints = np.array([[0.024, -0.060, 0.500],[0.025, -0.061, 0.501]
 
 robo_task = ReachingWithBalance(root_path, right_hand_starting_waypoints, com_starting_waypoints)
 
-runOptimization(robo_task, max_iter=100, useRoBO=True, cost_saturation=1000.0)
+runOptimization(robo_task, max_iter=30, useRoBO=False, cost_saturation=1000.0)
