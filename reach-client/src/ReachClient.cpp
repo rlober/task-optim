@@ -4,6 +4,8 @@ ReachClient::ReachClient(std::shared_ptr<ocra::Model> modelPtr, const int loopPe
 , trigger(true)
 , LOOP_TIME_LIMIT(5.0)
 , logData(false)
+, goToHomeOnRelease(false)
+, returningHome(false)
 {
 
 }
@@ -85,6 +87,10 @@ bool ReachClient::configure(yarp::os::ResourceFinder &rf)
             std::cout << "savePath: \n" << savePath << std::endl;
             ok &= createDataFiles();
         }
+
+        if (rf.check("home")) {
+            goToHomeOnRelease = true;
+        }
         if (ok) {
             rightHandGoalPosition = *rightHandWaypointList.rbegin();
             comGoalPosition = *comWaypointList.rbegin();
@@ -132,16 +138,22 @@ bool ReachClient::getWaypointDataFromFile(const std::string& filePath, std::list
 
 bool ReachClient::initialize()
 {
-
     ocra_recipes::TRAJECTORY_TYPE trajType = ocra_recipes::TIME_OPTIMAL;
-    ocra_recipes::TERMINATION_STRATEGY termStrategy = ocra_recipes::CYCLE;
-    rightHandTrajThread = std::make_shared<ocra_recipes::TrajectoryThread>(10, "RightHandCartesian", rightHandWaypointList, trajType, termStrategy);
+
+    if (goToHomeOnRelease) {
+        rightHandTermStrategy = ocra_recipes::TERMINATION_STRATEGY::REVERSE_STOP;
+        comTermStrategy = ocra_recipes::TERMINATION_STRATEGY::REVERSE_STOP;
+    } else {
+        rightHandTermStrategy = ocra_recipes::TERMINATION_STRATEGY::STOP_THREAD_DEACTIVATE;
+        comTermStrategy = ocra_recipes::TERMINATION_STRATEGY::WAIT;
+    }
+
+
+    rightHandTrajThread = std::make_shared<ocra_recipes::TrajectoryThread>(10, "RightHandCartesian", rightHandWaypointList, trajType, rightHandTermStrategy);
+
     rightHandTrajThread->setGoalErrorThreshold(0.03);
 
-
-
-    termStrategy = ocra_recipes::WAIT;
-    comTrajThread = std::make_shared<ocra_recipes::TrajectoryThread>(10, "ComTask", comWaypointList, trajType, termStrategy);
+    comTrajThread = std::make_shared<ocra_recipes::TrajectoryThread>(10, "ComTask", comWaypointList, trajType, comTermStrategy);
 
     rightHandTask = std::make_shared<ocra_recipes::TaskConnection>("RightHandCartesian");
     comTask = std::make_shared<ocra_recipes::TaskConnection>("ComTask");
@@ -151,6 +163,7 @@ bool ReachClient::initialize()
 
 void ReachClient::release()
 {
+
     if (logData) {
         writeWaypointsToFile();
         closeDataFiles();
@@ -171,13 +184,21 @@ void ReachClient::loop()
     relativeTime = yarp::os::Time::now() - startTime;
 
     if (rightHandTrajThread->goalAttained()) {
-        std::cout << "Attained Goal. Stopping." << std::endl;
-        stop();
+        if (!goToHomeOnRelease) {
+            std::cout << "Attained Goal. Stopping." << std::endl;
+            stop();
+        } else if (returningHome) {
+            stop();
+        } else {
+            returningHome = true;
+        }
     }
 
     if (relativeTime > LOOP_TIME_LIMIT) {
-        std::cout << "Loop time limit exceeded. Stopping." << std::endl;
-        stop();
+        if (!goToHomeOnRelease) {
+            std::cout << "Loop time limit exceeded. Stopping." << std::endl;
+            stop();
+        }
     }
 
     if (logData) {

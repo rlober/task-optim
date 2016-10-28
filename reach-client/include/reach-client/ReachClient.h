@@ -87,6 +87,11 @@ private:
     ocra_recipes::TaskConnection::Ptr rightHandTask;
     ocra_recipes::TaskConnection::Ptr comTask;
 
+    bool goToHomeOnRelease;
+    ocra_recipes::TERMINATION_STRATEGY rightHandTermStrategy;
+    ocra_recipes::TERMINATION_STRATEGY comTermStrategy;
+    bool returningHome;
+
 };
 
 
