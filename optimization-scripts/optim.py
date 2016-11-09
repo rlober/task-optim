@@ -2,7 +2,8 @@ from files import *
 from simulate import *
 import os
 from bayes_opt import *
-
+from cmaes import *
+import cma
 
 import GPy
 from robo.models.gpy_model import GPyModel
@@ -24,21 +25,15 @@ import numpy as np
 # The optimization function that we want to optimize. It gets a numpy array with shape (N,D) where N >= 1 are the number of datapoints and D are the number of features
 class ReachingWithBalance(BaseTask):
 
-    def __init__(self, root_path, right_hand_starting_waypoints, com_starting_waypoints):
+    def __init__(self, root_path, right_hand_starting_waypoints, com_starting_waypoints, visualize=False):
+
+
         self.root_path = root_path
         self.right_hand_waypoints = right_hand_starting_waypoints
         self.com_waypoints = com_starting_waypoints
         self.createTrialDir()
 
-        self.optimization_iteration = 0
-        self.iterateSimulation()
-        self.X_init = self.getInitialX()
-        self.Y_init = self.calculateTotalCost()
 
-        print("X_init: ", self.X_init)
-        print("Y_init: ", self.Y_init)
-        self.X_init_original = self.X_init
-        self.Y_init_original = self.Y_init
 
         self.setBounds()
         print("Lower bounds: ", self.X_lower)
@@ -46,6 +41,20 @@ class ReachingWithBalance(BaseTask):
 
         self.X_lower_original = self.X_lower
         self.X_upper_original = self.X_upper
+
+        if visualize:
+            self.visualize()
+        else:
+            self.optimization_iteration = 0
+            self.iterateSimulation()
+            self.X_init = self.getInitialX()
+            self.Y_init = self.calculateTotalCost()
+
+            print("X_init: ", self.X_init)
+            print("Y_init: ", self.Y_init)
+            self.X_init_original = self.X_init
+            self.Y_init_original = self.Y_init
+
         super(ReachingWithBalance, self).__init__(self.X_lower, self.X_upper)
 
     def setBounds(self):
@@ -175,6 +184,9 @@ class ReachingWithBalance(BaseTask):
             X = np.hstack( (X, t.middleWaypointsFlattened()) )
         return np.array([X])
 
+    def visualize(self):
+
+
 
 
 
@@ -198,13 +210,13 @@ def initializeRoboSolver(solver_task):
     return bo
 
 
-def runOptimization(robo_task, max_iter=20, useRoBO=True, cost_saturation=2.0):
+def runOptimization(robo_task, max_iter=20, solver_type="RoBO", cost_saturation=2.0):
     optimal_params = []
     optimal_cost = []
     original_cost = []
 
     optimization_converged = False
-    if useRoBO:
+    if solver_type = "RoBO":
         solver = initializeRoboSolver(robo_task)
 
         X = robo_task.X_init
@@ -235,8 +247,9 @@ def runOptimization(robo_task, max_iter=20, useRoBO=True, cost_saturation=2.0):
         observed_optimal_cost = robo_task.playOptimalSolution(optimal_params)
         print("==================================================\n")
 
-    else:
+    elif solver_type = "BayesOpt":
         solver = BayesOpt(robo_task.X_init_original,  robo_task.Y_init_original, robo_task.X_lower_original, robo_task.X_upper_original, cost_saturation)
+        solver = CMAES(robo_task.X_init_original,  robo_task.Y_init_original, robo_task.X_lower_original, robo_task.X_upper_original, cost_saturation)
 
         X_new = solver.getFirstGuess()
 
@@ -248,3 +261,31 @@ def runOptimization(robo_task, max_iter=20, useRoBO=True, cost_saturation=2.0):
             Y_new = robo_task.objective_function(X_new)
             print("Actual cost after simulation: \n", Y_new)
             X_new = solver.update(X_new, Y_new)
+
+    elif solver_type = "cmaes":
+
+        X1 = robo_task.X_init_original
+        Y1 = robo_task.Y_init_original
+        X_lowerBound = robo_task.X_lower_original
+        X_upperBound = robo_task.X_upper_original
+
+        X_range = X_upperBound - X_lowerBound
+        X1_norm = (X1 - X_lowerBound)/X_range
+        cmaes_solver = cma.CMAEvolutionStrategy((X), 0.5)
+
+        while not cmaes_solver.stop() and (robo_task.optimization_iteration <= max_iter):
+            solutions = cmaes_solver.ask()
+            costs = []
+            for s in solutions:
+                cost = robo_task.objective_function(np.array(s))
+                cost_norm = cost/Y1
+                cost_norm = np.where((y_norm>cost_saturation), cost_saturation, y_norm)
+                costs.append(cost_norm)
+
+            cmaes_solver.tell(solutions, costs)
+            cmaes_solver.logger.add()  # write data to disc to be plotted
+            cmaes_solver.disp()
+
+        cmaes_solver.result_pretty()
+        cma.plot()  # shortcut for cmaes_solver.logger.plot()
+        plt.show(block=True)
