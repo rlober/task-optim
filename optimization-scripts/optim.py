@@ -108,8 +108,13 @@ class ReachingWithBalance(BaseTask):
 
         self.iteration_dir_path = self.trial_dir_path + self.iteration_dir_name + "/"
         os.makedirs(self.iteration_dir_path)
-        self.right_hand_waypoint_file_path = self.iteration_dir_path + "/rightHandWaypoints.txt"
-        self.com_waypoint_file_path = self.iteration_dir_path + "/comWaypoints.txt"
+        if isOptimal:
+            self.right_hand_waypoint_file_path = self.iteration_dir_path + "/rightHandWaypoints_optimal.txt"
+            self.com_waypoint_file_path = self.iteration_dir_path + "/comWaypoints_optimal.txt"
+        else:
+            self.right_hand_waypoint_file_path = self.iteration_dir_path + "/rightHandWaypoints.txt"
+            self.com_waypoint_file_path = self.iteration_dir_path + "/comWaypoints.txt"
+
         np.savetxt(self.right_hand_waypoint_file_path, self.right_hand_waypoints)
         np.savetxt(self.com_waypoint_file_path, self.com_waypoints)
 
