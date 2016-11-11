@@ -27,7 +27,7 @@ def simulate(pathToRightHandWptFile, pathToComWptFile, savePath=None, verbose=Fa
     while replay:
         # Gazebo world file
         pathToIcubGazeboWorlds = rootPath + "/icub-gazebo/world"
-        icubWorldPath = pathToIcubGazeboWorlds + "/icub.world"
+        icubWorldPath = pathToIcubGazeboWorlds + "/balancing.world"
 
         # Task set path
         allTaskSets = rootPath + "/bayesian-task-optimization/reaching-task-sets/icubGazeboSim"
