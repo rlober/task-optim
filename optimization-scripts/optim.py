@@ -117,17 +117,19 @@ class ReachingWithBalance(BaseTask):
 
         np.savetxt(self.right_hand_waypoint_file_path, self.right_hand_waypoints)
         np.savetxt(self.com_waypoint_file_path, self.com_waypoints)
+        print("Saving com waypoints\n", self.com_waypoints, "\n to: ", self.com_waypoint_file_path)
+        print("Saving right hand waypoints\n", self.right_hand_waypoints, "\n to: ", self.right_hand_waypoint_file_path)
 
     def iterateSimulation(self):
         print("Simulating new parameters...")
         self.createIterationDir()
-        simulate(self.right_hand_waypoint_file_path, self.com_waypoint_file_path, self.iteration_dir_path)
+        simulate(self.right_hand_waypoint_file_path, self.com_waypoint_file_path, self.iteration_dir_path, verbose=True, visual=True)
         try:
             self.task_data = getDataFromFiles(self.iteration_dir_path)
         except:
             print("Simulation failed. Re-running.")
             killProcesses()
-            simulate(self.right_hand_waypoint_file_path, self.com_waypoint_file_path, self.iteration_dir_path)
+            simulate(self.right_hand_waypoint_file_path, self.com_waypoint_file_path, self.iteration_dir_path, verbose=True, visual=True)
             self.task_data = getDataFromFiles(self.iteration_dir_path)
 
         self.n_tasks = len(self.task_data)
@@ -143,7 +145,7 @@ class ReachingWithBalance(BaseTask):
         self.extractTaskWaypointsFromSolutionVector(x.flatten())
         print("Simulating optimal parameters...")
         self.createIterationDir(isOptimal=True)
-        simulate(self.right_hand_waypoint_file_path, self.com_waypoint_file_path, self.iteration_dir_path, verbose=True, visual=True)
+        simulate(self.right_hand_waypoint_file_path, self.com_waypoint_file_path, self.iteration_dir_path, verbose=True, visual=True, askUserForReplay=True, goToHome=True)
         self.task_data = getDataFromFiles(self.iteration_dir_path)
         self.n_tasks = len(self.task_data)
         observed_cost = self.calculateTotalCost()
@@ -223,7 +225,7 @@ def runOptimization(robo_task, max_iter=20, solver_type="RoBO", cost_saturation=
     original_cost = []
 
     optimization_converged = False
-    if solver_type = "RoBO":
+    if solver_type == "RoBO":
         solver = initializeRoboSolver(robo_task)
 
         X = robo_task.X_init
@@ -231,9 +233,15 @@ def runOptimization(robo_task, max_iter=20, solver_type="RoBO", cost_saturation=
         original_cost = Y.copy()
         while (robo_task.optimization_iteration <= max_iter) and not optimization_converged:
             print("\n\nIteration: ", robo_task.optimization_iteration)
-            print("------\nObserved costs:\n",Y.flatten(), "\n-------")
+            print("------\tObservations\t-------")
+            print("[parameters] --> [cost]")
+            np.set_printoptions(precision=3)
+            for p,c in zip(X,Y):
+                print(p," --> ", c)
+            print("-----------------------------")
             X_new = robo_task.retransform(solver.choose_next(X, Y))
-            print("New parameters to test:\nCOM [x, y, z]\n", X_new.reshape(4,3)[0:2,:], '\nRight Hand [x, y, z]\n', X_new.reshape(4,3)[2:,:])
+            print("New parameters to test:\nCOM [x, y, z]\n", X_new)#.reshape(4,3)[0:2,:])
+            # print("Right Hand [x, y, z]\n", X_new.reshape(4,3)[2:,:])
             Y_new = -1.0 * (robo_task.objective_function(X_new) / robo_task.Y_init)
             Y_new = np.where((Y_new < -1*cost_saturation),  -1*cost_saturation, Y_new)
 
@@ -248,13 +256,14 @@ def runOptimization(robo_task, max_iter=20, solver_type="RoBO", cost_saturation=
         original_cost = -1*robo_task.Y_init*original_cost
         print("\n\n\n==================================================\n")
         print("Best solution taken from iteration ", opt_row, ": ")
-        print("COM [x, y, z]\n", optimal_params.reshape(4,3)[0:2,:], '\nRight Hand [x, y, z]\n', optimal_params.reshape(4,3)[2:,:])
+        print("COM [x, y, z]\n", optimal_params)#.reshape(4,3)[0:2,:])
+        # print("Right Hand [x, y, z]\n", optimal_params.reshape(4,3)[2:,:])
         print("Orignal Cost: ", original_cost, "Optimal Cost: ", optimal_cost)
         print("Testing optimal solution...")
         observed_optimal_cost = robo_task.playOptimalSolution(optimal_params)
         print("==================================================\n")
 
-    elif solver_type = "BayesOpt":
+    elif solver_type == "BayesOpt":
         solver = BayesOpt(robo_task.X_init_original,  robo_task.Y_init_original, robo_task.X_lower_original, robo_task.X_upper_original, cost_saturation)
         solver = CMAES(robo_task.X_init_original,  robo_task.Y_init_original, robo_task.X_lower_original, robo_task.X_upper_original, cost_saturation)
 
@@ -269,7 +278,7 @@ def runOptimization(robo_task, max_iter=20, solver_type="RoBO", cost_saturation=
             print("Actual cost after simulation: \n", Y_new)
             X_new = solver.update(X_new, Y_new)
 
-    elif solver_type = "cmaes":
+    elif solver_type == "cmaes":
 
         X1 = robo_task.X_init_original
         Y1 = robo_task.Y_init_original
