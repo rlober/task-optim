@@ -3,7 +3,7 @@ import numpy as np
 
 class TaskData(object):
     """docstring for TestData"""
-    def __init__(self, time, expectedDuration, real, ref, waypoints, torques, name=""):
+    def __init__(self, time, expectedDuration, real, ref, waypoints, torques, comBounds, name=""):
         self.name = name
         self.time = time
         self.dt_vector = np.diff(self.time)
@@ -15,6 +15,9 @@ class TaskData(object):
         self.torques = torques
         self.nTimeSteps = self.time.shape[0]
         self.duration = self.time[-1]
+        self.comBounds = comBounds
+        self.lower_bounds = self.comBounds[:,0]
+        self.upper_bounds = self.comBounds[:,1]
 
         self.beta = 1.0
         self.energy_scaling_factor = 1e-4
@@ -43,7 +46,7 @@ class TaskData(object):
 
     def nMiddleWaypoints(self):
         return self.waypoints.shape[0]-2
-        
+
     def middleWaypoints(self):
         return self.waypoints[1:-1, :]
 
