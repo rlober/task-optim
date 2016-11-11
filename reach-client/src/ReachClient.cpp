@@ -28,6 +28,7 @@ bool ReachClient::createDataFiles()
     timelineFilePath = savePath + "/timeline.txt";
     comExpectedDurationFilePath = savePath + "/comExpectedDuration.txt";
     rightHandExpectedDurationFilePath = savePath + "/rightHandExpectedDuration.txt";
+    comBoundsFilePath = savePath + "/comBounds.txt";
 
     rightHandPositionRealFile.open(rightHandPositionRealFilePath);
     rightHandPositionRefFile.open(rightHandPositionRefFilePath);
@@ -39,6 +40,7 @@ bool ReachClient::createDataFiles()
     timelineFile.open(timelineFilePath);
     comExpectedDurationFile.open(comExpectedDurationFilePath);
     rightHandExpectedDurationFile.open(rightHandExpectedDurationFilePath);
+    comBoundsFile.open(comBoundsFilePath);
 
     bool ok = true;
     ok &= rightHandPositionRealFile.is_open();
@@ -51,6 +53,7 @@ bool ReachClient::createDataFiles()
     ok &= timelineFile.is_open();
     ok &= comExpectedDurationFile.is_open();
     ok &= rightHandExpectedDurationFile.is_open();
+    ok &= comBoundsFile.is_open();
     return ok;
 }
 
@@ -67,6 +70,7 @@ void ReachClient::closeDataFiles()
     timelineFile.close();
     comExpectedDurationFile.close();
     rightHandExpectedDurationFile.close();
+    comBoundsFile.close();
 }
 
 bool ReachClient::configure(yarp::os::ResourceFinder &rf)
@@ -150,10 +154,10 @@ bool ReachClient::initialize()
 
     if (goToHomeOnRelease) {
         rightHandTermStrategy = ocra_recipes::TERMINATION_STRATEGY::REVERSE_STOP;
-        comTermStrategy = ocra_recipes::TERMINATION_STRATEGY::REVERSE_STOP;
+        comTermStrategy = ocra_recipes::TERMINATION_STRATEGY::NONE;
     } else {
         rightHandTermStrategy = ocra_recipes::TERMINATION_STRATEGY::STOP_THREAD_DEACTIVATE;
-        comTermStrategy = ocra_recipes::TERMINATION_STRATEGY::WAIT;
+        comTermStrategy = ocra_recipes::TERMINATION_STRATEGY::NONE;
     }
 
 
@@ -161,7 +165,6 @@ bool ReachClient::initialize()
 
     rightHandTrajThread->setGoalErrorThreshold(0.03);
 
-    comTrajThread = std::make_shared<ocra_recipes::TrajectoryThread>(10, "ComTask", comWaypointList, trajType, comTermStrategy);
 
     if (usingComTask) {
         comTrajThread = std::make_shared<ocra_recipes::TrajectoryThread>(10, "ComTask", comWaypointList, trajType, comTermStrategy);
@@ -169,9 +172,57 @@ bool ReachClient::initialize()
     rightHandTask = std::make_shared<ocra_recipes::TaskConnection>("RightHandCartesian");
     comTask = std::make_shared<ocra_recipes::TaskConnection>("ComTask");
 
+
     initialRightHandState = rightHandTask->getDesiredTaskState();
     initialComState = comTask->getDesiredTaskState();
+
+    getComBounds();
     return true;
+}
+
+void ReachClient::getComBounds()
+{
+    // <task name="LeftFootContact_BackLeft" type="PointContact">
+    // <offset x="-0.02" y="-0.02" z="0.0" qw="0.0" qx="0.707107" qy="0.707107" qz="0.0" />
+    //
+    // <task name="LeftFootContact_FrontLeft" type="PointContact">
+    // <offset x=" 0.06" y="-0.02" z="0.0" qw="0.0" qx="0.707107" qy="0.707107" qz="0.0" />
+
+    Eigen::Vector3d l_sole_center =  model->getSegmentPosition("l_sole").getTranslation();
+
+    Eigen::Vector3d l_sole_FrontLeft = l_sole_center + Eigen::Vector3d(0.06, -0.02, 0.0);
+    Eigen::Vector3d l_sole_BackLeft = l_sole_center + Eigen::Vector3d(-0.02, -0.02, 0.0);
+
+    // <task name="RightFootContact_BackRight" type="PointContact">
+    // <offset x="-0.02" y=" 0.02" z="0.0" qw="0.0" qx="-0.707107" qy="-0.707107" qz="0.0" />
+    //
+    // <task name="RightFootContact_FrontRight" type="PointContact">
+    // <offset x=" 0.06" y=" 0.02" z="0.0" qw="0.0" qx="-0.707107" qy="-0.707107" qz="0.0" />
+
+    Eigen::Vector3d r_sole_center =  model->getSegmentPosition("r_sole").getTranslation();
+
+    Eigen::Vector3d r_sole_FrontRight = r_sole_center + Eigen::Vector3d(0.06, 0.02, 0.0);
+    Eigen::Vector3d r_sole_BackRight = r_sole_center + Eigen::Vector3d(-0.02, 0.02, 0.0);
+
+    double x_min = std::fmax(r_sole_BackRight(0), l_sole_BackLeft(0));
+    double x_max = std::fmin(r_sole_FrontRight(0), l_sole_FrontLeft(0));
+
+    double y_min = std::fmax(r_sole_BackRight(1), r_sole_FrontRight(1));
+    double y_max = std::fmin(l_sole_BackLeft(1), l_sole_FrontLeft(1));
+
+    double z_min = 0.38; //0.3 --> absolute min, but unstable.
+    double z_max = 0.52;
+
+    std::cout << "===================================" << std::endl;
+    std::cout << "CoM Bounds:" << std::endl;
+    std::cout << x_min << " <= x <= " << x_max << std::endl;
+    std::cout << y_min << " <= y <= " << y_max << std::endl;
+    std::cout << z_min << " <= z <= " << z_max << std::endl;
+    std::cout << "===================================" << std::endl;
+
+    comBoundsFile << x_min << " " << x_max << "\n";
+    comBoundsFile << y_min << " " << y_max << "\n";
+    comBoundsFile << z_min << " " << z_max;
 }
 
 void ReachClient::release()

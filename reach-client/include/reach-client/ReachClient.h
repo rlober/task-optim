@@ -32,6 +32,7 @@ private:
     void closeDataFiles();
     void writeWaypointsToFile();
     void setLoopTimeLimit();
+    void getComBounds();
 
 
 
@@ -50,6 +51,7 @@ private:
     std::string timelineFilePath;
     std::string comExpectedDurationFilePath;
     std::string rightHandExpectedDurationFilePath;
+    std::string comBoundsFilePath;
 
     std::ofstream rightHandPositionRealFile;
     std::ofstream rightHandPositionRefFile;
@@ -61,6 +63,7 @@ private:
     std::ofstream timelineFile;
     std::ofstream comExpectedDurationFile;
     std::ofstream rightHandExpectedDurationFile;
+    std::ofstream comBoundsFile;
 
     // Waypoint lists
     std::list<Eigen::VectorXd> rightHandWaypointList;
@@ -92,6 +95,7 @@ private:
     ocra_recipes::TERMINATION_STRATEGY comTermStrategy;
     bool returningHome;
     bool usingComTask;
+
     ocra::TaskState initialRightHandState;
     ocra::TaskState initialComState;
 
