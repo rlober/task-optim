@@ -154,17 +154,18 @@ class ReachingWithBalance(BaseTask):
         return observed_cost
 
     def extractTaskWaypointsFromSolutionVector(self, x):
-        i = 0
-        waypoint_list = []
-        for t in self.task_data:
-            j = i + t.nDof() * t.nMiddleWaypoints()
-            wpts = x[i:j].reshape((t.nMiddleWaypoints(),t.nDof()))
-            wpts = np.vstack((wpts, t.goal()))
-            waypoint_list.append(wpts)
-            i=j
+        # i = 0
+        # waypoint_list = []
+        # for t in self.task_data:
+        #     j = i + t.nDof() * t.nMiddleWaypoints()
+        #     wpts = x[i:j].reshape((t.nMiddleWaypoints(),t.nDof()))
+        #     wpts = np.vstack((wpts, t.goal()))
+        #     waypoint_list.append(wpts)
+        #     i=j
 
-        self.com_waypoints = waypoint_list[0]
-        self.right_hand_waypoints = waypoint_list[1]
+        # self.com_waypoints = waypoint_list[0]
+        # self.right_hand_waypoints = waypoint_list[1]
+        self.com_waypoints = np.array([x])
 
     def calculateTotalCost(self):
         j_tracking = 0.0
@@ -187,10 +188,11 @@ class ReachingWithBalance(BaseTask):
         return np.array([[j_total]])
 
     def getInitialX(self):
-        X = np.array([])
-        for t in self.task_data:
-            X = np.hstack( (X, t.middleWaypointsFlattened()) )
-        return np.array([X])
+        # X = np.array([])
+        # for t in self.task_data:
+        #     X = np.hstack( (X, t.middleWaypointsFlattened()) )
+        # return np.array([X])
+        return np.array([self.task_data[0].goal()])
 
     def visualize(self):
         pass
