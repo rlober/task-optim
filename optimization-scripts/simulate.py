@@ -20,7 +20,7 @@ def killProcesses():
 
     return total_killed
 
-def simulate(pathToRightHandWptFile, pathToComWptFile, savePath=None, verbose=False, visual=False):
+def simulate(pathToRightHandWptFile, pathToComWptFile, savePath=None, verbose=False, visual=False, askUserForReplay=False, goToHome=False):
 
 
     replay = True
@@ -53,7 +53,8 @@ def simulate(pathToRightHandWptFile, pathToComWptFile, savePath=None, verbose=Fa
         time.sleep(4)
 
 
-        args1 = "ocra-icub-server --floatingBase --controllerType HOCRA --solver QPOASES --taskSet " + taskSetPath + " --absolutePath"
+        # args1 = "ocra-icub-server --floatingBase --controllerType HOCRA --solver QPOASES --taskSet " + taskSetPath + " --absolutePath"
+        args1 = "ocra-icub-server --floatingBase --taskSet " + taskSetPath + " --absolutePath --useOdometry"
         args = shlex.split(args1)
         if verbose:
             print('-- Launching ocra-icub-server with args: ', args)
@@ -67,6 +68,10 @@ def simulate(pathToRightHandWptFile, pathToComWptFile, savePath=None, verbose=Fa
             save_args = ""
 
         args1 = "reach-client --rightHandWptFile "+pathToRightHandWptFile+" --comWptFile " + pathToComWptFile + save_args
+
+        if goToHome:
+            args1 += " --home"
+
         args = shlex.split(args1)
         if verbose:
             print('-- Launching reach-client with args: ', args)
@@ -80,7 +85,7 @@ def simulate(pathToRightHandWptFile, pathToComWptFile, savePath=None, verbose=Fa
 
         #### REPLAY STUFF ####
 
-        if visual:
+        if visual and askUserForReplay:
             user_input = input("Replay simulation? [y/n] (y): ")
             if user_input == "" or user_input == "y" or user_input == "Y":
                 replay = True
