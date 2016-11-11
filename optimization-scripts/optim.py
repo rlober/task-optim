@@ -34,63 +34,65 @@ class ReachingWithBalance(BaseTask):
 
 
 
-        self.setBounds()
+        # if visualize:
+        #     self.visualize()
+        # else:
+        self.optimization_iteration = 0
+        self.iterateSimulation()
+        self.X_init = self.getInitialX()
+        self.Y_init = self.calculateTotalCost()
+
+        print("X_init: ", self.X_init)
+        print("Y_init: ", self.Y_init)
+        self.X_init_original = self.X_init
+        self.Y_init_original = self.Y_init
+
+        # self.setBounds()
+        self.X_lower = self.task_data[0].lower_bounds
+        self.X_upper = self.task_data[0].upper_bounds
         print("Lower bounds: ", self.X_lower)
         print("Upper bounds: ", self.X_upper)
 
         self.X_lower_original = self.X_lower
         self.X_upper_original = self.X_upper
 
-        if visualize:
-            self.visualize()
-        else:
-            self.optimization_iteration = 0
-            self.iterateSimulation()
-            self.X_init = self.getInitialX()
-            self.Y_init = self.calculateTotalCost()
-
-            print("X_init: ", self.X_init)
-            print("Y_init: ", self.Y_init)
-            self.X_init_original = self.X_init
-            self.Y_init_original = self.Y_init
-
         super(ReachingWithBalance, self).__init__(self.X_lower, self.X_upper)
 
-    def setBounds(self):
-        right_hand_bounds_x_lower = 0.0
-        right_hand_bounds_x_upper = 0.5
-        right_hand_bounds_y_lower = -0.8
-        right_hand_bounds_y_upper = 0.5
-        right_hand_bounds_z_lower = 0.0
-        right_hand_bounds_z_upper = 0.8
-
-        right_hand_bounds_lower = [right_hand_bounds_x_lower, right_hand_bounds_y_lower, right_hand_bounds_z_lower]
-        right_hand_bounds_upper = [right_hand_bounds_x_upper, right_hand_bounds_y_upper, right_hand_bounds_z_upper]
-
-        com_bounds_x_lower = -0.02
-        com_bounds_x_upper = 0.06
-        com_bounds_y_lower = -0.2
-        com_bounds_y_upper = 0.2
-        com_bounds_z_lower = 0.2
-        com_bounds_z_upper = 0.6
-
-        com_bounds_lower = [com_bounds_x_lower, com_bounds_y_lower, com_bounds_z_lower]
-        com_bounds_upper = [com_bounds_x_upper, com_bounds_y_upper, com_bounds_z_upper]
-
-        task_bounds_lower = [com_bounds_lower, right_hand_bounds_lower]
-        task_bounds_upper = [com_bounds_upper, right_hand_bounds_upper]
-
-        lower_bounds = []
-        upper_bounds = []
-        for t, l_bnds, u_bnds in zip(self.task_data, task_bounds_lower, task_bounds_upper):
-            lower_bounds += l_bnds * t.nMiddleWaypoints()
-            upper_bounds += u_bnds * t.nMiddleWaypoints()
-
-        for lb, ub in zip(lower_bounds, upper_bounds):
-            if lb >= ub:
-                print("\n\n\n\n\n\n ERROR: your bounds are contradictory (lb>=ub):", lb, ">=", ub)
-        self.X_lower = np.array(lower_bounds)
-        self.X_upper = np.array(upper_bounds)
+    # def setBounds(self):
+    #     right_hand_bounds_x_lower = 0.0
+    #     right_hand_bounds_x_upper = 0.5
+    #     right_hand_bounds_y_lower = -0.8
+    #     right_hand_bounds_y_upper = 0.5
+    #     right_hand_bounds_z_lower = 0.0
+    #     right_hand_bounds_z_upper = 0.8
+    #
+    #     right_hand_bounds_lower = [right_hand_bounds_x_lower, right_hand_bounds_y_lower, right_hand_bounds_z_lower]
+    #     right_hand_bounds_upper = [right_hand_bounds_x_upper, right_hand_bounds_y_upper, right_hand_bounds_z_upper]
+    #
+    #     com_bounds_x_lower = -0.02
+    #     com_bounds_x_upper = 0.06
+    #     com_bounds_y_lower = -0.2
+    #     com_bounds_y_upper = 0.2
+    #     com_bounds_z_lower = 0.2
+    #     com_bounds_z_upper = 0.6
+    #
+    #     com_bounds_lower = [com_bounds_x_lower, com_bounds_y_lower, com_bounds_z_lower]
+    #     com_bounds_upper = [com_bounds_x_upper, com_bounds_y_upper, com_bounds_z_upper]
+    #
+    #     task_bounds_lower = [com_bounds_lower, right_hand_bounds_lower]
+    #     task_bounds_upper = [com_bounds_upper, right_hand_bounds_upper]
+    #
+    #     lower_bounds = []
+    #     upper_bounds = []
+    #     for t, l_bnds, u_bnds in zip(self.task_data, task_bounds_lower, task_bounds_upper):
+    #         lower_bounds += l_bnds * t.nMiddleWaypoints()
+    #         upper_bounds += u_bnds * t.nMiddleWaypoints()
+    #
+    #     for lb, ub in zip(lower_bounds, upper_bounds):
+    #         if lb >= ub:
+    #             print("\n\n\n\n\n\n ERROR: your bounds are contradictory (lb>=ub):", lb, ">=", ub)
+    #     self.X_lower = np.array(lower_bounds)
+    #     self.X_upper = np.array(upper_bounds)
 
 
     def createTrialDir(self):
@@ -184,6 +186,7 @@ class ReachingWithBalance(BaseTask):
         return np.array([X])
 
     def visualize(self):
+        pass
 
 
 
