@@ -158,6 +158,8 @@ bool ReachClient::initialize()
     rightHandTask = std::make_shared<ocra_recipes::TaskConnection>("RightHandCartesian");
     comTask = std::make_shared<ocra_recipes::TaskConnection>("ComTask");
 
+    initialRightHandState = rightHandTask->getDesiredTaskState();
+    initialComState = comTask->getDesiredTaskState();
     return true;
 }
 
@@ -170,6 +172,8 @@ void ReachClient::release()
     }
     if(rightHandTrajThread){rightHandTrajThread->stop();}
     if(comTrajThread){comTrajThread->stop();}
+    rightHandTask->setDesiredTaskState(initialRightHandState);
+    comTask->setDesiredTaskState(initialComState);
 }
 
 void ReachClient::loop()
