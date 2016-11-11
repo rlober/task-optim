@@ -8,7 +8,7 @@
 
 <task name="RightHandCartesian" type="Cartesian">
     <segment>r_hand</segment>
-    <params kp="40.0" weight="0.01" axes="XYZ" />
+    <params kp="40.0" weight="0.001" axes="XYZ" />
     <offset  x="0.05" y="0.0" z="0.0" />
 </task>
 
@@ -16,8 +16,8 @@
 <!-- Balance assisting tasks -->
 
 <task name="FullPosture" type="FullPosture">
-   <params kp="5.0" kd="4.5" weight="0.0001" />
-   <joints>
+   <params kp="1.0" weight="0.0001" />
+   <!-- <joints>
        <joint name="l_hip_pitch"    weight="0.0004"/>
        <joint name="l_hip_roll"     weight="0.1"/>
        <joint name="l_hip_yaw"      weight="0.1"/>
@@ -33,7 +33,7 @@
        <joint name="torso_yaw"      weight="0.001"/>
        <joint name="r_elbow"        weight="0.00001"/>
        <joint name="l_elbow"        weight="0.00001"/>
-   </joints>
+   </joints> -->
 </task>
 
 <task name="TorsoCartesianTask" type="Cartesian">
