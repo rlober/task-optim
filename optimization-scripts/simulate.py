@@ -4,6 +4,7 @@ import shlex
 import os
 
 rootPath = os.path.expanduser("~")
+rootPath += "/Code"
 
 def killProcesses():
     proc_list = ["yarpserver", "gzserver", "gzclient", "ocra-icub-server", "reach-client"]
@@ -37,7 +38,7 @@ def simulate(pathToRightHandWptFile, pathToComWptFile, savePath=None, verbose=Fa
             print('Starting script...')
         if verbose:
             print('-- Launching yarpserver')
-        yarp = subprocess.Popen(["yarpserver"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        yarp = subprocess.Popen(["yarpserver", "--write"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         time.sleep(1)
 
         if verbose:
