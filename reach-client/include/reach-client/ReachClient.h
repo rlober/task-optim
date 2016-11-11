@@ -91,6 +91,7 @@ private:
     ocra_recipes::TERMINATION_STRATEGY rightHandTermStrategy;
     ocra_recipes::TERMINATION_STRATEGY comTermStrategy;
     bool returningHome;
+    bool usingComTask;
     ocra::TaskState initialRightHandState;
     ocra::TaskState initialComState;
 

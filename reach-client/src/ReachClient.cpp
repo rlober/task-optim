@@ -6,6 +6,7 @@ ReachClient::ReachClient(std::shared_ptr<ocra::Model> modelPtr, const int loopPe
 , logData(false)
 , goToHomeOnRelease(false)
 , returningHome(false)
+, usingComTask(true)
 {
 
 }
@@ -91,6 +92,13 @@ bool ReachClient::configure(yarp::os::ResourceFinder &rf)
         if (rf.check("home")) {
             goToHomeOnRelease = true;
         }
+
+        if (rf.check("noCom")) {
+            usingComTask = false;
+        }
+
+
+
         if (ok) {
             rightHandGoalPosition = *rightHandWaypointList.rbegin();
             comGoalPosition = *comWaypointList.rbegin();
@@ -155,6 +163,9 @@ bool ReachClient::initialize()
 
     comTrajThread = std::make_shared<ocra_recipes::TrajectoryThread>(10, "ComTask", comWaypointList, trajType, comTermStrategy);
 
+    if (usingComTask) {
+        comTrajThread = std::make_shared<ocra_recipes::TrajectoryThread>(10, "ComTask", comWaypointList, trajType, comTermStrategy);
+    }
     rightHandTask = std::make_shared<ocra_recipes::TaskConnection>("RightHandCartesian");
     comTask = std::make_shared<ocra_recipes::TaskConnection>("ComTask");
 
@@ -171,7 +182,9 @@ void ReachClient::release()
         closeDataFiles();
     }
     if(rightHandTrajThread){rightHandTrajThread->stop();}
-    if(comTrajThread){comTrajThread->stop();}
+    if (usingComTask) {
+        if(comTrajThread){comTrajThread->stop();}
+    }
     rightHandTask->setDesiredTaskState(initialRightHandState);
     comTask->setDesiredTaskState(initialComState);
 }
@@ -179,7 +192,9 @@ void ReachClient::release()
 void ReachClient::loop()
 {
     if (trigger) {
-        comTrajThread->start();
+        if (usingComTask) {
+            comTrajThread->start();
+        }
         rightHandTrajThread->start();
         startTime = yarp::os::Time::now();
         setLoopTimeLimit();
@@ -194,6 +209,7 @@ void ReachClient::loop()
         } else if (returningHome) {
             stop();
         } else {
+            std::cout << "Attained Goal. Returning to home position." << std::endl;
             returningHome = true;
         }
     }
@@ -202,6 +218,15 @@ void ReachClient::loop()
         if (!goToHomeOnRelease) {
             std::cout << "Loop time limit exceeded. Stopping." << std::endl;
             stop();
+        } else {
+            if (!returningHome) {
+                std::cout << "Loop time limit exceeded. Returning to home position." << std::endl;
+                rightHandTrajThread->returnToHome();
+                if (usingComTask) {
+                    comTrajThread->returnToHome();
+                }
+                returningHome = true;
+            }
         }
     }
 
@@ -223,8 +248,10 @@ void ReachClient::logClientData()
 
 void ReachClient::writeWaypointsToFile()
 {
-    for (auto w : comTrajThread->getWaypointList()) {
-        comWaypointsFile << w.transpose() << "\n";
+    if (usingComTask) {
+        for (auto w : comTrajThread->getWaypointList()) {
+            comWaypointsFile << w.transpose() << "\n";
+        }
     }
     for (auto w : rightHandTrajThread->getWaypointList()) {
         rightHandWaypointsFile << w.transpose() << "\n";
@@ -233,11 +260,15 @@ void ReachClient::writeWaypointsToFile()
 
 void ReachClient::setLoopTimeLimit()
 {
-    double comExpectedDuration = comTrajThread->getDuration();
     double rightHandExpectedDuration = rightHandTrajThread->getDuration();
-    comExpectedDurationFile << comExpectedDuration;
     rightHandExpectedDurationFile << rightHandExpectedDuration;
 
-    // Make time limit 3x the longest traj.
-    LOOP_TIME_LIMIT = std::fmax(comExpectedDuration, rightHandExpectedDuration)*3.0;
+    if (usingComTask) {
+        double comExpectedDuration = comTrajThread->getDuration();
+        comExpectedDurationFile << comExpectedDuration;
+        // Make time limit 3x the longest traj.
+        LOOP_TIME_LIMIT = std::fmax(comExpectedDuration, rightHandExpectedDuration)*3.0;
+    } else {
+        LOOP_TIME_LIMIT = rightHandExpectedDuration*3.0;
+    }
 }
