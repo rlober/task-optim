@@ -156,7 +156,7 @@ bool ReachClient::initialize()
         rightHandTermStrategy = ocra_recipes::TERMINATION_STRATEGY::REVERSE_STOP;
         comTermStrategy = ocra_recipes::TERMINATION_STRATEGY::NONE;
     } else {
-        rightHandTermStrategy = ocra_recipes::TERMINATION_STRATEGY::STOP_THREAD_DEACTIVATE;
+        rightHandTermStrategy = ocra_recipes::TERMINATION_STRATEGY::WAIT;
         comTermStrategy = ocra_recipes::TERMINATION_STRATEGY::NONE;
     }
 
