@@ -313,13 +313,13 @@ void ReachClient::setLoopTimeLimit()
 {
     double rightHandExpectedDuration = rightHandTrajThread->getDuration();
     rightHandExpectedDurationFile << rightHandExpectedDuration;
-
+    double limitFactor = 2.5;
     if (usingComTask) {
         double comExpectedDuration = comTrajThread->getDuration();
         comExpectedDurationFile << comExpectedDuration;
         // Make time limit 3x the longest traj.
-        LOOP_TIME_LIMIT = std::fmax(comExpectedDuration, rightHandExpectedDuration)*3.0;
+        LOOP_TIME_LIMIT = std::fmax(comExpectedDuration, rightHandExpectedDuration)*limitFactor;
     } else {
-        LOOP_TIME_LIMIT = rightHandExpectedDuration*3.0;
+        LOOP_TIME_LIMIT = rightHandExpectedDuration*limitFactor;
     }
 }
