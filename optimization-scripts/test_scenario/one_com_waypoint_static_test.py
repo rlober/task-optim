@@ -11,6 +11,8 @@ class OneComWaypointStaticTest(base_test.BaseTest):
 
     def extractTaskWaypointsFromSolutionVector(self, x):
         self.com_waypoints = np.array([x])
+        print("New parameters to test:\nCOM [x, y, z]\n", self.com_waypoints)
+
 
     def setBounds(self):
         self.X_lower = self.task_data[0].lower_bounds
