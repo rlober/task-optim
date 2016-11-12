@@ -1,7 +1,5 @@
-from ..utils import files
-from files import *
-from ..sim_tools import simulate
-from simulate import *
+from ..utils.files import *
+from ..sim_tools.simulate import *
 import os
 from robo.task.base_task import BaseTask
 import numpy as np
@@ -56,7 +54,7 @@ class BaseTest(BaseTask):
     These methods are generic to any test.
     """
     def createTrialDir(self):
-        self.trial_dir_name = self.__class__.__name__ + getDateAndTimeString()
+        self.trial_dir_name = self.__class__.__name__ + "_" + getDateAndTimeString()
         self.trial_dir_path = self.root_path + self.trial_dir_name + "/"
         os.makedirs(self.trial_dir_path)
 

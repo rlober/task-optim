@@ -1,5 +1,6 @@
 from .base_solver import BaseSolver
-
+import numpy as np
+import GPy
 from robo.models.gpy_model import GPyModel
 from robo.acquisition.lcb import LCB
 from robo.acquisition.ei import EI
@@ -16,7 +17,7 @@ class RoboSolver(BaseSolver):
     """docstring for RoboSolver."""
     def __init__(self, test, solver_parameters):
         assert(solver_parameters['max_iter'] != None)
-        super(RoboSolver, self, test, solver_parameters).__init__()
+        super(RoboSolver, self).__init__(test, solver_parameters)
 
     def initializeSolver(self):
         # self.kernel = GPy.kern.Matern52(input_dim=self.test.n_dims)
@@ -44,11 +45,16 @@ class RoboSolver(BaseSolver):
         X_new = self.test.retransform(next_solution_to_test)
         # test X_new
         Y_new = self.test.objective_function(X_new)
-        # scale the cost wrt the original cost and re-multiply by -1
-        Y_new = -1.0 * ( Y_new / self.test.Y_init )
+        # scale the cost wrt the original cost
+        Y_new = ( Y_new / self.test.Y_init )
 
         self.X = np.vstack((self.X, X_new))
         self.Y = np.vstack((self.Y, Y_new))
 
     def solverFinished(self):
-        return (self.test.optimization_iteration <= self.solver_parameters['max_iter'])
+        if (self.test.optimization_iteration <= self.solver_parameters['max_iter']):
+            return False
+
+        else:
+            print("Maximum number of iterations exceeded. Stopping optimization.")
+            return True

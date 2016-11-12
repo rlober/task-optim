@@ -1,7 +1,7 @@
 import numpy as np
 import os
 from datetime import datetime
-from data import *
+from .data import *
 
 def verifyCanonicalPath(path):
     newPath = os.path.normpath(path)

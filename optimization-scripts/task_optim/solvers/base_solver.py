@@ -27,23 +27,26 @@ class BaseSolver(object):
             self.printObservationInfo()
             self.updateSolver()
 
-    def returnSolution(self):
-        opt_row, opt_col = np.unravel_index(np.argmax(self.Y), np.shape(self.Y))
+    def returnSolution(self, show_simulation=False):
+        opt_row, opt_col = np.unravel_index(np.argmin(self.Y), np.shape(self.Y))
         self.optimal_params = self.X[[opt_row], :].copy()
         #  Correct for maximization
-        self.optimal_cost = self.test.Y_init*Y[[opt_row], :].copy()
+        self.optimal_cost = self.test.Y_init*self.Y[[opt_row], :].copy()
         self.original_cost = self.test.Y_init*self.original_cost
-        print("\n\n==================================================")
-        print("\t\t\tOptimization Complete!")
-        print("==================================================")
-        print("Total number of iterations:", self.test.optimization_iteration)
+        print("\n\n==============================================")
+        print("\tOptimization Complete!")
+        print("==============================================")
+        print("Total number of iterations:", self.test.optimization_iteration-1)
         print("Best solution taken from iteration:", opt_row)
         print("Optimal Parameters:\n", self.optimal_params)
         print("Orignal Cost:", self.original_cost, "Optimal Cost:", self.optimal_cost)
-        print("Testing optimal solution...")
-        self.observed_optimal_cost = self.test.playOptimalSolution(self.optimal_params)
-        print("Cost observed after test:", self.observed_optimal_cost)
-        print("==================================================\n")
+        if show_simulation:
+            print("Testing optimal solution...\n")
+            print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+            self.observed_optimal_cost = self.test.playOptimalSolution(self.optimal_params)
+            print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+            print("\nCost observed after test:", self.observed_optimal_cost)
+        print("==============================================\n")
 
     def printObservationInfo(self):
         print("\n\nStarting iteration: ", self.test.optimization_iteration)
