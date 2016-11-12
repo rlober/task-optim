@@ -15,4 +15,4 @@ robo_task = ReachingWithBalance(root_path, right_hand_starting_waypoints, com_st
 st = "RoBO"
 # st = "BayesOpt"
 # st = "cmaes"
-runOptimization(robo_task, max_iter=10, solver_type=st, cost_saturation=1000.0)
+runOptimization(robo_task, max_iter=3, solver_type=st, cost_saturation=1000.0)
