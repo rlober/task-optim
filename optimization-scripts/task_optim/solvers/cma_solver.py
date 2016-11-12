@@ -1,37 +1,68 @@
-# import cma
-# import numpy as np
-#
-#
-# # def runOptimization(robo_task, max_iter=20, solver_type="RoBO", cost_saturation=2.0):
-#     optimal_params = []
-#     optimal_cost = []
-#     original_cost = []
-#
-#     optimization_converged = False
-#
-#
-#     X1 = robo_task.X_init_original
-#     Y1 = robo_task.Y_init_original
-#     X_lowerBound = robo_task.X_lower_original
-#     X_upperBound = robo_task.X_upper_original
-#
-#     X_range = X_upperBound - X_lowerBound
-#     X1_norm = (X1 - X_lowerBound)/X_range
-#     cmaes_solver = cma.CMAEvolutionStrategy((X), 0.5)
-#
-#     while not cmaes_solver.stop() and (robo_task.optimization_iteration <= max_iter):
-#         solutions = cmaes_solver.ask()
-#         costs = []
-#         for s in solutions:
-#             cost = robo_task.objective_function(np.array(s))
-#             cost_norm = cost/Y1
-#             cost_norm = np.where((y_norm>cost_saturation), cost_saturation, y_norm)
-#             costs.append(cost_norm)
-#
-#         cmaes_solver.tell(solutions, costs)
-#         cmaes_solver.logger.add()  # write data to disc to be plotted
-#         cmaes_solver.disp()
-#
-#     cmaes_solver.result_pretty()
-#     cma.plot()  # shortcut for cmaes_solver.logger.plot()
-    # plt.show(block=True)
+from .base_solver import BaseSolver
+import cma
+import numpy as np
+
+class CmaSolver(BaseSolver):
+    """docstring for CmaSolver."""
+    def __init__(self, test, solver_parameters):
+        assert('max_iter' in solver_parameters)
+        super(CmaSolver, self).__init__(test, solver_parameters)
+
+    def testSolution(self, s):
+        next_solution_to_test = np.array(s)
+        # The provided solution is scaled bectween 0-1 so we retransform it back to physical coordinates
+        X_new = self.test.retransform(next_solution_to_test)
+        # test X_new
+        Y_new = self.test.objective_function(X_new)
+        # scale the cost wrt the original cost
+        Y_new = ( Y_new / self.test.Y_init )
+
+        self.X = np.vstack((self.X, X_new))
+        self.Y = np.vstack((self.Y, Y_new))
+
+        return Y_new.flatten()[0]
+
+    def initializeSolver(self):
+        if 'initial_sigma' in self.solver_parameters:
+            if self.solver_parameters['initial_sigma'] > 0.0:
+                self.initial_sigma = self.solver_parameters['initial_sigma']
+            else:
+                self.initial_sigma = 0.5
+
+        else:
+            self.initial_sigma = 0.5
+        # Construct CMAES solver
+        X = self.test.transform(self.X)
+        self.cmaes_solver = cma.CMAEvolutionStrategy(X.flatten().tolist(), self.initial_sigma, {'bounds': [0, 1]})
+
+    def updateSolver(self):
+        solutions = self.cmaes_solver.ask()
+        costs = []
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        print("Testing new solution batch")
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        for i, s in enumerate(solutions):
+            print("\n--> Testing solution " + str(i) + " of "+str(len(solutions))+"\n")
+            costs.append(self.testSolution(s))
+
+        self.cmaes_solver.tell(solutions, costs)
+        # self.cmaes_solver.logger.add()
+        self.cmaes_solver.disp()
+
+
+    def solverFinished(self):
+        if not self.cmaes_solver.stop() and (self.test.optimization_iteration <= self.solver_parameters['max_iter']):
+            return False
+
+        else:
+            if self.test.optimization_iteration > self.solver_parameters['max_iter']:
+                print("Maximum number of iterations exceeded. Stopping optimization.")
+            else:
+                print("CMA-ES Solver has converged. Stopping optimization.")
+
+            print("\nOptimization complete - testing best incumbent solution...")
+            best_x = self.cmaes_solver.result()[0]
+            self.testSolution(best_x)
+            print("Finished.")
+
+            return True

@@ -75,8 +75,8 @@ class BaseTest(BaseTask):
 
         np.savetxt(self.right_hand_waypoint_file_path, self.right_hand_waypoints)
         np.savetxt(self.com_waypoint_file_path, self.com_waypoints)
-        print("Saving com waypoints\n", self.com_waypoints, "\n to: ", self.com_waypoint_file_path)
-        print("Saving right hand waypoints\n", self.right_hand_waypoints, "\n to: ", self.right_hand_waypoint_file_path)
+        # print("Saving com waypoints\n", self.com_waypoints, "\n to: ", self.com_waypoint_file_path)
+        # print("Saving right hand waypoints\n", self.right_hand_waypoints, "\n to: ", self.right_hand_waypoint_file_path)
 
     def iterateSimulation(self):
         print("Simulating new parameters...")
