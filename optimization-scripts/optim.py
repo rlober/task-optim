@@ -234,13 +234,18 @@ def runOptimization(robo_task, max_iter=20, solver_type="RoBO", cost_saturation=
         Y = -1.0 * (robo_task.Y_init / robo_task.Y_init)
         original_cost = Y.copy()
         while (robo_task.optimization_iteration <= max_iter) and not optimization_converged:
-            print("\n\nIteration: ", robo_task.optimization_iteration)
-            print("------\tObservations\t-------")
-            print("[parameters] --> [cost]")
+            print("\n\nStarting iteration: ", robo_task.optimization_iteration)
+            print("------------------\tCurrent Observations\t-------------------")
+            print("\t\t\t\t[parameters] --> [cost]")
             np.set_printoptions(precision=3)
+            i = 0
             for p,c in zip(X,Y):
-                print(p," --> ", c)
-            print("-----------------------------")
+                if i == np.argmax(Y):
+                    print("iteration:", str(i).zfill(3), "\t", p," --> ", c, " << current best")
+                else:
+                    print("iteration:", str(i).zfill(3), "\t", p," --> ", c)
+                i+=1
+            print("---------------------------------------------------------------------")
             X_new = robo_task.retransform(solver.choose_next(X, Y))
             print("New parameters to test:\nCOM [x, y, z]\n", X_new)#.reshape(4,3)[0:2,:])
             # print("Right Hand [x, y, z]\n", X_new.reshape(4,3)[2:,:])
