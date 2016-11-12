@@ -41,9 +41,9 @@ class RoboSolver(BaseSolver):
             if (self.solver_parameters['par'] > 0.0):
                 self.par = self.solver_parameters['par']
             else:
-                self.par = 0.1
+                self.par = 0.01
         else:
-            self.par = 0.1
+            self.par = 0.01
 
         if 'acquisition' in self.solver_parameters:
 
