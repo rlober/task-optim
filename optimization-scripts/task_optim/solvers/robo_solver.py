@@ -19,22 +19,82 @@ class RoboSolver(BaseSolver):
         assert(solver_parameters['max_iter'] != None)
         super(RoboSolver, self).__init__(test, solver_parameters)
 
-    def initializeSolver(self):
-        # self.kernel = GPy.kern.Matern52(input_dim=self.test.n_dims)
-        self.kernel = GPy.kern.RBF(input_dim=self.test.n_dims)
+    def setKernel(self):
+        if 'kernel' in self.solver_parameters:
+            if self.solver_parameters['kernel'] == 'Matern52':
+                self.kernel = GPy.kern.Matern52(input_dim=self.test.n_dims)
+            elif self.solver_parameters['kernel'] == 'RBF':
+                self.kernel = GPy.kern.RBF(input_dim=self.test.n_dims)
+            else:
+                self.kernel = GPy.kern.RBF(input_dim=self.test.n_dims)
+        else:
+            self.kernel = GPy.kern.RBF(input_dim=self.test.n_dims)
+
+    def setModel(self):
         self.model = GPyModel(self.kernel)
 
-        self.acquisition = LCB(self.model, X_upper=self.test.X_upper, X_lower=self.test.X_lower, par=0.01)
-        # self.acquisition = EI(self.model, X_upper=self.test.X_upper, X_lower=self.test.X_lower, par=0.1)
 
-        self.maximizer = CMAES(self.acquisition, self.test.X_lower, self.test.X_upper)
-        # self.maximizer = SciPyOptimizer(self.acquisition, self.test.X_lower, self.test.X_upper)
-        # self.maximizer = GradientAscent(self.acquisition, self.test.X_lower, self.test.X_upper)
+    def setAcquisitionFunction(self):
+        # Set par factor
+        if 'par' in self.solver_parameters:
 
+            if (self.solver_parameters['par'] > 0.0):
+                self.par = self.solver_parameters['par']
+            else:
+                self.par = 0.1
+        else:
+            self.par = 0.1
+
+        if 'acquisition' in self.solver_parameters:
+
+            if self.solver_parameters['acquisition'] == 'EI':
+                self.acquisition = EI(self.model, X_upper=self.test.X_upper, X_lower=self.test.X_lower, par=self.par)
+            elif self.solver_parameters['acquisition'] == 'LCB':
+                self.acquisition = LCB(self.model, X_upper=self.test.X_upper, X_lower=self.test.X_lower, par=self.par)
+            else:
+                self.acquisition = LCB(self.model, X_upper=self.test.X_upper, X_lower=self.test.X_lower, par=self.par)
+
+        else:
+            self.acquisition = LCB(self.model, X_upper=self.test.X_upper, X_lower=self.test.X_lower, par=self.par)
+
+
+    def setMaximizer(self):
+        if 'maximizer' in self.solver_parameters:
+
+            if self.solver_parameters['maximizer'] == 'SciPyOptimizer':
+                pass
+                # self.maximizer = SciPyOptimizer(self.acquisition, self.test.X_lower, self.test.X_upper)
+
+            elif self.solver_parameters['maximizer'] == 'GradientAscent':
+                pass
+                # self.maximizer = GradientAscent(self.acquisition, self.test.X_lower, self.test.X_upper)
+
+            elif self.solver_parameters['maximizer'] == 'CMAES':
+                self.maximizer = CMAES(self.acquisition, self.test.X_lower, self.test.X_upper)
+            else:
+                self.maximizer = CMAES(self.acquisition, self.test.X_lower, self.test.X_upper)
+
+        else:
+            self.maximizer = CMAES(self.acquisition, self.test.X_lower, self.test.X_upper)
+
+    def setBayesianOptimizationSolver(self):
         self.bo = BayesianOptimization(acquisition_func=self.acquisition,
                                   model=self.model,
                                   maximize_func=self.maximizer,
                                   task=self.test)
+
+
+    def initializeSolver(self):
+        # Create kernel
+        self.setKernel()
+        # Create model
+        self.setModel()
+        # Create acquisiton function
+        self.setAcquisitionFunction()
+        # Create maximizer
+        self.setMaximizer()
+        # Construct RoBO Bayesian optimization solver
+        self.setBayesianOptimizationSolver()
 
     def updateSolver(self):
         # Multiply by -1 because we are maximizing with RoBO
