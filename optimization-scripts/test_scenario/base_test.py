@@ -1,5 +1,7 @@
-from ..files import *
-from ..simulate import *
+from ..utils import files
+from files import *
+from ..sim_tools import simulate
+from simulate import *
 import os
 from robo.task.base_task import BaseTask
 import numpy as np
