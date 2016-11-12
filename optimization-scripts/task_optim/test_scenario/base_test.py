@@ -81,14 +81,22 @@ class BaseTest(BaseTask):
     def iterateSimulation(self):
         print("Simulating new parameters...")
         self.createIterationDir()
-        simulate(self.right_hand_waypoint_file_path, self.com_waypoint_file_path, self.iteration_dir_path, verbose=False, visual=False)
-        try:
-            self.task_data = getDataFromFiles(self.iteration_dir_path)
-        except:
-            print("Simulation failed. Re-running.")
-            killProcesses()
-            simulate(self.right_hand_waypoint_file_path, self.com_waypoint_file_path, self.iteration_dir_path, verbose=False, visual=False)
-            self.task_data = getDataFromFiles(self.iteration_dir_path)
+        number_of_trials = 0
+        max_trials = 20
+        while number_of_trials <= max_trials:
+            try:
+                simulate(self.right_hand_waypoint_file_path, self.com_waypoint_file_path, self.iteration_dir_path, verbose=False, visual=False)
+                self.task_data = getDataFromFiles(self.iteration_dir_path)
+                break
+            except:
+                print("Simulation failed. Rerunning. Current number of trials rerun: "+str(number_of_trials))
+                killProcesses()
+                time.sleep(2.0)
+                killProcesses()
+                number_of_trials += 1
+
+        if number_of_trials > max_trials:
+            print("Couldn't get the simulation to work after "+str(max_trials)+". I am giving up.")
 
         self.n_tasks = len(self.task_data)
         self.optimization_iteration += 1
