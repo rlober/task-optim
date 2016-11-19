@@ -5,7 +5,7 @@ from task_optim.solvers.robo_solver import RoboSolver
 from task_optim.solvers.cma_solver import CmaSolver
 
 home_path = os.path.expanduser("~")
-root_path = home_path + "/Optimization_Tests/First_Test/"
+root_path = home_path + "/Optimization_Tests/OneComWaypointStaticTest/"
 
 right_hand_starting_waypoints = np.array([[0.36, -0.23, 0.5]])
 com_starting_waypoints = np.array([[0.015, -0.11, 0.51]])
