@@ -3,8 +3,8 @@ import time
 import shlex
 import os
 
-rootPath = os.path.expanduser("~")
-rootPath += "/Code"
+head, tail = os.path.split(os.path.abspath(__file__))
+rootPath = os.path.abspath(head+"/../../../")
 
 def killProcesses():
     proc_list = ["yarpserver", "gzserver", "gzclient", "ocra-icub-server", "reach-client"]
@@ -26,11 +26,11 @@ def simulate(pathToRightHandWptFile, pathToComWptFile, savePath=None, verbose=Fa
     replay = True
     while replay:
         # Gazebo world file
-        pathToIcubGazeboWorlds = rootPath + "/icub-gazebo/world"
+        pathToIcubGazeboWorlds = rootPath + "/gazebo_worlds"
         icubWorldPath = pathToIcubGazeboWorlds + "/balancing.world"
 
         # Task set path
-        allTaskSets = rootPath + "/bayesian-task-optimization/reaching-task-sets/icubGazeboSim"
+        allTaskSets = rootPath + "/reaching-task-sets/icubGazeboSim"
         taskSetPath = allTaskSets + "/TaskOptimizationTaskSet.xml"
 
 
