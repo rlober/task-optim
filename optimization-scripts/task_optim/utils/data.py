@@ -68,6 +68,15 @@ class TaskData(object):
     def goalPositionErrorSquaredNorm(self):
         return self.goalPositionErrorNorm()**2
 
+    def goalPositionErrorSquaredNormPenalized(self):
+        return self.gamma * self.goalPositionErrorSquaredNorm()
+
+    def torquesNorm(self):
+        return np.linalg.norm(self.torques, ord=2, axis=1)
+
+    def torquesSquaredNorm(self):
+        return self.torquesNorm()**2
+
     def calculateGammaFactors(self):
         return (self.time/self.expectedDuration)**self.beta
 
@@ -75,10 +84,10 @@ class TaskData(object):
         return self.positionErrorSquaredNorm().sum() / self.duration
 
     def goalCost(self):
-        return (self.gamma * self.goalPositionErrorSquaredNorm()).sum()
+        return self.goalPositionErrorSquaredNormPenalized().sum()
 
     def energyCost(self):
-        return (np.linalg.norm(self.torques, ord=2, axis=1)**2).sum() / self.duration * self.energy_scaling_factor
+        return self.torquesSquaredNorm().sum() / self.duration * self.energy_scaling_factor
 
     def toString(self):
         s = "\n========================\n"+self.name+" Task Data:\n========================\n"
