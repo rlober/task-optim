@@ -30,6 +30,11 @@ bool ReachClient::createDataFiles()
     rightHandExpectedDurationFilePath = savePath + "/rightHandExpectedDuration.txt";
     comBoundsFilePath = savePath + "/comBounds.txt";
 
+    rightHandJacobiansFilePath = savePath + "/rightHandJacobians.txt";
+    comJacobiansFilePath = savePath + "/comJacobians.txt";
+    jointPositionsFilePath = savePath + "/jointPositions.txt";
+    jointLimitsFilePath = savePath + "/jointLimits.txt";
+
     rightHandPositionRealFile.open(rightHandPositionRealFilePath);
     rightHandPositionRefFile.open(rightHandPositionRefFilePath);
     comPositionRealFile.open(comPositionRealFilePath);
@@ -41,6 +46,12 @@ bool ReachClient::createDataFiles()
     comExpectedDurationFile.open(comExpectedDurationFilePath);
     rightHandExpectedDurationFile.open(rightHandExpectedDurationFilePath);
     comBoundsFile.open(comBoundsFilePath);
+
+    rightHandJacobiansFile.open(rightHandJacobiansFilePath);
+    comJacobiansFile.open(comJacobiansFilePath);
+    jointPositionsFile.open(jointPositionsFilePath);
+    jointLimitsFile.open(jointLimitsFilePath);
+
 
     bool ok = true;
     ok &= rightHandPositionRealFile.is_open();
@@ -54,6 +65,10 @@ bool ReachClient::createDataFiles()
     ok &= comExpectedDurationFile.is_open();
     ok &= rightHandExpectedDurationFile.is_open();
     ok &= comBoundsFile.is_open();
+    ok &= rightHandJacobiansFile.is_open();
+    ok &= comJacobiansFile.is_open();
+    ok &= jointPositionsFile.is_open();
+    ok &= jointLimitsFile.is_open();
     return ok;
 }
 
@@ -71,6 +86,10 @@ void ReachClient::closeDataFiles()
     comExpectedDurationFile.close();
     rightHandExpectedDurationFile.close();
     comBoundsFile.close();
+    rightHandJacobiansFile.close();
+    comJacobiansFile.close();
+    jointPositionsFile.close();
+    jointLimitsFile.close();
 }
 
 bool ReachClient::configure(yarp::os::ResourceFinder &rf)
@@ -177,6 +196,7 @@ bool ReachClient::initialize()
     initialComState = comTask->getDesiredTaskState();
 
     getComBounds();
+    getJointLimits();
     return true;
 }
 
@@ -223,6 +243,12 @@ void ReachClient::getComBounds()
     comBoundsFile << x_min << " " << x_max << "\n";
     comBoundsFile << y_min << " " << y_max << "\n";
     comBoundsFile << z_min << " " << z_max;
+}
+
+void ReachClient::getJointLimits()
+{
+    jointLimitsFile << model->getJointLowerLimits().transpose() << "\n";
+    jointLimitsFile << model->getJointUpperLimits().transpose() << "\n";
 }
 
 void ReachClient::release()
@@ -295,7 +321,15 @@ void ReachClient::logClientData()
     comPositionRefFile << comTask->getDesiredTaskState().getPosition().getTranslation().transpose() << "\n";
     comPositionRealFile << model->getCoMPosition().transpose() << "\n";
     torquesFile << model->getJointTorques().transpose() << "\n";
+
+    rightHandJacobian = model->getSegmentJacobian("r_hand");
+    comJacobian = model->getCoMJacobian();
+    rightHandJacobiansFile << Eigen::VectorXd( Eigen::Map<Eigen::VectorXd>(rightHandJacobian.data(), rightHandJacobian.rows()*rightHandJacobian.cols()) ).transpose() << "\n";
+    comJacobiansFile << Eigen::VectorXd( Eigen::Map<Eigen::VectorXd>(comJacobian.data(), comJacobian.rows()*comJacobian.cols()) ).transpose() << "\n";
+
+    jointPositionsFile << model->getJointPositions().transpose() << "\n";
 }
+
 
 void ReachClient::writeWaypointsToFile()
 {

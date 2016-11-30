@@ -3,7 +3,7 @@ import numpy as np
 
 class TaskData(object):
     """docstring for TestData"""
-    def __init__(self, time, expectedDuration, real, ref, waypoints, torques, comBounds, name=""):
+    def __init__(self, time, expectedDuration, real, ref, waypoints, torques, comBounds, jacobians, jointPositions, jointLimits, name=""):
         self.name = name
         self.time = time
         self.dt_vector = np.diff(self.time)
@@ -18,6 +18,22 @@ class TaskData(object):
         self.comBounds = comBounds
         self.lower_bounds = self.comBounds[:,0]
         self.upper_bounds = self.comBounds[:,1]
+
+        if self.name is "CoM":
+            nRows = 3
+        else:
+            nRows = 6
+
+        nCols = int(np.size(jacobians[0]) / nRows)
+        print('jacobians have', nRows, 'rows and', nCols, 'columns.')
+        self.jacobians = []
+        for j in jacobians:
+            self.jacobians.append(j.reshape((nRows, nCols)))
+
+
+        self.jointPositions = jointPositions
+        self.lower_joint_limits = jointLimits[0,:]
+        self.upper_joint_limits = jointLimits[1,:]
 
         self.beta = 1.0
         self.energy_scaling_factor = 1e-4
