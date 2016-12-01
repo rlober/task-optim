@@ -29,9 +29,14 @@ def getDataFromFiles(root_dir):
     rightHandWaypoints = np.loadtxt(root_dir_path + "/rightHandWaypoints.txt")
     torques = np.loadtxt(root_dir_path + "/torques.txt")
     comBounds = np.loadtxt(root_dir_path + "/comBounds.txt")
+    rightHandJacobians = np.loadtxt(root_dir_path + "/rightHandJacobians.txt")
+    comJacobians = np.loadtxt(root_dir_path + "/comJacobians.txt")
+    jointPositions = np.loadtxt(root_dir_path + "/jointPositions.txt")
+    jointLimits = np.loadtxt(root_dir_path + "/jointLimits.txt")
 
-    comData = TaskData(timeline, comExpectedDuration, comPositionReal, comPositionRef, comWaypoints, torques, comBounds, "CoM")
-    rightHandData = TaskData(timeline, rightHandExpectedDuration, rightHandPositionReal, rightHandPositionRef, rightHandWaypoints, torques, comBounds, "Right_Hand")
+    comData = TaskData(timeline, comExpectedDuration, comPositionReal, comPositionRef, comWaypoints, torques, comBounds, comJacobians, jointPositions, jointLimits, "CoM")
+
+    rightHandData = TaskData(timeline, rightHandExpectedDuration, rightHandPositionReal, rightHandPositionRef, rightHandWaypoints, torques, comBounds, rightHandJacobians, jointPositions, jointLimits, "Right_Hand")
     return [comData, rightHandData]
 
 def getDateAndTimeString():

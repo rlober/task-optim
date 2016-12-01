@@ -3,7 +3,7 @@ import numpy as np
 
 class TaskData(object):
     """docstring for TestData"""
-    def __init__(self, time, expectedDuration, real, ref, waypoints, torques, comBounds, name=""):
+    def __init__(self, time, expectedDuration, real, ref, waypoints, torques, comBounds, jacobians, jointPositions, jointLimits, name=""):
         self.name = name
         self.time = time
         self.dt_vector = np.diff(self.time)
@@ -19,9 +19,24 @@ class TaskData(object):
         self.lower_bounds = self.comBounds[:,0]
         self.upper_bounds = self.comBounds[:,1]
 
-        self.beta = 1.0
-        self.energy_scaling_factor = 1e-4
-        self.gamma = self.calculateGammaFactors()
+        if self.name is "CoM":
+            nRows = 3
+        else:
+            nRows = 6
+
+        nCols = int(np.size(jacobians[0]) / nRows)
+        print('jacobians have', nRows, 'rows and', nCols, 'columns.')
+        self.jacobians = []
+        for j in jacobians:
+            self.jacobians.append(j.reshape((nRows, nCols)))
+
+
+        self.jointPositions = jointPositions
+        self.lower_joint_limits = jointLimits[0,:]
+        self.upper_joint_limits = jointLimits[1,:]
+
+        self.setBetaFactor(1.0)
+        self.setEnergyScalingFactor(1e-4)
 
 
         if self.ref.shape[0] != self.nTimeSteps:
@@ -33,7 +48,12 @@ class TaskData(object):
 
 
     def setBetaFactor(self, newBeta):
+        """Sets the exponential factor for goal cost scaling.
+
+        :param newBeta: see :eq:`gammaFactor`
+        """
         self.beta = newBeta
+        self.gamma = self.calculateGammaFactors()
 
     def setEnergyScalingFactor(self, newFactor):
         self.energy_scaling_factor = newFactor
@@ -57,37 +77,120 @@ class TaskData(object):
         return self.real.shape[1]
 
     def positionErrorNorm(self):
+        """Calculate the :math:`l_{2}` norm of the position tracking error.
+
+        .. math::
+            :label: positionErrorNorm
+
+            \\boldsymbol{\\epsilon}_{\\text{position}} = \| \\mathcal{P}^{ref} - \\mathcal{P}^{real} \|
+
+        Here, :math:`\\mathcal{P}` is a matrix of positions at each time step :math:`i\\in [1,n]`, :math:`\\boldsymbol{p}_{i}=\\begin{bmatrix}x & y & z\\end{bmatrix}`, such that :math:`\\mathcal{P} = \\begin{bmatrix}\\boldsymbol{p}_{1} \\\\ \\boldsymbol{p}_{2} \\\\ \\vdots \\\\ \\boldsymbol{p}_{n} \\end{bmatrix}`.
+        """
         return np.linalg.norm((self.ref - self.real), ord=2, axis=1)
 
     def positionErrorSquaredNorm(self):
+        """Calculate the squared :math:`l_{2}` norm of the position tracking error.
+
+        .. math::
+            :label: positionErrorSquaredNorm
+
+            \\boldsymbol{\\epsilon}^{2}_{\\text{position}} = \| \\mathcal{P}^{ref} - \\mathcal{P}^{real} \|^{2}
+
+        See :func:`positionErrorNorm` for details on :math:`\\mathcal{P}`.
+        """
         return self.positionErrorNorm()**2
 
     def goalPositionErrorNorm(self):
+        """Calculate the :math:`l_{2}` norm of the goal tracking error.
+
+        .. math::
+            :label: goalPositionErrorNorm
+
+            \\boldsymbol{\\epsilon}_{\\text{goal}} = \| \\boldsymbol{p}_{goal} - \\mathcal{P}^{real} \|
+
+        Here, :math:`\\boldsymbol{p}_{goal}` is the final waypoint of the task (see :func:`goal`). See :func:`positionErrorNorm` for details on :math:`\\mathcal{P}`.
+        """
         return np.linalg.norm((self.goal() - self.real), ord=2, axis=1)
 
     def goalPositionErrorSquaredNorm(self):
+        """Calculate the squared :math:`l_{2}` norm of the goal tracking error.
+
+        .. math::
+            :label: goalPositionErrorSquaredNorm
+
+            \\boldsymbol{\\epsilon}^{2}_{\\text{goal}} = \| \\boldsymbol{p}_{goal} - \\mathcal{P}^{real} \|^{2}
+
+        See :func:`goalPositionErrorNorm` for details.
+        """
         return self.goalPositionErrorNorm()**2
+
+    def torquesNorm(self):
+        """Calculate the :math:`l_{2}` norm of the joint torques.
+
+        .. math::
+            :label: torquesNorm
+
+            \\boldsymbol{e} = \| \\mathcal{T} \|
+
+        Here, :math:`\\mathcal{T}` is a matrix of joint torque vectors :math:`\\boldsymbol{\\tau}` at each timestep similar to the positions shown in :func:`positionErrorNorm`.
+        """
+        return np.linalg.norm(self.torques, ord=2, axis=1)
+
+    def torquesSquaredNorm(self):
+        """Calculate the squared :math:`l_{2}` norm of the joint torques.
+
+        .. math::
+            :label: torquesSquaredNorm
+
+            \\boldsymbol{e}^{2} = \| \\mathcal{T} \|^{2}
+
+        See :func:`torquesNorm` for details.
+        """
+        return self.torquesNorm()**2
+
+    def torquesSquaredNormTimeAveraged(self):
+        """Calculate the squared :math:`l_{2}` norm of the joint torques divided by the expected trajectory duration :math:`t_{\\text{end}}`.
+
+        .. math::
+            :label: torquesSquaredNormTimeAveraged
+
+            \\boldsymbol{e}^{2} = \\frac{\| \\mathcal{T} \|^{2}}{t_{\\text{end}}}
+
+        See :func:`torquesNorm` for details.
+        """
+        return self.torquesSquaredNorm() / self.duration
+
+    def calculateGammaFactors(self):
+        """Calculates the gamma scaling factor for the goal cost.
+
+        The :math:`\\gamma` factor is calculated using:
+
+        .. math::
+            :label: gammaFactor
+
+            \\boldsymbol{\\gamma} = \\left( \\frac{\\boldsymbol{t}}{t_{d}} \\right)^{\\beta}
+
+        where :math:`\\boldsymbol{t}` are the individual timesteps, :math:`t_{d}` is the expected task duration, and :math:`\\beta` is a scaling factor (see :func:`setBetaFactor`).
+        """
+        return (self.time/self.expectedDuration)**self.beta
+
+    def positionErrorSquaredNormTimeAveraged(self):
+        return self.positionErrorSquaredNorm() / self.duration
 
     def goalPositionErrorSquaredNormPenalized(self):
         return self.gamma * self.goalPositionErrorSquaredNorm()
 
-    def torquesNorm(self):
-        return np.linalg.norm(self.torques, ord=2, axis=1)
-
-    def torquesSquaredNorm(self):
-        return self.torquesNorm()**2
-
-    def calculateGammaFactors(self):
-        return (self.time/self.expectedDuration)**self.beta
+    def torquesSquaredNormTimeAveragedScaled(self):
+        return self.torquesSquaredNormTimeAveraged() * self.energy_scaling_factor
 
     def trackingCost(self):
-        return self.positionErrorSquaredNorm().sum() / self.duration
+        return self.positionErrorSquaredNormTimeAveraged().sum()
 
     def goalCost(self):
         return self.goalPositionErrorSquaredNormPenalized().sum()
 
     def energyCost(self):
-        return self.torquesSquaredNorm().sum() / self.duration * self.energy_scaling_factor
+        return self.torquesSquaredNormTimeAveragedScaled().sum()
 
     def toString(self):
         s = "\n========================\n"+self.name+" Task Data:\n========================\n"

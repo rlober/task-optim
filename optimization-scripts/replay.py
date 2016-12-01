@@ -1,5 +1,5 @@
-from simulate import *
-from files import *
+from task_optim.sim_tools.simulate import *
+from task_optim.utils.files import *
 import tkinter as tk
 from tkinter import filedialog
 import os

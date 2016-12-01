@@ -5,6 +5,9 @@ sys.path.append("../optimization-scripts")
 from task_optim.utils.files import *
 import pickle
 
+icub_joint_names = ["torso_pitch", "torso_roll", "torso_yaw", "l_shoulder_pitch", "l_shoulder_roll", "l_shoulder_yaw", "l_elbow", "l_wrist_prosup", "r_shoulder_pitch", "r_shoulder_roll", "r_shoulder_yaw", "r_elbow", "r_wrist_prosup", "l_hip_pitch", "l_hip_roll", "l_hip_yaw", "l_knee", "l_ankle_pitch", "l_ankle_roll", "r_hip_pitch", "r_hip_roll", "r_hip_yaw", "r_knee", "r_ankle_pitch", "r_ankle_roll"]
+
+
 class TestData():
     """docstring for TestData."""
     def __init__(self, test_dir):

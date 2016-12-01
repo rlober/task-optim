@@ -33,6 +33,8 @@ private:
     void writeWaypointsToFile();
     void setLoopTimeLimit();
     void getComBounds();
+    void getJointLimits();
+
 
 
 
@@ -52,6 +54,10 @@ private:
     std::string comExpectedDurationFilePath;
     std::string rightHandExpectedDurationFilePath;
     std::string comBoundsFilePath;
+    std::string rightHandJacobiansFilePath;
+    std::string comJacobiansFilePath;
+    std::string jointPositionsFilePath;
+    std::string jointLimitsFilePath;
 
     std::ofstream rightHandPositionRealFile;
     std::ofstream rightHandPositionRefFile;
@@ -64,10 +70,18 @@ private:
     std::ofstream comExpectedDurationFile;
     std::ofstream rightHandExpectedDurationFile;
     std::ofstream comBoundsFile;
+    std::ofstream rightHandJacobiansFile;
+    std::ofstream comJacobiansFile;
+    std::ofstream jointPositionsFile;
+    std::ofstream jointLimitsFile;
 
     // Waypoint lists
     std::list<Eigen::VectorXd> rightHandWaypointList;
     std::list<Eigen::VectorXd> comWaypointList;
+
+    // Jacobians
+    Eigen::MatrixXd rightHandJacobian;
+    Eigen::MatrixXd comJacobian;
 
     // Trajectory threads
     ocra_recipes::TrajectoryThread::Ptr rightHandTrajThread;
