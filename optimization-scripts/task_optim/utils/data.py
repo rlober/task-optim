@@ -35,9 +35,8 @@ class TaskData(object):
         self.lower_joint_limits = jointLimits[0,:]
         self.upper_joint_limits = jointLimits[1,:]
 
-        self.beta = 1.0
-        self.energy_scaling_factor = 1e-4
-        self.gamma = self.calculateGammaFactors()
+        self.setBetaFactor(1.0)
+        self.setEnergyScalingFactor(1e-4)
 
 
         if self.ref.shape[0] != self.nTimeSteps:
@@ -50,6 +49,7 @@ class TaskData(object):
 
     def setBetaFactor(self, newBeta):
         self.beta = newBeta
+        self.gamma = self.calculateGammaFactors()
 
     def setEnergyScalingFactor(self, newFactor):
         self.energy_scaling_factor = newFactor
@@ -84,26 +84,35 @@ class TaskData(object):
     def goalPositionErrorSquaredNorm(self):
         return self.goalPositionErrorNorm()**2
 
-    def goalPositionErrorSquaredNormPenalized(self):
-        return self.gamma * self.goalPositionErrorSquaredNorm()
-
     def torquesNorm(self):
         return np.linalg.norm(self.torques, ord=2, axis=1)
 
     def torquesSquaredNorm(self):
         return self.torquesNorm()**2
 
+    def torquesSquaredNormTimeAveraged(self):
+        return self.torquesSquaredNorm() / self.duration
+
     def calculateGammaFactors(self):
         return (self.time/self.expectedDuration)**self.beta
 
+    def positionErrorSquaredNormTimeAveraged(self):
+        return self.positionErrorSquaredNorm() / self.duration
+
+    def goalPositionErrorSquaredNormPenalized(self):
+        return self.gamma * self.goalPositionErrorSquaredNorm()
+
+    def torquesSquaredNormTimeAveragedScaled(self):
+        return self.torquesSquaredNormTimeAveraged() * self.energy_scaling_factor
+
     def trackingCost(self):
-        return self.positionErrorSquaredNorm().sum() / self.duration
+        return self.positionErrorSquaredNormTimeAveraged().sum()
 
     def goalCost(self):
         return self.goalPositionErrorSquaredNormPenalized().sum()
 
     def energyCost(self):
-        return self.torquesSquaredNorm().sum() / self.duration * self.energy_scaling_factor
+        return self.torquesSquaredNormTimeAveragedScaled().sum()
 
     def toString(self):
         s = "\n========================\n"+self.name+" Task Data:\n========================\n"

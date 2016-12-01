@@ -22,13 +22,13 @@ com_task_data, rh_task_data = getDataFromFiles(iter_dirs[0])
 
 import matplotlib.pyplot as plt
 
-com_tracking_cost = com_task_data.positionErrorSquaredNorm() / com_task_data.duration
-rh_tracking_cost = rh_task_data.positionErrorSquaredNorm() / rh_task_data.duration
+com_tracking_cost = com_task_data.positionErrorSquaredNormTimeAveraged()
+rh_tracking_cost = rh_task_data.positionErrorSquaredNormTimeAveraged()
 
 com_goal_cost = com_task_data.goalPositionErrorSquaredNormPenalized()
 rh_goal_cost = rh_task_data.goalPositionErrorSquaredNormPenalized()
 
-energy_cost = com_task_data.torquesSquaredNorm() * com_task_data.energy_scaling_factor / com_task_data.duration
+energy_cost = com_task_data.torquesSquaredNormTimeAveragedScaled()
 
 total_cost = com_tracking_cost + rh_tracking_cost + com_goal_cost + rh_goal_cost + energy_cost
 

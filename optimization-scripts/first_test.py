@@ -12,7 +12,7 @@ com_starting_waypoints = np.array([[0.015, -0.11, 0.51]])
 
 first_test = OneComWaypointStaticTest(root_path, right_hand_starting_waypoints, com_starting_waypoints)
 
-solver_parameters = {'max_iter':30, 'par':0.01, 'kernel':'RBF', 'acquisition':'EI', 'maximizer':'CMAES'}
+solver_parameters = {'max_iter':3, 'par':0.01, 'kernel':'RBF', 'acquisition':'EI', 'maximizer':'CMAES'}
 solver = RoboSolver(first_test, solver_parameters)
 
 # solver_parameters = {'max_iter':30, 'initial_sigma':0.5}

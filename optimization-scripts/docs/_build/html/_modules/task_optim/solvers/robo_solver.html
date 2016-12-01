@@ -1,0 +1,312 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>task_optim.solvers.robo_solver &mdash; task-compatibility-optimization 0.0.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="task-compatibility-optimization 0.0.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> task-compatibility-optimization
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <!-- Local TOC -->
+                <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">task-compatibility-optimization</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>task_optim.solvers.robo_solver</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for task_optim.solvers.robo_solver</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">.base_solver</span> <span class="k">import</span> <span class="n">BaseSolver</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">GPy</span>
+<span class="kn">from</span> <span class="nn">robo.models.gpy_model</span> <span class="k">import</span> <span class="n">GPyModel</span>
+<span class="kn">from</span> <span class="nn">robo.acquisition.lcb</span> <span class="k">import</span> <span class="n">LCB</span>
+<span class="kn">from</span> <span class="nn">robo.acquisition.ei</span> <span class="k">import</span> <span class="n">EI</span>
+<span class="kn">from</span> <span class="nn">robo.maximizers.cmaes</span> <span class="k">import</span> <span class="n">CMAES</span>
+<span class="c1"># from robo.maximizers.direct import Direct</span>
+<span class="c1"># from robo.maximizers.gradient_ascent import GradientAscent</span>
+<span class="c1"># from robo.maximizers.grid_search import GridSearch</span>
+<span class="c1"># from robo.maximizers.scipy_optimizer import SciPyOptimizer</span>
+<span class="c1"># from robo.maximizers.stochastic_local_search import StochasticLocalSearch</span>
+
+<span class="kn">from</span> <span class="nn">robo.solver.bayesian_optimization</span> <span class="k">import</span> <span class="n">BayesianOptimization</span>
+
+<div class="viewcode-block" id="RoboSolver"><a class="viewcode-back" href="../../../_source/task_optim.solvers.html#task_optim.solvers.robo_solver.RoboSolver">[docs]</a><span class="k">class</span> <span class="nc">RoboSolver</span><span class="p">(</span><span class="n">BaseSolver</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;docstring for RoboSolver.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test</span><span class="p">,</span> <span class="n">solver_parameters</span><span class="p">):</span>
+        <span class="k">assert</span><span class="p">(</span><span class="n">solver_parameters</span><span class="p">[</span><span class="s1">&#39;max_iter&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">RoboSolver</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">test</span><span class="p">,</span> <span class="n">solver_parameters</span><span class="p">)</span>
+
+<div class="viewcode-block" id="RoboSolver.setKernel"><a class="viewcode-back" href="../../../_source/task_optim.solvers.html#task_optim.solvers.robo_solver.RoboSolver.setKernel">[docs]</a>    <span class="k">def</span> <span class="nf">setKernel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s1">&#39;kernel&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver_parameters</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver_parameters</span><span class="p">[</span><span class="s1">&#39;kernel&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Matern52&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span> <span class="o">=</span> <span class="n">GPy</span><span class="o">.</span><span class="n">kern</span><span class="o">.</span><span class="n">Matern52</span><span class="p">(</span><span class="n">input_dim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">n_dims</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver_parameters</span><span class="p">[</span><span class="s1">&#39;kernel&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;RBF&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span> <span class="o">=</span> <span class="n">GPy</span><span class="o">.</span><span class="n">kern</span><span class="o">.</span><span class="n">RBF</span><span class="p">(</span><span class="n">input_dim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">n_dims</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span> <span class="o">=</span> <span class="n">GPy</span><span class="o">.</span><span class="n">kern</span><span class="o">.</span><span class="n">RBF</span><span class="p">(</span><span class="n">input_dim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">n_dims</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span> <span class="o">=</span> <span class="n">GPy</span><span class="o">.</span><span class="n">kern</span><span class="o">.</span><span class="n">RBF</span><span class="p">(</span><span class="n">input_dim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">n_dims</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RoboSolver.setModel"><a class="viewcode-back" href="../../../_source/task_optim.solvers.html#task_optim.solvers.robo_solver.RoboSolver.setModel">[docs]</a>    <span class="k">def</span> <span class="nf">setModel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">GPyModel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RoboSolver.setAcquisitionFunction"><a class="viewcode-back" href="../../../_source/task_optim.solvers.html#task_optim.solvers.robo_solver.RoboSolver.setAcquisitionFunction">[docs]</a>    <span class="k">def</span> <span class="nf">setAcquisitionFunction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Set par factor</span>
+        <span class="k">if</span> <span class="s1">&#39;par&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver_parameters</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">solver_parameters</span><span class="p">[</span><span class="s1">&#39;par&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">par</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver_parameters</span><span class="p">[</span><span class="s1">&#39;par&#39;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">par</span> <span class="o">=</span> <span class="mf">0.01</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">par</span> <span class="o">=</span> <span class="mf">0.01</span>
+
+        <span class="k">if</span> <span class="s1">&#39;acquisition&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver_parameters</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver_parameters</span><span class="p">[</span><span class="s1">&#39;acquisition&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;EI&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">acquisition</span> <span class="o">=</span> <span class="n">EI</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">X_upper</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">X_upper</span><span class="p">,</span> <span class="n">X_lower</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">X_lower</span><span class="p">,</span> <span class="n">par</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">par</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver_parameters</span><span class="p">[</span><span class="s1">&#39;acquisition&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;LCB&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">acquisition</span> <span class="o">=</span> <span class="n">LCB</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">X_upper</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">X_upper</span><span class="p">,</span> <span class="n">X_lower</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">X_lower</span><span class="p">,</span> <span class="n">par</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">par</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">acquisition</span> <span class="o">=</span> <span class="n">LCB</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">X_upper</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">X_upper</span><span class="p">,</span> <span class="n">X_lower</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">X_lower</span><span class="p">,</span> <span class="n">par</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">par</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">acquisition</span> <span class="o">=</span> <span class="n">LCB</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">X_upper</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">X_upper</span><span class="p">,</span> <span class="n">X_lower</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">X_lower</span><span class="p">,</span> <span class="n">par</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">par</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RoboSolver.setMaximizer"><a class="viewcode-back" href="../../../_source/task_optim.solvers.html#task_optim.solvers.robo_solver.RoboSolver.setMaximizer">[docs]</a>    <span class="k">def</span> <span class="nf">setMaximizer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s1">&#39;maximizer&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver_parameters</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver_parameters</span><span class="p">[</span><span class="s1">&#39;maximizer&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;SciPyOptimizer&#39;</span><span class="p">:</span>
+                <span class="k">pass</span>
+                <span class="c1"># self.maximizer = SciPyOptimizer(self.acquisition, self.test.X_lower, self.test.X_upper)</span>
+
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver_parameters</span><span class="p">[</span><span class="s1">&#39;maximizer&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;GradientAscent&#39;</span><span class="p">:</span>
+                <span class="k">pass</span>
+                <span class="c1"># self.maximizer = GradientAscent(self.acquisition, self.test.X_lower, self.test.X_upper)</span>
+
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver_parameters</span><span class="p">[</span><span class="s1">&#39;maximizer&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;CMAES&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">maximizer</span> <span class="o">=</span> <span class="n">CMAES</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">acquisition</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">X_lower</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">X_upper</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">maximizer</span> <span class="o">=</span> <span class="n">CMAES</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">acquisition</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">X_lower</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">X_upper</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">maximizer</span> <span class="o">=</span> <span class="n">CMAES</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">acquisition</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">X_lower</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">X_upper</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RoboSolver.setBayesianOptimizationSolver"><a class="viewcode-back" href="../../../_source/task_optim.solvers.html#task_optim.solvers.robo_solver.RoboSolver.setBayesianOptimizationSolver">[docs]</a>    <span class="k">def</span> <span class="nf">setBayesianOptimizationSolver</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bo</span> <span class="o">=</span> <span class="n">BayesianOptimization</span><span class="p">(</span><span class="n">acquisition_func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">acquisition</span><span class="p">,</span>
+                                  <span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span>
+                                  <span class="n">maximize_func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">maximizer</span><span class="p">,</span>
+                                  <span class="n">task</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">test</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RoboSolver.initializeSolver"><a class="viewcode-back" href="../../../_source/task_optim.solvers.html#task_optim.solvers.robo_solver.RoboSolver.initializeSolver">[docs]</a>    <span class="k">def</span> <span class="nf">initializeSolver</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Create kernel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setKernel</span><span class="p">()</span>
+        <span class="c1"># Create model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setModel</span><span class="p">()</span>
+        <span class="c1"># Create acquisiton function</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setAcquisitionFunction</span><span class="p">()</span>
+        <span class="c1"># Create maximizer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setMaximizer</span><span class="p">()</span>
+        <span class="c1"># Construct RoBO Bayesian optimization solver</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setBayesianOptimizationSolver</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="RoboSolver.updateSolver"><a class="viewcode-back" href="../../../_source/task_optim.solvers.html#task_optim.solvers.robo_solver.RoboSolver.updateSolver">[docs]</a>    <span class="k">def</span> <span class="nf">updateSolver</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Multiply by -1 because we are maximizing with RoBO</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="o">*</span> <span class="o">-</span><span class="mf">1.0</span>
+        <span class="c1"># Get the next solution to test</span>
+        <span class="n">next_solution_to_test</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bo</span><span class="o">.</span><span class="n">choose_next</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+        <span class="c1"># The provided solution is scaled bectween 0-1 so we retransform it back to physical coordinates</span>
+        <span class="n">X_new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">retransform</span><span class="p">(</span><span class="n">next_solution_to_test</span><span class="p">)</span>
+        <span class="c1"># test X_new</span>
+        <span class="n">Y_new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">objective_function</span><span class="p">(</span><span class="n">X_new</span><span class="p">)</span>
+        <span class="c1"># scale the cost wrt the original cost</span>
+        <span class="n">Y_new</span> <span class="o">=</span> <span class="p">(</span> <span class="n">Y_new</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">Y_init</span> <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">X_new</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">Y</span><span class="p">,</span> <span class="n">Y_new</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="RoboSolver.solverFinished"><a class="viewcode-back" href="../../../_source/task_optim.solvers.html#task_optim.solvers.robo_solver.RoboSolver.solverFinished">[docs]</a>    <span class="k">def</span> <span class="nf">solverFinished</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">optimization_iteration</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver_parameters</span><span class="p">[</span><span class="s1">&#39;max_iter&#39;</span><span class="p">]):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Maximum number of iterations exceeded. Stopping optimization.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Ryan Lober.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
