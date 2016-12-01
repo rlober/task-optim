@@ -18,7 +18,7 @@ opt_dir = [os.path.join(test_dir, d) for d in dirs if re.match('Optimal_Solution
 print("I found "+str(len(iter_dirs))+" iteration directories in the test directory: "+test_dir)
 
 # rh = right hand
-com_task_data, rh_task_data = getDataFromFiles(iter_dirs[0])
+com_task_data, rh_task_data = getDataFromFiles(opt_dir[0])
 
 import matplotlib.pyplot as plt
 
@@ -37,18 +37,23 @@ total_cost = total_cost / max(total_cost)
 fig, axarr = plt.subplots(4, sharex=True, num=None, figsize=(8, 10), facecolor='w', edgecolor='k')
 
 axarr[0].set_ylabel(r'$j_{tracking}$')
-axarr[0].plot(com_task_data.time, com_tracking_cost, 'r', lw=3)
-axarr[0].plot(rh_task_data.time, rh_tracking_cost, 'b', lw=3)
+plot_com_tracking_cost, = axarr[0].plot(com_task_data.time, com_tracking_cost, 'r', lw=3, label='com_tracking_cost')
+plot_rh_tracking_cost, = axarr[0].plot(rh_task_data.time, rh_tracking_cost, 'b', lw=3, label='rh_tracking_cost')
+axarr[0].legend()
+
 axarr[1].set_ylabel(r'$j_{goal}$')
-axarr[1].plot(com_task_data.time, com_goal_cost , 'r', lw=3)
-axarr[1].plot(rh_task_data.time, rh_goal_cost, 'b', lw=3)
+plot_com_goal_cost,  = axarr[1].plot(com_task_data.time, com_goal_cost , 'r', lw=3, label='com_goal_cost')
+plot_rh_goal_cost, = axarr[1].plot(rh_task_data.time, rh_goal_cost, 'b', lw=3, label='rh_goal_cost')
+axarr[1].legend()
+
 axarr[2].set_ylabel(r'$j_{energy}$')
-axarr[2].plot(com_task_data.time, energy_cost, 'g', lw=3)
+plot_energy_cost, = axarr[2].plot(com_task_data.time, energy_cost, 'g', lw=3, label='energy_cost')
+axarr[2].legend()
+
 axarr[3].set_ylabel(r'$j_{total}$')
-axarr[3].plot(com_task_data.time, total_cost, 'k', lw=3)
-
-
-
+plot_total_cost, = axarr[3].plot(com_task_data.time, total_cost, 'k', lw=3, label='total_cost')
+axarr[3].set_xlabel('time (sec)')
+axarr[3].legend()
 
 
 
