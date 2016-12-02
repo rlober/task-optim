@@ -112,6 +112,15 @@ class RoboSolver(BaseSolver):
         self.Y = np.vstack((self.Y, Y_new))
 
     def solverFinished(self):
+        if self.X.shape[0] >= 2:
+            # check for tolerance:
+            if 'tolfun' in self.solver_parameters:
+                deltaSol = np.linalg.norm(self.X[-1,:] - self.X[-2,:])
+                if deltaSol <= self.solver_parameters['tolfun']:
+                    print("Solution tolerance,", self.solver_parameters['tolfun'], "reached. Stopping optimization.")
+                    return True
+
+
         if (self.test.optimization_iteration <= self.solver_parameters['max_iter']):
             return False
 

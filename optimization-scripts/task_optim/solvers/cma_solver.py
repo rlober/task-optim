@@ -6,6 +6,9 @@ class CmaSolver(BaseSolver):
     """docstring for CmaSolver."""
     def __init__(self, test, solver_parameters):
         assert('max_iter' in solver_parameters)
+        self.initial_sigma = 0.5
+        self.tolfun = 1e-11
+
         super(CmaSolver, self).__init__(test, solver_parameters)
 
     def testSolution(self, s):
@@ -26,14 +29,14 @@ class CmaSolver(BaseSolver):
         if 'initial_sigma' in self.solver_parameters:
             if self.solver_parameters['initial_sigma'] > 0.0:
                 self.initial_sigma = self.solver_parameters['initial_sigma']
-            else:
-                self.initial_sigma = 0.5
 
-        else:
-            self.initial_sigma = 0.5
+        if 'tolfun' in self.solver_parameters:
+            if self.solver_parameters['tolfun'] > 0.0:
+                self.tolfun = self.solver_parameters['tolfun']
+
         # Construct CMAES solver
         X = self.test.transform(self.X)
-        self.cmaes_solver = cma.CMAEvolutionStrategy(X.flatten().tolist(), self.initial_sigma, {'bounds': [0, 1]})
+        self.cmaes_solver = cma.CMAEvolutionStrategy(X.flatten().tolist(), self.initial_sigma, {'bounds': [0, 1], 'tolfun':self.tolfun})
 
     def updateSolver(self):
         solutions = self.cmaes_solver.ask()
