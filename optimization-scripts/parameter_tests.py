@@ -52,11 +52,11 @@ for p in pars:
                 print("Test number:", bo_test_number, "of", bo_n_tests, "tests.")
                 print("========================================")
                 first_test = OneComWaypointStaticTest(bo_test_path, right_hand_starting_waypoints, com_starting_waypoints)
-                    solver_parameters = {'max_iter':maxIter, 'tolfun':tolerance, 'par':p, 'kernel':k, 'acquisition':a, 'maximizer':m}
-                    solver = RoboSolver(first_test, solver_parameters)
-                    solver.optimize()
-                    solver.returnSolution(show_simulation=False)
-                    bo_test_number += 1
+                solver_parameters = {'max_iter':maxIter, 'tolfun':tolerance, 'par':p, 'kernel':k, 'acquisition':a, 'maximizer':m}
+                solver = RoboSolver(first_test, solver_parameters)
+                solver.optimize()
+                solver.returnSolution(show_simulation=False)
+                bo_test_number += 1
 
 ######################################################################################
 
