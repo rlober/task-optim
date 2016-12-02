@@ -5,7 +5,7 @@ from robo.models.gpy_model import GPyModel
 from robo.acquisition.lcb import LCB
 from robo.acquisition.ei import EI
 from robo.maximizers.cmaes import CMAES
-# from robo.maximizers.direct import Direct
+from robo.maximizers.direct import Direct
 # from robo.maximizers.gradient_ascent import GradientAscent
 # from robo.maximizers.grid_search import GridSearch
 # from robo.maximizers.scipy_optimizer import SciPyOptimizer
@@ -68,6 +68,14 @@ class RoboSolver(BaseSolver):
             elif self.solver_parameters['maximizer'] == 'GradientAscent':
                 pass
                 # self.maximizer = GradientAscent(self.acquisition, self.test.X_lower, self.test.X_upper)
+
+            elif self.solver_parameters['maximizer'] == 'Direct':
+                pass
+                self.maximizer = Direct(self.acquisition, self.test.X_lower, self.test.X_upper)
+
+            elif self.solver_parameters['maximizer'] == 'GridSearch':
+                pass
+                # self.maximizer = GridSearch(self.acquisition, self.test.X_lower, self.test.X_upper)
 
             elif self.solver_parameters['maximizer'] == 'CMAES':
                 self.maximizer = CMAES(self.acquisition, self.test.X_lower, self.test.X_upper)
