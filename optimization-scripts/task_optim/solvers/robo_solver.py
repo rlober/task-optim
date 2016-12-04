@@ -5,7 +5,7 @@ from robo.models.gpy_model import GPyModel
 from robo.acquisition.lcb import LCB
 from robo.acquisition.ei import EI
 from robo.maximizers.cmaes import CMAES
-# from robo.maximizers.direct import Direct
+from robo.maximizers.direct import Direct
 # from robo.maximizers.gradient_ascent import GradientAscent
 # from robo.maximizers.grid_search import GridSearch
 # from robo.maximizers.scipy_optimizer import SciPyOptimizer
@@ -69,6 +69,14 @@ class RoboSolver(BaseSolver):
                 pass
                 # self.maximizer = GradientAscent(self.acquisition, self.test.X_lower, self.test.X_upper)
 
+            elif self.solver_parameters['maximizer'] == 'Direct':
+                pass
+                self.maximizer = Direct(self.acquisition, self.test.X_lower, self.test.X_upper)
+
+            elif self.solver_parameters['maximizer'] == 'GridSearch':
+                pass
+                # self.maximizer = GridSearch(self.acquisition, self.test.X_lower, self.test.X_upper)
+
             elif self.solver_parameters['maximizer'] == 'CMAES':
                 self.maximizer = CMAES(self.acquisition, self.test.X_lower, self.test.X_upper)
             else:
@@ -112,6 +120,15 @@ class RoboSolver(BaseSolver):
         self.Y = np.vstack((self.Y, Y_new))
 
     def solverFinished(self):
+        if self.X.shape[0] >= 2:
+            # check for tolerance:
+            if 'tolfun' in self.solver_parameters:
+                deltaSol = np.linalg.norm(self.X[-1,:] - self.X[-2,:])
+                if deltaSol <= self.solver_parameters['tolfun']:
+                    print("Solution tolerance,", self.solver_parameters['tolfun'], "reached. Stopping optimization.")
+                    return True
+
+
         if (self.test.optimization_iteration <= self.solver_parameters['max_iter']):
             return False
 

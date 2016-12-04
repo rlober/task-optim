@@ -1,5 +1,6 @@
 docs/_build/
 tmp/
+DIRresults.*
 
 *.dat
 # Created by https://www.gitignore.io/api/c,c++,codeblocks,kdevelop4,linux,osx,python,qt,ros,kdevelop4,kdevelop4,cmake,xcode
