@@ -12,8 +12,9 @@ class ColorPalette():
     """
     def __init__(self, color_dict):
         self.color_dict = color_dict
-        self.use_normalized_rgb = True
         self.max_rgb_value = 255
+
+        self.setRgbNormalize(True)
 
     def normalize(self, rgb_tuple):
         """Converts a 0-255 rgb values to 0-1 values."""
@@ -25,6 +26,14 @@ class ColorPalette():
         :param b: Boolean
         """
         self.use_normalized_rgb = b
+        if self.use_normalized_rgb:
+            self.light = self.normalize(self.color_dict['light'])
+            self.medium = self.normalize(self.color_dict['medium'])
+            self.dark = self.normalize(self.color_dict['dark'])
+        else:
+            self.light = self.color_dict['light']
+            self.medium = self.color_dict['medium']
+            self.dark = self.color_dict['dark']
 
     def getRgbNormalize(self):
         """See if normalization is on or off.
@@ -33,26 +42,17 @@ class ColorPalette():
         """
         return self.use_normalized_rgb
 
-    def light(self):
+    def getLight(self):
         """Returns the lightest shade in the color palette"""
-        if self.use_normalized_rgb:
-            return self.normalize(self.color_dict['light'])
-        else:
-            return self.color_dict['light']
+        return self.light
 
-    def medium(self):
+    def getMedium(self):
         """Returns the medium shade in the color palette"""
-        if self.use_normalized_rgb:
-            return self.normalize(self.color_dict['medium'])
-        else:
-            return self.color_dict['medium']
+        return self.medium
 
-    def dark(self):
+    def getDark(self):
         """Returns the darkest shade in the color palette"""
-        if self.use_normalized_rgb:
-            return self.normalize(self.color_dict['dark'])
-        else:
-            return self.color_dict['dark']
+        return self.dark
 
 
 
@@ -178,32 +178,89 @@ energy_cost = com_task_data.torquesSquaredNormTimeAveragedScaled()
 
 total_cost = com_tracking_cost + rh_tracking_cost + com_goal_cost + rh_goal_cost + energy_cost
 
-total_cost = total_cost / max(total_cost)
+max_total_cost = max(total_cost)
 
-fig, axarr = plt.subplots(4, sharex=True, num=None, figsize=(8, 10), facecolor='w', edgecolor='k')
+total_cost = total_cost / max_total_cost
 
-axarr[0].set_ylabel(r'$j_{tracking}$')
-tc_plot_color_palette = Blues()
-print(tc_plot_color_palette.light())
-plot_com_tracking_cost, = axarr[0].plot(com_task_data.time, com_tracking_cost, color=tc_plot_color_palette.light(), lw=3, label='com_tracking_cost')
-plot_rh_tracking_cost, = axarr[0].plot(rh_task_data.time, rh_tracking_cost, 'b', lw=3, label='rh_tracking_cost')
-axarr[0].legend()
+fig, (tracking_ax, goal_ax, energy_ax, total_ax) = plt.subplots(4, sharex=True, num=None, figsize=(8, 10), facecolor='w', edgecolor='k')
 
-axarr[1].set_ylabel(r'$j_{goal}$')
-plot_com_goal_cost,  = axarr[1].plot(com_task_data.time, com_goal_cost , 'r', lw=3, label='com_goal_cost')
-plot_rh_goal_cost, = axarr[1].plot(rh_task_data.time, rh_goal_cost, 'b', lw=3, label='rh_goal_cost')
-axarr[1].legend()
+tracking_ax.set_ylabel(r'$j_{tracking}$')
+plot_com_tracking_cost, = tracking_ax.plot(com_task_data.time, com_tracking_cost, color=Blues().light, lw=3, label='com_tracking_cost')
+plot_rh_tracking_cost, = tracking_ax.plot(rh_task_data.time, rh_tracking_cost, color=Reds().light, lw=3, label='rh_tracking_cost')
+tracking_ax.legend()
 
-axarr[2].set_ylabel(r'$j_{energy}$')
-plot_energy_cost, = axarr[2].plot(com_task_data.time, energy_cost, 'g', lw=3, label='energy_cost')
-axarr[2].legend()
+goal_ax.set_ylabel(r'$j_{goal}$')
+plot_com_goal_cost,  = goal_ax.plot(com_task_data.time, com_goal_cost , color=Blues().dark, lw=3, label='com_goal_cost')
+plot_rh_goal_cost, = goal_ax.plot(rh_task_data.time, rh_goal_cost, color=Reds().dark, lw=3, label='rh_goal_cost')
+goal_ax.legend()
 
-axarr[3].set_ylabel(r'$j_{total}$')
-plot_total_cost, = axarr[3].plot(com_task_data.time, total_cost, 'k', lw=3, label='total_cost')
-axarr[3].set_xlabel('time (sec)')
-axarr[3].legend()
+energy_ax.set_ylabel(r'$j_{energy}$')
+plot_energy_cost, = energy_ax.plot(com_task_data.time, energy_cost, color=Greens().medium, lw=3, label='energy_cost')
+energy_ax.legend()
+
+total_ax.set_ylabel(r'$j_{total}$')
+plot_total_cost, = total_ax.plot(com_task_data.time, total_cost, color=Purples().medium, lw=3, label='total_cost')
+total_ax.set_xlabel('time (sec)')
+total_ax.legend()
+
+##########################
+
+# normalize costs
+com_tracking_cost_normalized = (com_tracking_cost / total_cost)*100.0/max_total_cost
+rh_tracking_cost_normalized = (rh_tracking_cost / total_cost)*100.0/max_total_cost
+com_goal_cost_normalized = (com_goal_cost / total_cost)*100.0/max_total_cost
+rh_goal_cost_normalized = (rh_goal_cost / total_cost)*100.0/max_total_cost
+energy_cos_normalized = (energy_cost / total_cost)*100.0/max_total_cost
+
+# Add them so they stack on top of each other.
+rh_tracking_cost_normalized += com_tracking_cost_normalized
+com_goal_cost_normalized += rh_tracking_cost_normalized
+rh_goal_cost_normalized += com_goal_cost_normalized
+energy_cos_normalized += rh_goal_cost_normalized
+
+fig2, (overlay_ax) = plt.subplots(1, 1, num="Overlay", figsize=(10, 8), facecolor='w', edgecolor='k')
+overlay_ax.plot(com_task_data.time, com_tracking_cost_normalized, color=Blues().light, lw=3)
+overlay_ax.plot(com_task_data.time, rh_tracking_cost_normalized, color=Reds().light, lw=3)
+overlay_ax.plot(com_task_data.time, com_goal_cost_normalized, color=Blues().dark, lw=3)
+overlay_ax.plot(com_task_data.time, rh_goal_cost_normalized, color=Reds().dark, lw=3)
+overlay_ax.plot(com_task_data.time, energy_cos_normalized, color=Greens().medium, lw=3)
+
+overlay_ax.fill_between(com_task_data.time, rh_goal_cost_normalized, energy_cos_normalized, color=Greens().medium, alpha=0.3, label='energy_cost')
+overlay_ax.fill_between(com_task_data.time, com_goal_cost_normalized, rh_goal_cost_normalized, color=Reds().dark, alpha=0.3, label='rh_goal_cost')
+overlay_ax.fill_between(com_task_data.time, rh_tracking_cost_normalized, com_goal_cost_normalized, color=Blues().dark, alpha=0.3, label='com_goal_cost')
+overlay_ax.fill_between(com_task_data.time, com_tracking_cost_normalized, rh_tracking_cost_normalized, color=Reds().light, alpha=0.3, label='rh_tracking_cost')
+overlay_ax.fill_between(com_task_data.time, 0, com_tracking_cost_normalized, color=Blues().light, alpha=0.3, label='com_tracking_cost')
+
+
+overlay_ax.set_ylabel('Percent of Total Cost')
+overlay_ax.set_xlabel('time (sec)')
+plt.legend()
+
+
+##################################
 
 
 
+com_tracking_cost_normalized_sum = (com_tracking_cost.sum() / total_cost.sum())*100.0/max_total_cost
+rh_tracking_cost_normalized_sum = (rh_tracking_cost.sum() / total_cost.sum())*100.0/max_total_cost
+com_goal_cost_normalized_sum = (com_goal_cost.sum() / total_cost.sum())*100.0/max_total_cost
+rh_goal_cost_normalized_sum = (rh_goal_cost.sum() / total_cost.sum())*100.0/max_total_cost
+energy_cos_normalized_sum = (energy_cost.sum() / total_cost.sum())*100.0/max_total_cost
+
+
+com_tracking_cost_normalized_sum += 0.0
+rh_tracking_cost_normalized_sum += com_tracking_cost_normalized_sum
+com_goal_cost_normalized_sum += rh_tracking_cost_normalized_sum
+rh_goal_cost_normalized_sum += com_goal_cost_normalized_sum
+energy_cos_normalized_sum += rh_goal_cost_normalized_sum
+
+
+fig3, (bar_ax) = plt.subplots(1, 1, num="Bar", figsize=(10, 8), facecolor='w', edgecolor='k')
+bar_ax.bar(0, energy_cos_normalized_sum, color=Blues().light, label='energy_cost')
+bar_ax.bar(0, rh_goal_cost_normalized_sum, color=Reds().light, label='rh_goal_cost')
+bar_ax.bar(0, com_goal_cost_normalized_sum, color=Blues().dark, label='com_goal_cost')
+bar_ax.bar(0, rh_tracking_cost_normalized_sum, color=Reds().dark, label='rh_tracking_cost')
+bar_ax.bar(0, com_tracking_cost_normalized_sum, color=Greens().medium, label='com_tracking_cost')
+plt.legend()
 
 plt.show()
