@@ -26,12 +26,13 @@ class BaseTest(BaseTask):
 
 
         print("Using the following costs:", self.costs)
-        self.costs_used_pickle_path = os.path.join(self.root_path, "/costs_used.pickle")
-        pickle.dump(self.costs, open( self.costs_used_pickle_path, "wb" ) )
 
         self.right_hand_waypoints = right_hand_starting_waypoints
         self.com_waypoints = com_starting_waypoints
         self.createTrialDir()
+
+        self.costs_used_pickle_path = os.path.join(self.root_path, "costs_used.pickle")
+        pickle.dump(self.costs, open( self.costs_used_pickle_path, "wb" ) )
 
         self.optimization_iteration = 0
         self.iterateSimulation()
