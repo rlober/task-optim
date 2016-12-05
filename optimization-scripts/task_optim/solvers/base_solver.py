@@ -77,7 +77,7 @@ class BaseSolver(object):
         print("---------------------------------------------------------------------")
 
     def compileAndSaveOptimizationData(self):
-        self.opt_data = [self.__class__.__name__, self.X, self.Y, self.opt_row, self.optimal_params, self.optimal_cost, self.original_cost]
+        self.opt_data = {'solver':self.__class__.__name__, 'X':self.X, 'Y':self.Y, 'Y_init':self.test.Y_init, 'opt_row':self.opt_row, 'optimal_params':self.optimal_params, 'optimal_cost':self.optimal_cost, 'original_cost':self.original_cost, 'n_iter':self.test.optimization_iteration-1}
 
         self.opt_data_pickle_path = self.base_pickle_path + "/opt_data.pickle"
         pickle.dump(self.opt_data, open( self.opt_data_pickle_path, "wb" ) )
