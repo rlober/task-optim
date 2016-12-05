@@ -9,12 +9,4 @@ import os
 test_dir = os.path.abspath("./test_data_bo")
 
 test_data = data.TestData(test_dir)
-
-optPlots = plot.DataPlots(test_data.optimal_data)
-
-path = './tmp/blah'
-optPlots.plotIndividualCosts(show_plot=False, save_dir=path)
-optPlots.plotCostPercentages(show_plot=False, save_dir=path)
-optPlots.plotTotalCostPercentages(show_plot=False, save_dir=path)
-optPlots.plotJacobianRanks(show_plot=False, save_dir=path)
-optPlots.plotJointPositions(show_plot=False, save_dir=path)
+test_data.generatePlots()
