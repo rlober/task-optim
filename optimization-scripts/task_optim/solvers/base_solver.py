@@ -36,7 +36,7 @@ class BaseSolver(object):
             self.printObservationInfo()
             self.updateSolver()
 
-    def returnSolution(self, show_simulation=False):
+    def returnSolution(self, show_simulation=True):
         self.opt_row, opt_col = np.unravel_index(np.argmin(self.Y), np.shape(self.Y))
         self.optimal_params = self.X[[self.opt_row], :].copy()
         #  Correct for maximization
@@ -52,12 +52,11 @@ class BaseSolver(object):
 
         self.compileAndSaveOptimizationData()
 
-        if show_simulation:
-            print("Testing optimal solution...\n")
-            print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-            self.observed_optimal_cost = self.test.playOptimalSolution(self.optimal_params)
-            print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-            print("\nCost observed after test:", self.observed_optimal_cost)
+        print("Testing optimal solution...\n")
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        self.observed_optimal_cost = self.test.playOptimalSolution(self.optimal_params, show_simulation)
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        print("\nCost observed after test:", self.observed_optimal_cost)
         print("==============================================\n")
 
 
