@@ -41,7 +41,7 @@ cma_n_tests = len(sigmas)
 ######################################################################################
 
 # print("\n\n\n\n\n\n=================================================")
-# print("\t\tBegining Bayesian Optimization trials.")
+# print("Begining Bayesian Optimization trials.")
 # print("=================================================")
 #
 # for p in pars:
