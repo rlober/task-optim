@@ -256,11 +256,55 @@ energy_cos_normalized_sum += rh_goal_cost_normalized_sum
 
 
 fig3, (bar_ax) = plt.subplots(1, 1, num="Bar", figsize=(10, 8), facecolor='w', edgecolor='k')
-bar_ax.bar(0, energy_cos_normalized_sum, color=Blues().light, label='energy_cost')
-bar_ax.bar(0, rh_goal_cost_normalized_sum, color=Reds().light, label='rh_goal_cost')
+bar_ax.bar(0, energy_cos_normalized_sum, color=Greens().medium, label='energy_cost')
+bar_ax.bar(0, rh_goal_cost_normalized_sum, color=Reds().dark, label='rh_goal_cost')
 bar_ax.bar(0, com_goal_cost_normalized_sum, color=Blues().dark, label='com_goal_cost')
-bar_ax.bar(0, rh_tracking_cost_normalized_sum, color=Reds().dark, label='rh_tracking_cost')
-bar_ax.bar(0, com_tracking_cost_normalized_sum, color=Greens().medium, label='com_tracking_cost')
+bar_ax.bar(0, rh_tracking_cost_normalized_sum, color=Reds().light, label='rh_tracking_cost')
+bar_ax.bar(0, com_tracking_cost_normalized_sum, color=Blues().light, label='com_tracking_cost')
 plt.legend()
 
+
+######################
+
+nRows = []
+ranks = []
+for cj, rj, in zip(com_task_data.jacobians, rh_task_data.jacobians):
+    bigJ = np.vstack((cj, rj))
+    nRows.append(np.shape(bigJ)[0])
+    ranks.append(np.linalg.matrix_rank(bigJ))
+
+fig4, (ranks_ax) = plt.subplots(1, 1, num="Ranks", figsize=(10, 8), facecolor='w', edgecolor='k')
+
+ranks_ax.plot(com_task_data.time, ranks, color=Oranges().dark, lw=2, label='rank')
+ranks_ax.plot(com_task_data.time, nRows, color=Oranges().light, lw=2, label='n_rows')
+
+ranks_ax.set_ylim(0, max(nRows)+2)
+ranks_ax.set_xlabel('time (sec)')
+
+ranks_ax.legend()
+
+
+######################
+
+nFigCols = 5
+nFigRows = 5
+fig5, joint_ax_arr = plt.subplots(nFigRows, nFigCols, sharex=True, num="Joint Limits", figsize=(16, 10), facecolor='w', edgecolor='k')
+
+r = 0
+c = 0
+for i in range(len(com_task_data.lower_joint_limits)):
+    tmp_ax = joint_ax_arr[r,c]
+    tmp_ax.plot(com_task_data.time, com_task_data.jointPositions[:,i]*180.0/np.pi, color=YlOrRd().medium, lw=2)
+    tmp_ax.axhline(com_task_data.lower_joint_limits[i]*180.0/np.pi, color=YlOrRd().light, lw=2, ls='--')
+    tmp_ax.axhline(com_task_data.upper_joint_limits[i]*180.0/np.pi, color=YlOrRd().dark, lw=2, ls='--')
+    tmp_ax.set_title(data.icub_joint_names[i])
+    c+=1
+    if c>= nFigCols:
+        r += 1
+        c = 0
+for i in range(5):
+    joint_ax_arr[4,i].set_xlabel('time (sec)')
+    joint_ax_arr[i,0].set_ylabel('angle (degree)')
+
+fig5.tight_layout()
 plt.show()
