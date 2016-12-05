@@ -66,6 +66,7 @@ class TestData():
         time_left = '???'
         elapsed = []
         tmp_costs = []
+
         for i, d in enumerate(self.iteration_data):
             print("Plotting iteration", i, "of", self.n_iterations, "- est. duration:", time_left, "s")
             start_time = timeit.default_timer()
@@ -82,18 +83,8 @@ class TestData():
             elapsed.append(timeit.default_timer() - start_time)
             time_left = np.mean(elapsed) * (self.n_iterations-i)
 
-
-        # Do it for the optimal data as well.
-        print("Plotting optimal solution")
-        tmp = plot.DataPlots(self.optimal_data, self.costs_used, self.cost_scaling_factor)
-        tmp.plotIndividualCosts(show_plot=False, save_dir=save_path+'/IndividualCosts/', filename='opt')
-        tmp.plotCostPercentages(show_plot=False, save_dir=save_path+'/CostPercentages/', filename='opt')
-        tmp.plotJacobianRanks(show_plot=False, save_dir=save_path+'/JacobianRanks/', filename='opt')
-        tmp.plotJointPositions(show_plot=False, save_dir=save_path+'/JointPositions/', filename='opt')
-        tmp.plotTotalCostPercentages(bar_ax, self.n_iterations)
-
         # Add legend and save bar graph
-        # bar_ax.legend()
+        # There are a bunch of labels and handles because of the approach above so just get the last set.
         handles, labels = bar_ax.get_legend_handles_labels()
         bar_ax.legend(handles[-tmp.n_component_costs:], labels[-tmp.n_component_costs:])
         bar_ax.set_title(title)
@@ -101,7 +92,21 @@ class TestData():
         bar_ax.set_ylabel('%')
         plot.saveAndShow(bar_fig, save_dir=save_path, filename='TotalCostPercentages')
 
+        # Do it for the original and optimal data as well.
+        orig = plot.DataPlots(self.original_data, self.costs_used, self.cost_scaling_factor)
+        orig.plotIndividualCosts(show_plot=False, save_dir=save_path, filename='Original_Tasks_IndividualCosts')
+        orig.plotCostPercentages(show_plot=False, save_dir=save_path, filename='Original_Tasks_CostPercentages')
+        orig.plotJacobianRanks(show_plot=False, save_dir=save_path, filename='Original_Tasks_JacobianRanks')
+        orig.plotJointPositions(show_plot=False, save_dir=save_path, filename='Original_Tasks_JointPositions')
 
+        opt = plot.DataPlots(self.optimal_data, self.costs_used, self.cost_scaling_factor)
+        opt.plotIndividualCosts(show_plot=False, save_dir=save_path, filename='Optimal_Tasks_IndividualCosts')
+        opt.plotCostPercentages(show_plot=False, save_dir=save_path, filename='Optimal_Tasks_CostPercentages')
+        opt.plotJacobianRanks(show_plot=False, save_dir=save_path, filename='Optimal_Tasks_JacobianRanks')
+        opt.plotJointPositions(show_plot=False, save_dir=save_path, filename='Optimal_Tasks_JointPositions')
+
+
+        orig.compare(opt, save_dir=save_path)
 
         cost_fig, (cost_ax) = plt.subplots(1, 1, num="Cost Curve", figsize=(10, 8), facecolor='w', edgecolor='k')
         cost_ax.plot(self.opt_data[2], 'r')

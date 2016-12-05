@@ -258,3 +258,47 @@ class DataPlots():
         # fig.tight_layout()
 
         saveAndShow(fig, show_plot, save_dir, filename)
+
+    def compare(self, other, show_plot=False, save_dir=None):
+        """Compare cost data between two iterations.
+
+        :param other: Another DataPlots object.
+        """
+        if self.useTrackingCost:
+            fig, (ax) = plt.subplots(1, num='Tracking Costs', figsize=(8,6), facecolor='w', edgecolor='k')
+            ax.plot(self.com_task_data.time, self.com_tracking_cost, color=self.com_color.light, lw=3, label='com_tracking_cost')
+            ax.plot(self.rh_task_data.time, self.rh_tracking_cost, color=self.rh_color.light, lw=3, label='rh_tracking_cost')
+            ax.plot(other.com_task_data.time, other.com_tracking_cost, color=other.com_color.light, lw=3, label='com_tracking_cost_other', ls='--')
+            ax.plot(other.rh_task_data.time, other.rh_tracking_cost, color=other.rh_color.light, lw=3, label='rh_tracking_cost_other', ls='--')
+            ax.legend()
+            ax.set_xlabel('time (sec)')
+            ax.set_ylabel(r'$j_{tracking}$')
+            saveAndShow(fig, show_plot, save_dir, 'TrackingCostComparaison')
+
+        if self.useGoalCost:
+            fig, (ax) = plt.subplots(1, num='Goal Costs', figsize=(8,6), facecolor='w', edgecolor='k')
+            ax.plot(self.com_task_data.time, self.com_goal_cost, color=self.com_color.dark, lw=3, label='com_goal_cost')
+            ax.plot(self.rh_task_data.time, self.rh_goal_cost, color=self.rh_color.dark, lw=3, label='rh_goal_cost')
+            ax.plot(other.com_task_data.time, other.com_goal_cost, color=other.com_color.dark, lw=3, label='com_goal_cost_other', ls='--')
+            ax.plot(other.rh_task_data.time, other.rh_goal_cost, color=other.rh_color.dark, lw=3, label='rh_goal_cost_other', ls='--')
+            ax.legend()
+            ax.set_xlabel('time (sec)')
+            ax.set_ylabel(r'$j_{goal}$')
+            saveAndShow(fig, show_plot, save_dir, 'GoalCostComparaison')
+
+        if self.useEnergyCost:
+            fig, (ax) = plt.subplots(1, num='Energy Costs', figsize=(8,6), facecolor='w', edgecolor='k')
+            ax.plot(self.com_task_data.time, self.energy_cost, color=self.energy_color.medium, lw=3, label='energy_cost')
+            ax.plot(other.com_task_data.time, other.energy_cost, color=other.energy_color.medium, lw=3, label='energy_cost_other', ls='--')
+            ax.legend()
+            ax.set_xlabel('time (sec)')
+            ax.set_ylabel(r'$j_{energy}$')
+            saveAndShow(fig, show_plot, save_dir, 'EnergyCostComparaison')
+
+        fig, (ax) = plt.subplots(1, num='Total Costs', figsize=(8,6), facecolor='w', edgecolor='k')
+        ax.plot(self.com_task_data.time, self.total_cost, color=self.total_color.medium, lw=3, label='total_cost')
+        ax.plot(other.com_task_data.time, other.total_cost, color=other.total_color.medium, lw=3, label='total_cost_other', ls='--')
+        ax.set_ylabel(r'$j_{total}$')
+        ax.set_xlabel('time (sec)')
+        ax.legend()
+        saveAndShow(fig, show_plot, save_dir, 'TotalCostComparaison')
