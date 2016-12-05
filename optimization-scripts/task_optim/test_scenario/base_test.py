@@ -126,11 +126,14 @@ class BaseTest(BaseTask):
         self.iterateSimulation()
         return self.calculateTotalCost()
 
-    def playOptimalSolution(self, x):
+    def playOptimalSolution(self, x, show_simulation=True):
         self.extractTaskWaypointsFromSolutionVector(x.flatten())
         print("Simulating optimal parameters...")
         self.createIterationDir(isOptimal=True)
-        simulate(self.right_hand_waypoint_file_path, self.com_waypoint_file_path, self.iteration_dir_path, verbose=True, visual=True, askUserForReplay=True, goToHome=True)
+        if show_simulation:
+            simulate(self.right_hand_waypoint_file_path, self.com_waypoint_file_path, self.iteration_dir_path, verbose=True, visual=True, askUserForReplay=True, goToHome=True)
+        else:
+            simulate(self.right_hand_waypoint_file_path, self.com_waypoint_file_path, self.iteration_dir_path, verbose=False, visual=False)
         self.task_data = getDataFromFiles(self.iteration_dir_path)
         self.n_tasks = len(self.task_data)
         observed_cost = self.calculateTotalCost()
