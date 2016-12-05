@@ -25,7 +25,7 @@ class TaskData(object):
             nRows = 6
 
         nCols = int(np.size(jacobians[0]) / nRows)
-        print('jacobians have', nRows, 'rows and', nCols, 'columns.')
+        # print('jacobians have', nRows, 'rows and', nCols, 'columns.')
         self.jacobians = []
         for j in jacobians:
             self.jacobians.append(j.reshape((nRows, nCols)))
