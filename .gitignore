@@ -1,3 +1,5 @@
+plotting-scripts/test_data_bo/plots/
+plotting-scripts/test_data_cma/plots/
 docs/_build/
 tmp/
 DIRresults.*
