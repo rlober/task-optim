@@ -32,23 +32,52 @@ def saveAndShow(figure, show_plot=False, save_dir=None, filename=None):
 
 class DataPlots():
     """docstring for DataPlots."""
-    def __init__(self, task_data):
+    def __init__(self, task_data, costs_used=['tracking', 'goal', 'energy'], cost_scaling_factor=1.0):
         self.com_task_data = task_data[0]
         self.rh_task_data = task_data[1]
+        self.costs_used = costs_used
+        self.cost_scaling_factor = cost_scaling_factor
 
-        self.com_tracking_cost = self.com_task_data.positionErrorSquaredNormTimeAveraged()
-        self.rh_tracking_cost = self.rh_task_data.positionErrorSquaredNormTimeAveraged()
+        self.n_component_costs = 0
+        self.useTrackingCost = False
+        self.useGoalCost = False
+        self.useEnergyCost = False
 
-        self.com_goal_cost = self.com_task_data.goalPositionErrorSquaredNormPenalized()
-        self.rh_goal_cost = self.rh_task_data.goalPositionErrorSquaredNormPenalized()
+        for c in self.costs_used:
+            if c == 'tracking':
+                self.useTrackingCost = True
 
-        self.energy_cost = self.com_task_data.torquesSquaredNormTimeAveragedScaled()
+            if c == 'goal':
+                self.useGoalCost = True
 
-        self.total_cost = self.com_tracking_cost + self.rh_tracking_cost + self.com_goal_cost + self.rh_goal_cost + self.energy_cost
+            if c == 'energy':
+                self.useEnergyCost = True
 
-        self.max_total_cost = max(self.total_cost)
 
-        self.total_cost = self.total_cost / self.max_total_cost
+        self.total_cost = np.zeros(np.shape(self.com_task_data.positionErrorSquaredNormTimeAveraged()))
+
+        if self.useTrackingCost:
+            self.com_tracking_cost = self.com_task_data.positionErrorSquaredNormTimeAveraged()
+            self.rh_tracking_cost = self.rh_task_data.positionErrorSquaredNormTimeAveraged()
+            self.n_component_costs += 2
+
+            self.total_cost += self.com_tracking_cost + self.rh_tracking_cost
+
+        if self.useGoalCost:
+            self.com_goal_cost = self.com_task_data.goalPositionErrorSquaredNormPenalized()
+            self.rh_goal_cost = self.rh_task_data.goalPositionErrorSquaredNormPenalized()
+            self.n_component_costs += 2
+
+            self.total_cost += self.com_goal_cost + self.rh_goal_cost
+
+        if self.useEnergyCost:
+            self.energy_cost = self.com_task_data.torquesSquaredNormTimeAveragedScaled()
+            self.n_component_costs += 1
+
+            self.total_cost += self.energy_cost
+
+
+        self.total_cost = self.total_cost / self.cost_scaling_factor
 
         self.com_color = palettes.Blues()
         self.rh_color = palettes.Reds()
@@ -57,21 +86,24 @@ class DataPlots():
 
     def plotIndividualCosts(self, show_plot=False, save_dir=None, filename='plotIndividualCosts'):
 
-        fig, (tracking_ax, goal_ax, energy_ax, total_ax) = plt.subplots(4, sharex=True, num=None, figsize=(8, 10), facecolor='w', edgecolor='k')
+        fig, (tracking_ax, goal_ax, energy_ax, total_ax) = plt.subplots(4, sharex=True, num='Individual Costs', figsize=(8, 10), facecolor='w', edgecolor='k')
 
-        tracking_ax.set_ylabel(r'$j_{tracking}$')
-        tracking_ax.plot(self.com_task_data.time, self.com_tracking_cost, color=self.com_color.light, lw=3, label='com_tracking_cost')
-        tracking_ax.plot(self.rh_task_data.time, self.rh_tracking_cost, color=self.rh_color.light, lw=3, label='rh_tracking_cost')
-        tracking_ax.legend()
+        if self.useTrackingCost:
+            tracking_ax.set_ylabel(r'$j_{tracking}$')
+            tracking_ax.plot(self.com_task_data.time, self.com_tracking_cost, color=self.com_color.light, lw=3, label='com_tracking_cost')
+            tracking_ax.plot(self.rh_task_data.time, self.rh_tracking_cost, color=self.rh_color.light, lw=3, label='rh_tracking_cost')
+            tracking_ax.legend()
 
-        goal_ax.set_ylabel(r'$j_{goal}$')
-        goal_ax.plot(self.com_task_data.time, self.com_goal_cost , color=self.com_color.dark, lw=3, label='com_goal_cost')
-        goal_ax.plot(self.rh_task_data.time, self.rh_goal_cost, color=self.rh_color.dark, lw=3, label='rh_goal_cost')
-        goal_ax.legend()
+        if self.useGoalCost:
+            goal_ax.set_ylabel(r'$j_{goal}$')
+            goal_ax.plot(self.com_task_data.time, self.com_goal_cost , color=self.com_color.dark, lw=3, label='com_goal_cost')
+            goal_ax.plot(self.rh_task_data.time, self.rh_goal_cost, color=self.rh_color.dark, lw=3, label='rh_goal_cost')
+            goal_ax.legend()
 
-        energy_ax.set_ylabel(r'$j_{energy}$')
-        energy_ax.plot(self.com_task_data.time, self.energy_cost, color=self.energy_color.medium, lw=3, label='energy_cost')
-        energy_ax.legend()
+        if self.useEnergyCost:
+            energy_ax.set_ylabel(r'$j_{energy}$')
+            energy_ax.plot(self.com_task_data.time, self.energy_cost, color=self.energy_color.medium, lw=3, label='energy_cost')
+            energy_ax.legend()
 
         total_ax.set_ylabel(r'$j_{total}$')
         total_ax.plot(self.com_task_data.time, self.total_cost, color=self.total_color.medium, lw=3, label='total_cost')
@@ -83,68 +115,96 @@ class DataPlots():
     def plotCostPercentages(self, show_plot=False, save_dir=None, filename='plotCostPercentages'):
 
         # normalize costs
-        self.com_tracking_cost_normalized = (self.com_tracking_cost / self.total_cost)*100.0/self.max_total_cost
-        self.rh_tracking_cost_normalized = (self.rh_tracking_cost / self.total_cost)*100.0/self.max_total_cost
-        self.com_goal_cost_normalized = (self.com_goal_cost / self.total_cost)*100.0/self.max_total_cost
-        self.rh_goal_cost_normalized = (self.rh_goal_cost / self.total_cost)*100.0/self.max_total_cost
-        self.energy_cost_normalized = (self.energy_cost / self.total_cost)*100.0/self.max_total_cost
+        costs = []
+        colors = []
+        labels = []
+        if self.useTrackingCost:
+            costs.append( (self.com_tracking_cost / self.total_cost)*100.0/self.cost_scaling_factor )
+            costs.append( (self.rh_tracking_cost / self.total_cost)*100.0/self.cost_scaling_factor )
+            colors.append(self.com_color.light)
+            colors.append(self.rh_color.light)
+            labels.append('com_tracking_cost')
+            labels.append('rh_tracking_cost')
+
+        if self.useGoalCost:
+            costs.append( (self.com_goal_cost / self.total_cost)*100.0/self.cost_scaling_factor )
+            costs.append( (self.rh_goal_cost / self.total_cost)*100.0/self.cost_scaling_factor )
+            colors.append(self.com_color.dark)
+            colors.append(self.rh_color.dark)
+            labels.append('com_goal_cost')
+            labels.append('rh_goal_cost')
+
+        if self.useEnergyCost:
+            costs.append( (self.energy_cost / self.total_cost)*100.0/self.cost_scaling_factor )
+            colors.append(self.energy_color.medium)
+            labels.append('energy_cost')
+
 
         # Add them so they stack on top of each other.
-        self.rh_tracking_cost_normalized += self.com_tracking_cost_normalized
-        self.com_goal_cost_normalized += self.rh_tracking_cost_normalized
-        self.rh_goal_cost_normalized += self.com_goal_cost_normalized
-        self.energy_cost_normalized += self.rh_goal_cost_normalized
+        for i in range(1,len(costs)):
+            costs[i] += costs[i-1]
+
 
         title = "Cost Percentages During Movement"
         fig, (overlay_ax) = plt.subplots(1, 1, num=title, figsize=(10, 8), facecolor='w', edgecolor='k')
-        overlay_ax.plot(self.com_task_data.time, self.com_tracking_cost_normalized, color=self.com_color.light, lw=3)
-        overlay_ax.plot(self.com_task_data.time, self.rh_tracking_cost_normalized, color=self.rh_color.light, lw=3)
-        overlay_ax.plot(self.com_task_data.time, self.com_goal_cost_normalized, color=self.com_color.dark, lw=3)
-        overlay_ax.plot(self.com_task_data.time, self.rh_goal_cost_normalized, color=self.rh_color.dark, lw=3)
-        overlay_ax.plot(self.com_task_data.time, self.energy_cost_normalized, color=self.energy_color.medium, lw=3)
-
-        overlay_ax.fill_between(self.com_task_data.time, self.rh_goal_cost_normalized, self.energy_cost_normalized, color=self.energy_color.medium, alpha=0.3, label='energy_cost')
-        overlay_ax.fill_between(self.com_task_data.time, self.com_goal_cost_normalized, self.rh_goal_cost_normalized, color=self.rh_color.dark, alpha=0.3, label='rh_goal_cost')
-        overlay_ax.fill_between(self.com_task_data.time, self.rh_tracking_cost_normalized, self.com_goal_cost_normalized, color=self.com_color.dark, alpha=0.3, label='com_goal_cost')
-        overlay_ax.fill_between(self.com_task_data.time, self.com_tracking_cost_normalized, self.rh_tracking_cost_normalized, color=self.rh_color.light, alpha=0.3, label='rh_tracking_cost')
-        overlay_ax.fill_between(self.com_task_data.time, 0, self.com_tracking_cost_normalized, color=self.com_color.light, alpha=0.3, label='com_tracking_cost')
+        overlay_ax.fill_between(self.com_task_data.time, 0, costs[0], color=colors[0], alpha=0.3, label=labels[0])
+        for i, (cos,col) in enumerate(zip(costs,colors)):
+            overlay_ax.plot(self.com_task_data.time, cos, color=col, lw=3)
+            if i < len(costs)-1:
+                overlay_ax.fill_between(self.com_task_data.time, costs[i], costs[i+1], color=colors[i+1], alpha=0.3, label=labels[i+1])
 
 
         overlay_ax.set_ylabel('Percent of Total Cost')
         overlay_ax.set_xlabel('time (sec)')
         overlay_ax.set_title(title)
-        plt.legend()
+        overlay_ax.legend()
         saveAndShow(fig, show_plot, save_dir, filename)
 
 
 
     def plotTotalCostPercentages(self, bar_ax=None, idx=0, show_plot=False, save_dir=None, filename='plotTotalCostPercentages'):
-        self.com_tracking_cost_normalized_sum = (self.com_tracking_cost.sum() / self.total_cost.sum())*100.0/self.max_total_cost
-        self.rh_tracking_cost_normalized_sum = (self.rh_tracking_cost.sum() / self.total_cost.sum())*100.0/self.max_total_cost
-        self.com_goal_cost_normalized_sum = (self.com_goal_cost.sum() / self.total_cost.sum())*100.0/self.max_total_cost
-        self.rh_goal_cost_normalized_sum = (self.rh_goal_cost.sum() / self.total_cost.sum())*100.0/self.max_total_cost
-        self.energy_cost_normalized_sum = (self.energy_cost.sum() / self.total_cost.sum())*100.0/self.max_total_cost
+        # normalize costs
+        costs = []
+        colors = []
+        labels = []
+        if self.useTrackingCost:
+            costs.append( (self.com_tracking_cost.sum() / self.total_cost.sum())*100.0/self.cost_scaling_factor )
+            costs.append( (self.rh_tracking_cost.sum() / self.total_cost.sum())*100.0/self.cost_scaling_factor )
+            colors.append(self.com_color.light)
+            colors.append(self.rh_color.light)
+            labels.append('com_tracking_cost')
+            labels.append('rh_tracking_cost')
+
+        if self.useGoalCost:
+            costs.append( (self.com_goal_cost.sum() / self.total_cost.sum())*100.0/self.cost_scaling_factor )
+            costs.append( (self.rh_goal_cost.sum() / self.total_cost.sum())*100.0/self.cost_scaling_factor )
+            colors.append(self.com_color.dark)
+            colors.append(self.rh_color.dark)
+            labels.append('com_goal_cost')
+            labels.append('rh_goal_cost')
+
+        if self.useEnergyCost:
+            costs.append( (self.energy_cost.sum() / self.total_cost.sum())*100.0/self.cost_scaling_factor )
+            colors.append(self.energy_color.medium)
+            labels.append('energy_cost')
 
 
-        self.com_tracking_cost_normalized_sum += 0.0
-        self.rh_tracking_cost_normalized_sum += self.com_tracking_cost_normalized_sum
-        self.com_goal_cost_normalized_sum += self.rh_tracking_cost_normalized_sum
-        self.rh_goal_cost_normalized_sum += self.com_goal_cost_normalized_sum
-        self.energy_cost_normalized_sum += self.rh_goal_cost_normalized_sum
+        # Add them so they stack on top of each other.
+        for i in range(1,len(costs)):
+            costs[i] += costs[i-1]
 
         title = "Total Cost Percentages"
         if bar_ax is None:
             fig, (bar_ax) = plt.subplots(1, 1, num=title, figsize=(10, 8), facecolor='w', edgecolor='k')
             bar_ax.set_title(title)
 
-        bar_ax.bar(idx, self.energy_cost_normalized_sum, color=self.energy_color.medium, label='energy_cost')
-        bar_ax.bar(idx, self.rh_goal_cost_normalized_sum, color=self.rh_color.dark, label='rh_goal_cost')
-        bar_ax.bar(idx, self.com_goal_cost_normalized_sum, color=self.com_color.dark, label='com_goal_cost')
-        bar_ax.bar(idx, self.rh_tracking_cost_normalized_sum, color=self.rh_color.light, label='rh_tracking_cost')
-        bar_ax.bar(idx, self.com_tracking_cost_normalized_sum, color=self.com_color.light, label='com_tracking_cost')
+        for i, (cos,col,lab) in reversed(list(enumerate(zip(costs,colors,labels)))):
+            bar_ax.bar(idx, cos, color=col, label=lab)
 
         if bar_ax is None:
-            plt.legend()
+            bar_ax.set_xlabel('iteration')
+            bar_ax.set_ylabel('%')
+            bar_ax.legend()
             saveAndShow(fig, show_plot, save_dir, filename)
 
 
