@@ -3,14 +3,32 @@ from ..sim_tools.simulate import *
 import os
 from robo.task.base_task import BaseTask
 import numpy as np
-
+import pickle
 
 class BaseTest(BaseTask):
 
-    def __init__(self, root_path, right_hand_starting_waypoints, com_starting_waypoints):
-
-
+    def __init__(self, root_path, right_hand_starting_waypoints, com_starting_waypoints, costs=['tracking', 'goal', 'energy']):
         self.root_path = root_path
+        self.costs = costs
+        self.useTrackingCost = False
+        self.useGoalCost = False
+        self.useEnergyCost = False
+
+        for c in self.costs:
+            if c == 'tracking':
+                self.useTrackingCost = True
+
+            if c == 'goal':
+                self.useGoalCost = True
+
+            if c == 'energy':
+                self.useEnergyCost = True
+
+
+        print("Using the following costs:", self.costs)
+        self.costs_used_pickle_path = os.path.join(self.root_path, "/costs_used.pickle")
+        pickle.dump(self.costs, open( self.costs_used_pickle_path, "wb" ) )
+
         self.right_hand_waypoints = right_hand_starting_waypoints
         self.com_waypoints = com_starting_waypoints
         self.createTrialDir()
@@ -121,22 +139,21 @@ class BaseTest(BaseTask):
 
 
     def calculateTotalCost(self):
+        j_total = 0.0
         j_tracking = 0.0
         j_goal = 0.0
         j_energy = self.task_data[0].energyCost()
         for t in self.task_data:
             j_tracking += t.trackingCost()
             j_goal += t.goalCost()
-            np.savetxt(self.iteration_dir_path +"/"+ t.name.lower() +"_j_tracking.txt", [t.trackingCost()])
-            np.savetxt(self.iteration_dir_path +"/"+ t.name.lower() +"_j_goal.txt", [t.goalCost()])
-            np.savetxt(self.iteration_dir_path +"/"+ t.name.lower() +"_j_energy.txt", [t.energyCost()])
 
-        j_total = j_tracking + j_goal + j_energy
+        if self.useTrackingCost:
+            j_total += j_tracking
+        if self.useGoalCost:
+            j_total += j_goal
+        if self.useEnergyCost:
+            j_total += j_energy
 
-        np.savetxt(self.iteration_dir_path + "/J_tracking.txt", [j_tracking])
-        np.savetxt(self.iteration_dir_path + "/J_goal.txt", [j_goal])
-        np.savetxt(self.iteration_dir_path + "/J_energy.txt", [j_energy])
-        np.savetxt(self.iteration_dir_path + "/J_total.txt", [j_total])
 
         return np.array([[j_total]])
 

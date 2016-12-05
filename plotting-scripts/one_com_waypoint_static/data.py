@@ -26,13 +26,10 @@ class TestData():
         self.solver_parameters_path = os.path.join(self.test_dir, 'solver_parameters.pickle')
         self.solver_parameters = pickle.load( open( self.solver_parameters_path, 'rb' ) )
 
-        # self.costs_used_path = os.path.join(self.test_dir, 'costs_used.pickle')
-        # self.costs_used = pickle.load( open( self.costs_used_path, 'rb' ) )
-        self.costs_used = ['tracking', 'goal', 'energy']
+        self.costs_used_path = os.path.join(self.test_dir, 'costs_used.pickle')
+        self.costs_used = pickle.load( open( self.costs_used_path, 'rb' ) )
 
-
-        # self.cost_scaling_factor = self.opt_data['Y_init']
-        self.cost_scaling_factor = 1.0
+        self.cost_scaling_factor = self.opt_data['Y_init']
 
         self.extractDataFromTest()
 
@@ -57,27 +54,30 @@ class TestData():
 
         print("I found "+str(self.n_iterations)+" iteration directories in the test directory: "+self.test_dir)
 
-    def generatePlots(self):
-        save_path = self.test_dir + '/plots/'
+    def generatePlots(self, save_path=None):
+        if save_path is None:
+            save_path = self.test_dir + '/plots/'
 
         # Bar graph stuff
-        title = "Cost Percentages During Movement"
+        title = "Total Cost Percentages"
         bar_fig, (bar_ax) = plt.subplots(1, 1, num=title, figsize=(10, 8), facecolor='w', edgecolor='k')
 
         import timeit
         time_left = '???'
         elapsed = []
+        tmp_costs = []
         for i, d in enumerate(self.iteration_data):
             print("Plotting iteration", i, "of", self.n_iterations, "- est. duration:", time_left, "s")
             start_time = timeit.default_timer()
 
             fn = str(i).zfill(3)
-            tmp = plot.DataPlots(d)
+            tmp = plot.DataPlots(d, self.costs_used, self.cost_scaling_factor)
             tmp.plotIndividualCosts(show_plot=False, save_dir=save_path+'/IndividualCosts/', filename=fn)
             tmp.plotCostPercentages(show_plot=False, save_dir=save_path+'/CostPercentages/', filename=fn)
             tmp.plotJacobianRanks(show_plot=False, save_dir=save_path+'/JacobianRanks/', filename=fn)
             tmp.plotJointPositions(show_plot=False, save_dir=save_path+'/JointPositions/', filename=fn)
             tmp.plotTotalCostPercentages(bar_ax, i)
+            tmp_costs.append(tmp.total_cost.sum())
 
             elapsed.append(timeit.default_timer() - start_time)
             time_left = np.mean(elapsed) * (self.n_iterations-i)
@@ -85,7 +85,7 @@ class TestData():
 
         # Do it for the optimal data as well.
         print("Plotting optimal solution")
-        tmp = plot.DataPlots(self.optimal_data)
+        tmp = plot.DataPlots(self.optimal_data, self.costs_used, self.cost_scaling_factor)
         tmp.plotIndividualCosts(show_plot=False, save_dir=save_path+'/IndividualCosts/', filename='opt')
         tmp.plotCostPercentages(show_plot=False, save_dir=save_path+'/CostPercentages/', filename='opt')
         tmp.plotJacobianRanks(show_plot=False, save_dir=save_path+'/JacobianRanks/', filename='opt')
@@ -95,6 +95,17 @@ class TestData():
         # Add legend and save bar graph
         # bar_ax.legend()
         handles, labels = bar_ax.get_legend_handles_labels()
-        bar_ax.legend(handles[-5:], labels[-5:])
+        bar_ax.legend(handles[-tmp.n_component_costs:], labels[-tmp.n_component_costs:])
         bar_ax.set_title(title)
+        bar_ax.set_xlabel('iteration')
+        bar_ax.set_ylabel('%')
         plot.saveAndShow(bar_fig, save_dir=save_path, filename='TotalCostPercentages')
+
+
+
+        cost_fig, (cost_ax) = plt.subplots(1, 1, num="Cost Curve", figsize=(10, 8), facecolor='w', edgecolor='k')
+        cost_ax.plot(self.opt_data[2], 'r')
+        cost_ax.plot(self.tmp_costs, 'b')
+        cost_ax.set_xlabel('iteration')
+        cost_ax.set_ylabel('cost')
+        plot.saveAndShow(cost_fig, save_dir=save_path, filename='CostCurve')
