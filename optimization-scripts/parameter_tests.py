@@ -34,29 +34,29 @@ bo_n_tests = len(pars) * len(kernels) * len(acquisitionFunctions) * len(maximize
 
 # CMA-ES Parameters to test:
 
-sigmas = [0.0001, 0.0001, 0.01, 0.1, 0.5, 0.8, 1.0]
+sigmas = [0.0001, 0.0001, 0.01, 0.1, 0.5, 0.8, 0.99]
 # Total number of tests
 cma_n_tests = len(sigmas)
 
 ######################################################################################
 
-print("\n\n\n\n\n\n=================================================")
-print("\t\tBegining Bayesian Optimization trials.")
-print("=================================================")
-
-for p in pars:
-    for k in kernels:
-        for a in acquisitionFunctions:
-            for m in maximizers:
-                print("\n\n========================================")
-                print("Test number:", bo_test_number, "of", bo_n_tests, "tests.")
-                print("========================================")
-                first_test = OneComWaypointStaticTest(bo_test_path, right_hand_starting_waypoints, com_starting_waypoints)
-                solver_parameters = {'max_iter':maxIter, 'tolfun':tolerance, 'par':p, 'kernel':k, 'acquisition':a, 'maximizer':m}
-                solver = RoboSolver(first_test, solver_parameters)
-                solver.optimize()
-                solver.returnSolution(show_simulation=False)
-                bo_test_number += 1
+# print("\n\n\n\n\n\n=================================================")
+# print("\t\tBegining Bayesian Optimization trials.")
+# print("=================================================")
+#
+# for p in pars:
+#     for k in kernels:
+#         for a in acquisitionFunctions:
+#             for m in maximizers:
+#                 print("\n\n========================================")
+#                 print("Test number:", bo_test_number, "of", bo_n_tests, "tests.")
+#                 print("========================================")
+#                 first_test = OneComWaypointStaticTest(bo_test_path, right_hand_starting_waypoints, com_starting_waypoints)
+#                 solver_parameters = {'max_iter':maxIter, 'tolfun':tolerance, 'par':p, 'kernel':k, 'acquisition':a, 'maximizer':m}
+#                 solver = RoboSolver(first_test, solver_parameters)
+#                 solver.optimize()
+#                 solver.returnSolution(show_simulation=False)
+#                 bo_test_number += 1
 
 ######################################################################################
 
@@ -68,6 +68,7 @@ for s in sigmas:
     print("\n\n========================================")
     print("Test number:", cma_test_number, "of", cma_n_tests, "tests.")
     print("========================================")
+    first_test = OneComWaypointStaticTest(cma_test_path, right_hand_starting_waypoints, com_starting_waypoints)
     solver_parameters = {'max_iter':maxIter, 'tolfun':tolerance, 'initial_sigma':s}
     solver = CmaSolver(first_test, solver_parameters)
     solver.optimize()
