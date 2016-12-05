@@ -26,6 +26,14 @@ class TestData():
         self.solver_parameters_path = os.path.join(self.test_dir, 'solver_parameters.pickle')
         self.solver_parameters = pickle.load( open( self.solver_parameters_path, 'rb' ) )
 
+        # self.costs_used_path = os.path.join(self.test_dir, 'costs_used.pickle')
+        # self.costs_used = pickle.load( open( self.costs_used_path, 'rb' ) )
+        self.costs_used = ['tracking', 'goal', 'energy']
+
+
+        # self.cost_scaling_factor = self.opt_data['Y_init']
+        self.cost_scaling_factor = 1.0
+
         self.extractDataFromTest()
 
         self.printInfoAboutTest()
