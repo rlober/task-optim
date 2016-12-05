@@ -16,7 +16,7 @@ class TestData():
     def __init__(self, test_dir):
         self.test_dir = test_dir
         self.dirs = [d for d in os.listdir(self.test_dir) if os.path.isdir(os.path.join(self.test_dir, d))]
-        self.iter_dirs = [os.path.join(self.test_dir, d) for d in self.dirs if re.match('Iteration_.*', d)]
+        self.iter_dirs = sorted([os.path.join(self.test_dir, d) for d in self.dirs if re.match('Iteration_.*', d)])
         self.opt_dir = [os.path.join(self.test_dir, d) for d in self.dirs if re.match('Optimal_Solution', d)]
         self.n_iterations = len(self.iter_dirs)
 
