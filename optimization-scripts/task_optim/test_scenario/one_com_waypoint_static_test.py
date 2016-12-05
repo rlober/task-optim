@@ -3,8 +3,8 @@ from .base_test import *
 
 class OneComWaypointStaticTest(BaseTest):
     """docstring for OneComWaypointStaticTest."""
-    def __init__(self, root_path, right_hand_starting_waypoints, com_starting_waypoints):
-        super(OneComWaypointStaticTest, self).__init__(root_path, right_hand_starting_waypoints, com_starting_waypoints)
+    def __init__(self, root_path, right_hand_starting_waypoints, com_starting_waypoints, costs):
+        super(OneComWaypointStaticTest, self).__init__(root_path, right_hand_starting_waypoints, com_starting_waypoints, costs)
 
     def getInitialX(self):
         return np.array([self.task_data[0].goal()])
