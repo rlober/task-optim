@@ -22,7 +22,7 @@ costs_to_use = ['tracking', 'goal']
 
 first_test = OneComWaypointStaticTest(root_path, right_hand_starting_waypoints, com_starting_waypoints, costs_to_use)
 
-solver_parameters = {'max_iter':36, 'par':0.01, 'tolfun':1e-11, 'kernel':'Matern52', 'acquisition':'LCB', 'maximizer':'Direct'}
+solver_parameters = {'max_iter':36, 'par':0.01, 'tolfun':1e-11, 'kernel':'Matern52', 'acquisition':'LCB', 'maximizer':'CMAES'}
 solver = RoboSolver(first_test, solver_parameters)
 
 solver.optimize()
