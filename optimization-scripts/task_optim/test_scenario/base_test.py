@@ -31,7 +31,7 @@ class BaseTest(BaseTask):
         self.com_waypoints = com_starting_waypoints
         self.createTrialDir()
 
-        self.costs_used_pickle_path = os.path.join(self.root_path, "costs_used.pickle")
+        self.costs_used_pickle_path = os.path.join(self.trial_dir_path, "costs_used.pickle")
         pickle.dump(self.costs, open( self.costs_used_pickle_path, "wb" ) )
 
         self.optimization_iteration = 0
