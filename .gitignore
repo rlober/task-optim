@@ -1,5 +1,5 @@
-plotting-scripts/test_data_bo/plots/
-plotting-scripts/test_data_cma/plots/
+plotting-scripts/test_data_bo/tracking_goal/plots/
+plotting-scripts/test_data_cma/tracking_goal/plots/
 docs/_build/
 tmp/
 DIRresults.*

@@ -29,7 +29,7 @@ class TestData():
         self.costs_used_path = os.path.join(self.test_dir, 'costs_used.pickle')
         self.costs_used = pickle.load( open( self.costs_used_path, 'rb' ) )
 
-        self.cost_scaling_factor = self.opt_data['Y_init']
+        self.cost_scaling_factor = self.opt_data['Y_init'][0,0]
 
         self.extractDataFromTest()
 
@@ -109,8 +109,8 @@ class TestData():
         orig.compare(opt, save_dir=save_path)
 
         cost_fig, (cost_ax) = plt.subplots(1, 1, num="Cost Curve", figsize=(10, 8), facecolor='w', edgecolor='k')
-        cost_ax.plot(self.opt_data[2], 'r')
-        cost_ax.plot(self.tmp_costs, 'b')
+        cost_ax.plot(self.opt_data['Y'][:,0], 'r')
+        cost_ax.plot(tmp_costs, 'b')
         cost_ax.set_xlabel('iteration')
         cost_ax.set_ylabel('cost')
         plot.saveAndShow(cost_fig, save_dir=save_path, filename='CostCurve')

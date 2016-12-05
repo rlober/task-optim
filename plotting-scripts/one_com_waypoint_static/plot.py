@@ -43,6 +43,8 @@ class DataPlots():
         self.useGoalCost = False
         self.useEnergyCost = False
 
+        print('self.costs_used', self.costs_used)
+
         for c in self.costs_used:
             if c == 'tracking':
                 self.useTrackingCost = True
@@ -54,7 +56,7 @@ class DataPlots():
                 self.useEnergyCost = True
 
 
-        self.total_cost = np.zeros(np.shape(self.com_task_data.positionErrorSquaredNormTimeAveraged()))
+        self.total_cost = np.zeros((self.com_task_data.nTimeSteps,))
 
         if self.useTrackingCost:
             self.com_tracking_cost = self.com_task_data.positionErrorSquaredNormTimeAveraged()
