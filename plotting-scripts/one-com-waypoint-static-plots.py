@@ -6,7 +6,7 @@
 from one_com_waypoint_static import *
 import os
 
-test_dir = os.path.abspath("./test_data_bo/tracking_goal/")
+test_dir = os.path.abspath("./test_data_cma/tracking_goal/")
 
 test_data = data.TestData(test_dir)
 test_data.generatePlots()

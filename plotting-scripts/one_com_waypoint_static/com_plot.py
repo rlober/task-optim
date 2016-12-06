@@ -50,4 +50,15 @@ def plot3dScatter(waypoints, costs, lower_bounds, upper_bounds):
     ax.set_ylabel('Y (m)')
     ax.set_zlabel('Z (m)')
 
-    plt.show()
+    range_max = max(upper_bounds-lower_bounds)*1.2
+    means = (upper_bounds + lower_bounds) / 2
+    new_lowers = means - (range_max / 2)
+    new_uppers = means + (range_max / 2)
+
+
+    ax.set_xlim([new_lowers[0], new_uppers[0]])
+    ax.set_ylim([new_lowers[1], new_uppers[1]])
+    ax.set_zlim([new_lowers[2], new_uppers[2]])
+
+    return fig, ax
+    # plt.show()

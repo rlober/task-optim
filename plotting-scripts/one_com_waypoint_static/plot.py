@@ -5,7 +5,7 @@ import os
 import sys
 sys.path.append("../")
 from color_palette import palettes
-
+from . import data
 
 def checkAndCreateDir(dir_path):
     if not os.path.exists(dir_path):
@@ -42,8 +42,6 @@ class DataPlots():
         self.useTrackingCost = False
         self.useGoalCost = False
         self.useEnergyCost = False
-
-        print('self.costs_used', self.costs_used)
 
         for c in self.costs_used:
             if c == 'tracking':
@@ -241,7 +239,7 @@ class DataPlots():
 
         r = 0
         c = 0
-        from . import data
+
         for i in range(len(self.com_task_data.lower_joint_limits)):
             tmp_ax = joint_ax_arr[r,c]
             tmp_ax.plot(self.com_task_data.time, self.com_task_data.jointPositions[:,i]*180.0/np.pi, color=palettes.YlOrRd().medium, lw=2)
@@ -268,10 +266,10 @@ class DataPlots():
         """
         if self.useTrackingCost:
             fig, (ax) = plt.subplots(1, num='Tracking Costs', figsize=(8,6), facecolor='w', edgecolor='k')
-            ax.plot(self.com_task_data.time, self.com_tracking_cost, color=self.com_color.light, lw=3, label='com_tracking_cost')
-            ax.plot(self.rh_task_data.time, self.rh_tracking_cost, color=self.rh_color.light, lw=3, label='rh_tracking_cost')
-            ax.plot(other.com_task_data.time, other.com_tracking_cost, color=other.com_color.light, lw=3, label='com_tracking_cost_other', ls='--')
-            ax.plot(other.rh_task_data.time, other.rh_tracking_cost, color=other.rh_color.light, lw=3, label='rh_tracking_cost_other', ls='--')
+            ax.plot(self.com_task_data.time, self.com_tracking_cost, color=self.com_color.light, lw=3, label='com_tracking_cost_original')
+            ax.plot(self.rh_task_data.time, self.rh_tracking_cost, color=self.rh_color.light, lw=3, label='rh_tracking_cost_original')
+            ax.plot(other.com_task_data.time, other.com_tracking_cost, color=other.com_color.light, lw=3, label='com_tracking_cost_optimal', ls='--')
+            ax.plot(other.rh_task_data.time, other.rh_tracking_cost, color=other.rh_color.light, lw=3, label='rh_tracking_cost_optimal', ls='--')
             ax.legend()
             ax.set_xlabel('time (sec)')
             ax.set_ylabel(r'$j_{tracking}$')
@@ -279,10 +277,10 @@ class DataPlots():
 
         if self.useGoalCost:
             fig, (ax) = plt.subplots(1, num='Goal Costs', figsize=(8,6), facecolor='w', edgecolor='k')
-            ax.plot(self.com_task_data.time, self.com_goal_cost, color=self.com_color.dark, lw=3, label='com_goal_cost')
-            ax.plot(self.rh_task_data.time, self.rh_goal_cost, color=self.rh_color.dark, lw=3, label='rh_goal_cost')
-            ax.plot(other.com_task_data.time, other.com_goal_cost, color=other.com_color.dark, lw=3, label='com_goal_cost_other', ls='--')
-            ax.plot(other.rh_task_data.time, other.rh_goal_cost, color=other.rh_color.dark, lw=3, label='rh_goal_cost_other', ls='--')
+            ax.plot(self.com_task_data.time, self.com_goal_cost, color=self.com_color.dark, lw=3, label='com_goal_cost_original')
+            ax.plot(self.rh_task_data.time, self.rh_goal_cost, color=self.rh_color.dark, lw=3, label='rh_goal_cost_original')
+            ax.plot(other.com_task_data.time, other.com_goal_cost, color=other.com_color.dark, lw=3, label='com_goal_cost_optimal', ls='--')
+            ax.plot(other.rh_task_data.time, other.rh_goal_cost, color=other.rh_color.dark, lw=3, label='rh_goal_cost_optimal', ls='--')
             ax.legend()
             ax.set_xlabel('time (sec)')
             ax.set_ylabel(r'$j_{goal}$')
@@ -290,17 +288,39 @@ class DataPlots():
 
         if self.useEnergyCost:
             fig, (ax) = plt.subplots(1, num='Energy Costs', figsize=(8,6), facecolor='w', edgecolor='k')
-            ax.plot(self.com_task_data.time, self.energy_cost, color=self.energy_color.medium, lw=3, label='energy_cost')
-            ax.plot(other.com_task_data.time, other.energy_cost, color=other.energy_color.medium, lw=3, label='energy_cost_other', ls='--')
+            ax.plot(self.com_task_data.time, self.energy_cost, color=self.energy_color.medium, lw=3, label='energy_cost_original')
+            ax.plot(other.com_task_data.time, other.energy_cost, color=other.energy_color.medium, lw=3, label='energy_cost_optimal', ls='--')
             ax.legend()
             ax.set_xlabel('time (sec)')
             ax.set_ylabel(r'$j_{energy}$')
             saveAndShow(fig, show_plot, save_dir, 'EnergyCostComparaison')
 
         fig, (ax) = plt.subplots(1, num='Total Costs', figsize=(8,6), facecolor='w', edgecolor='k')
-        ax.plot(self.com_task_data.time, self.total_cost, color=self.total_color.medium, lw=3, label='total_cost')
-        ax.plot(other.com_task_data.time, other.total_cost, color=other.total_color.medium, lw=3, label='total_cost_other', ls='--')
+        ax.plot(self.com_task_data.time, self.total_cost, color=self.total_color.medium, lw=3, label='total_cost_original')
+        ax.plot(other.com_task_data.time, other.total_cost, color=other.total_color.medium, lw=3, label='total_cost_optimal', ls='--')
         ax.set_ylabel(r'$j_{total}$')
         ax.set_xlabel('time (sec)')
         ax.legend()
         saveAndShow(fig, show_plot, save_dir, 'TotalCostComparaison')
+
+        # Plot joint limit comparaisons
+        nFigCols = 5
+        nFigRows = 5
+        fig, ax = plt.subplots(nFigRows, nFigCols, sharex=True, num="Joint Limit Comparaisons", figsize=(16, 10), facecolor='w', edgecolor='k')
+        r = 0
+        c = 0
+
+        for i in range(len(self.com_task_data.lower_joint_limits)):
+            tmp_ax = ax[r,c]
+            tmp_ax.plot(self.com_task_data.time, self.com_task_data.jointPositions[:,i]*180.0/np.pi, color=palettes.YlOrRd().medium, lw=2, label='original')
+            tmp_ax.plot(other.com_task_data.time, other.com_task_data.jointPositions[:,i]*180.0/np.pi, color=palettes.YlOrRd().medium, lw=2, ls='--', label='optimal')
+            tmp_ax.axhline(self.com_task_data.lower_joint_limits[i]*180.0/np.pi, color=palettes.YlOrRd().light, lw=2, ls='--')
+            tmp_ax.axhline(self.com_task_data.upper_joint_limits[i]*180.0/np.pi, color=palettes.YlOrRd().dark, lw=2, ls='--')
+            tmp_ax.set_title(data.icub_joint_names[i])
+            tmp_ax.legend(bbox_to_anchor=(0.5, 1), bbox_transform=plt.gcf().transFigure, ncol=2)
+            c+=1
+            if c>= nFigCols:
+                r += 1
+                c = 0
+
+        saveAndShow(fig, show_plot, save_dir, 'JointLimitComparaisons')
