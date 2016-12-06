@@ -9,22 +9,24 @@ class BaseTest(BaseTask):
 
     def __init__(self, root_path, right_hand_starting_waypoints, com_starting_waypoints, costs=['tracking', 'goal', 'energy'], skip_init=False, trial_dir=None):
 
+        self.costs = costs
+        self.useTrackingCost = False
+        self.useGoalCost = False
+        self.useEnergyCost = False
+
+        for c in self.costs:
+            if c == 'tracking':
+                self.useTrackingCost = True
+
+            if c == 'goal':
+                self.useGoalCost = True
+
+            if c == 'energy':
+                self.useEnergyCost = True
+
+
         if not skip_init:
             self.root_path = root_path
-            self.costs = costs
-            self.useTrackingCost = False
-            self.useGoalCost = False
-            self.useEnergyCost = False
-
-            for c in self.costs:
-                if c == 'tracking':
-                    self.useTrackingCost = True
-
-                if c == 'goal':
-                    self.useGoalCost = True
-
-                if c == 'energy':
-                    self.useEnergyCost = True
 
 
             print("Using the following costs:", self.costs)
@@ -59,7 +61,7 @@ class BaseTest(BaseTask):
         else:
             self.trial_dir_path = trial_dir
             self.right_hand_waypoints = right_hand_starting_waypoints
-            
+
     """
     Implement these methods...
     """
