@@ -7,54 +7,59 @@ import pickle
 
 class BaseTest(BaseTask):
 
-    def __init__(self, root_path, right_hand_starting_waypoints, com_starting_waypoints, costs=['tracking', 'goal', 'energy']):
-        self.root_path = root_path
-        self.costs = costs
-        self.useTrackingCost = False
-        self.useGoalCost = False
-        self.useEnergyCost = False
+    def __init__(self, root_path, right_hand_starting_waypoints, com_starting_waypoints, costs=['tracking', 'goal', 'energy'], skip_init=False, trial_dir=None):
 
-        for c in self.costs:
-            if c == 'tracking':
-                self.useTrackingCost = True
+        if not skip_init:
+            self.root_path = root_path
+            self.costs = costs
+            self.useTrackingCost = False
+            self.useGoalCost = False
+            self.useEnergyCost = False
 
-            if c == 'goal':
-                self.useGoalCost = True
+            for c in self.costs:
+                if c == 'tracking':
+                    self.useTrackingCost = True
 
-            if c == 'energy':
-                self.useEnergyCost = True
+                if c == 'goal':
+                    self.useGoalCost = True
 
-
-        print("Using the following costs:", self.costs)
-
-        self.right_hand_waypoints = right_hand_starting_waypoints
-        self.com_waypoints = com_starting_waypoints
-        self.createTrialDir()
-
-        self.costs_used_pickle_path = os.path.join(self.trial_dir_path, "costs_used.pickle")
-        pickle.dump(self.costs, open( self.costs_used_pickle_path, "wb" ) )
-
-        self.optimization_iteration = 0
-        self.iterateSimulation()
-        self.X_init = self.getInitialX()
-        self.Y_init = self.calculateTotalCost()
-
-        print("X_init: ", self.X_init)
-        print("Y_init: ", self.Y_init)
-        self.X_init_original = self.X_init
-        self.Y_init_original = self.Y_init
-
-        self.setBounds()
-
-        print("Lower bounds: ", self.X_lower)
-        print("Upper bounds: ", self.X_upper)
-
-        self.X_lower_original = self.X_lower
-        self.X_upper_original = self.X_upper
-
-        super(BaseTest, self).__init__(self.X_lower, self.X_upper)
+                if c == 'energy':
+                    self.useEnergyCost = True
 
 
+            print("Using the following costs:", self.costs)
+
+            self.right_hand_waypoints = right_hand_starting_waypoints
+            self.com_waypoints = com_starting_waypoints
+            self.createTrialDir()
+
+            self.costs_used_pickle_path = os.path.join(self.trial_dir_path, "costs_used.pickle")
+            pickle.dump(self.costs, open( self.costs_used_pickle_path, "wb" ) )
+
+            self.optimization_iteration = 0
+            self.iterateSimulation()
+            self.X_init = self.getInitialX()
+            self.Y_init = self.calculateTotalCost()
+
+            print("X_init: ", self.X_init)
+            print("Y_init: ", self.Y_init)
+            self.X_init_original = self.X_init
+            self.Y_init_original = self.Y_init
+
+            self.setBounds()
+
+            print("Lower bounds: ", self.X_lower)
+            print("Upper bounds: ", self.X_upper)
+
+            self.X_lower_original = self.X_lower
+            self.X_upper_original = self.X_upper
+
+            super(BaseTest, self).__init__(self.X_lower, self.X_upper)
+
+        else:
+            self.trial_dir_path = trial_dir
+            self.right_hand_waypoints = right_hand_starting_waypoints
+            
     """
     Implement these methods...
     """
