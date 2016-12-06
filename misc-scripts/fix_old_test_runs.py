@@ -13,9 +13,8 @@ root_dir = os.path.join(os.path.expanduser("~"),'Optimization_Tests/parameter_te
 
 sub_tests_dir = ['bo', 'cma']
 
-for i,s in enumerate(sub_tests_dir):
+for s in sub_tests_dir:
 
-    print("Fixing test", i+1, "of", len(sub_tests_dir))
 
     root_tests_dir = os.path.join(root_dir, s)
 
@@ -23,7 +22,10 @@ for i,s in enumerate(sub_tests_dir):
 
     test_dirs = sorted([os.path.join(root_tests_dir, d) for d in dirs if re.match('OneComWaypointStaticTest.*', d)])
 
-    for test in test_dirs:
+    for i, test in enumerate(test_dirs):
+
+        print("Fixing test", i+1, "of", len(test_dirs))
+
         dirs = [d for d in os.listdir(test) if os.path.isdir(os.path.join(test, d))]
 
         iter_dirs = sorted([os.path.join(test, d) for d in dirs if re.match('Iteration_.*', d)])
