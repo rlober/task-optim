@@ -91,7 +91,11 @@ class BaseTest(BaseTask):
             self.iteration_dir_name = "Iteration_" + str(self.optimization_iteration).zfill(3)
 
         self.iteration_dir_path = self.trial_dir_path + self.iteration_dir_name + "/"
-        os.makedirs(self.iteration_dir_path)
+        try:
+            os.makedirs(self.iteration_dir_path)
+        except:
+            print("Warning, the dir:", self.iteration_dir_path, "already exists. Overwriting previous data.")
+            
         if isOptimal:
             self.right_hand_waypoint_file_path = self.iteration_dir_path + "/rightHandWaypoints_optimal.txt"
             self.com_waypoint_file_path = self.iteration_dir_path + "/comWaypoints_optimal.txt"
