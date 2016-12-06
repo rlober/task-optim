@@ -61,6 +61,7 @@ class TestData():
         if save_path is None:
             save_path = self.test_dir + '/plots/'
 
+        self.plot_save_dir = save_path
         # Bar graph stuff
         title = "Total Cost Percentages"
         bar_fig, (bar_ax) = plt.subplots(1, 1, num=title, figsize=(10, 8), facecolor='w', edgecolor='k')
@@ -130,3 +131,22 @@ class TestData():
         upper_bounds = self.optimal_data[0].upper_bounds
         com_fig, com_ax = com_plot.plot3dScatter(self.opt_data['X'], self.opt_data['Y'], lower_bounds, upper_bounds)
         plot.saveAndShow(com_fig, save_dir=save_path, filename='CoMScatter')
+
+    def generateHtml(self):
+        html_path = os.path.join(self.plot_save_dir, 'results.html')
+
+        f = open(html_path,'w')
+
+        images = ['CostCurve.png', 'GoalCostComparaison.png', 'Optimal_Tasks_CostPercentages.png', 'Optimal_Tasks_IndividualCosts.png', 'Optimal_Tasks_JacobianRanks.png', 'Optimal_Tasks_JointPositions.png', 'Original_Tasks_CostPercentages.png', 'Original_Tasks_IndividualCosts.png', 'Original_Tasks_JacobianRanks.png', 'Original_Tasks_JointPositions.png', 'TotalCostComparaison.png', 'TotalCostPercentages.png', 'TrackingCostComparaison.png']
+
+        html_body = "<html><head></head><body><h1>"+self.plot_save_dir+"</h1><p>"+str(self.solver_parameters)+"</p>"
+        for i in images:
+            im_path = os.path.join(self.plot_save_dir, i)
+            html_body += "<br><img src='"+im_path+"'>"
+
+        html_body += "</body></html>"
+
+        f.write(html_body)
+        f.close()
+
+        return self.opt_data, self.solver_parameters, html_path
