@@ -65,7 +65,13 @@ for i,sub in enumerate(sub_tests_dir):
         print("\n\n======================================================================")
         print("Analysing test", j, "of", len(test_dirs), "for", sub, "trials.")
         print("======================================================================\n")
-        test_data = data.TestData(test)
-        test_data.generatePlots()
+        test_data = data.TestData(test, extract_data=False)
+        # test_data.generatePlots()
         opt_data, sol_params, html_path = test_data.generateHtml(server_root_dir)
         createIndexHtml(opt_data, sol_params, html_path)
+
+        opt_data.append( pickle.load( open( os.path.join(test, 'opt_data.pickle'), 'rb' ) ) )
+        costs_used.append( pickle.load( open( os.path.join(test, 'costs_used.pickle'), 'rb' ) ) )
+        solver_parameters.append( pickle.load( open( os.path.join(test, 'solver_parameters.pickle'), 'rb' ) ) )
+
+    generatePlots(opt_data, costs_used, solver_parameters, sub, root_dir)

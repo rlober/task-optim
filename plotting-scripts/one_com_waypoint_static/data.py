@@ -16,8 +16,13 @@ icub_joint_names = ["torso_pitch", "torso_roll", "torso_yaw", "l_shoulder_pitch"
 
 class TestData():
     """docstring for TestData."""
-    def __init__(self, test_dir):
+    def __init__(self, test_dir, save_path=None, extract_data=True):
         self.test_dir = test_dir
+
+        self.save_dir = self.test_dir + '/plots/'
+        if save_path is not None:
+            self.save_dir = save_path
+
         self.dirs = [d for d in os.listdir(self.test_dir) if os.path.isdir(os.path.join(self.test_dir, d))]
         self.iter_dirs = sorted([os.path.join(self.test_dir, d) for d in self.dirs if re.match('Iteration_.*', d)])
         self.opt_dir = [os.path.join(self.test_dir, d) for d in self.dirs if re.match('Optimal_Solution', d)]
@@ -42,9 +47,9 @@ class TestData():
         else:
             print(" -- WARNING: Could not parse opt_data['Y_init']")
 
-        self.extractDataFromTest()
-
-        self.printInfoAboutTest()
+        if extract_data:
+            self.extractDataFromTest()
+            self.printInfoAboutTest()
 
     def extractDataFromTest(self):
         self.iteration_data = []
@@ -66,10 +71,10 @@ class TestData():
         print("I found "+str(self.n_iterations)+" iteration directories in the test directory: "+self.test_dir)
 
     def generatePlots(self, save_path=None):
-        if save_path is None:
-            save_path = self.test_dir + '/plots/'
+        plot_save_dir = self.save_dir
+        if save_path is not None:
+            plot_save_dir = save_path
 
-        self.plot_save_dir = save_path
         # Bar graph stuff
         title = "Total Cost Percentages"
         bar_fig, (bar_ax) = plt.subplots(1, 1, num=title, figsize=(10, 8), facecolor='w', edgecolor='k')
@@ -85,10 +90,10 @@ class TestData():
 
             fn = str(i).zfill(3)
             tmp = plot.DataPlots(d, self.costs_used, self.cost_scaling_factor)
-            tmp.plotIndividualCosts(show_plot=False, save_dir=save_path+'/IndividualCosts/', filename=fn)
-            tmp.plotCostPercentages(show_plot=False, save_dir=save_path+'/CostPercentages/', filename=fn)
-            tmp.plotJacobianRanks(show_plot=False, save_dir=save_path+'/JacobianRanks/', filename=fn)
-            tmp.plotJointPositions(show_plot=False, save_dir=save_path+'/JointPositions/', filename=fn)
+            tmp.plotIndividualCosts(show_plot=False, save_dir=plot_save_dir+'/IndividualCosts/', filename=fn)
+            tmp.plotCostPercentages(show_plot=False, save_dir=plot_save_dir+'/CostPercentages/', filename=fn)
+            tmp.plotJacobianRanks(show_plot=False, save_dir=plot_save_dir+'/JacobianRanks/', filename=fn)
+            tmp.plotJointPositions(show_plot=False, save_dir=plot_save_dir+'/JointPositions/', filename=fn)
             tmp.plotTotalCostPercentages(bar_ax, i)
             tmp_costs.append(tmp.total_cost.sum())
 
@@ -102,25 +107,25 @@ class TestData():
         bar_ax.set_title(title)
         bar_ax.set_xlabel('iteration')
         bar_ax.set_ylabel('%')
-        plot.saveAndShow(bar_fig, save_dir=save_path, filename='TotalCostPercentages')
+        plot.saveAndShow(bar_fig, save_dir=plot_save_dir, filename='TotalCostPercentages')
 
         # Do it for the original and optimal data as well.
         print("Plotting Original task set data.")
         orig = plot.DataPlots(self.original_data, self.costs_used, self.cost_scaling_factor)
-        orig.plotIndividualCosts(show_plot=False, save_dir=save_path, filename='Original_Tasks_IndividualCosts')
-        orig.plotCostPercentages(show_plot=False, save_dir=save_path, filename='Original_Tasks_CostPercentages')
-        orig.plotJacobianRanks(show_plot=False, save_dir=save_path, filename='Original_Tasks_JacobianRanks')
-        orig.plotJointPositions(show_plot=False, save_dir=save_path, filename='Original_Tasks_JointPositions')
+        orig.plotIndividualCosts(show_plot=False, save_dir=plot_save_dir, filename='Original_Tasks_IndividualCosts')
+        orig.plotCostPercentages(show_plot=False, save_dir=plot_save_dir, filename='Original_Tasks_CostPercentages')
+        orig.plotJacobianRanks(show_plot=False, save_dir=plot_save_dir, filename='Original_Tasks_JacobianRanks')
+        orig.plotJointPositions(show_plot=False, save_dir=plot_save_dir, filename='Original_Tasks_JointPositions')
 
         print("Plotting Optimal task set data.")
         opt = plot.DataPlots(self.optimal_data, self.costs_used, self.cost_scaling_factor)
-        opt.plotIndividualCosts(show_plot=False, save_dir=save_path, filename='Optimal_Tasks_IndividualCosts')
-        opt.plotCostPercentages(show_plot=False, save_dir=save_path, filename='Optimal_Tasks_CostPercentages')
-        opt.plotJacobianRanks(show_plot=False, save_dir=save_path, filename='Optimal_Tasks_JacobianRanks')
-        opt.plotJointPositions(show_plot=False, save_dir=save_path, filename='Optimal_Tasks_JointPositions')
+        opt.plotIndividualCosts(show_plot=False, save_dir=plot_save_dir, filename='Optimal_Tasks_IndividualCosts')
+        opt.plotCostPercentages(show_plot=False, save_dir=plot_save_dir, filename='Optimal_Tasks_CostPercentages')
+        opt.plotJacobianRanks(show_plot=False, save_dir=plot_save_dir, filename='Optimal_Tasks_JacobianRanks')
+        opt.plotJointPositions(show_plot=False, save_dir=plot_save_dir, filename='Optimal_Tasks_JointPositions')
 
         print("Plotting Original/Optimal comparaisons.")
-        orig.compare(opt, save_dir=save_path)
+        orig.compare(opt, save_dir=plot_save_dir)
 
         # Cost figure
         # assert(self.opt_data['Y'][:,0] == tmp_costs)
@@ -131,29 +136,33 @@ class TestData():
         cost_ax.set_xlabel('iteration')
         cost_ax.set_ylabel('cost')
         cost_ax.legend()
-        plot.saveAndShow(cost_fig, save_dir=save_path, filename='CostCurve')
+        plot.saveAndShow(cost_fig, save_dir=plot_save_dir, filename='CostCurve')
 
         # CoM Scatter figure
         print("Plotting the CoM scatter plot figure.")
         lower_bounds = self.optimal_data[0].lower_bounds
         upper_bounds = self.optimal_data[0].upper_bounds
         com_fig, com_ax = com_plot.plot3dScatter(self.opt_data['X'], self.opt_data['Y'], lower_bounds, upper_bounds)
-        plot.saveAndShow(com_fig, save_dir=save_path, filename='CoMScatter')
+        plot.saveAndShow(com_fig, save_dir=plot_save_dir, filename='CoMScatter')
 
-    def generateHtml(self, server_root_dir=None):
-        html_path = os.path.join(self.plot_save_dir, 'results.html')
+    def generateHtml(self, server_root_dir=None, save_path=None):
+        html_save_dir = self.save_dir
+        if save_path is not None:
+            html_save_dir = save_path
+
+        html_path = os.path.join(html_save_dir, 'results.html')
 
         f = open(html_path,'w')
 
         images = ['CostCurve.png', 'GoalCostComparaison.png', 'Optimal_Tasks_CostPercentages.png', 'Optimal_Tasks_IndividualCosts.png', 'Optimal_Tasks_JacobianRanks.png', 'Optimal_Tasks_JointPositions.png', 'Original_Tasks_CostPercentages.png', 'Original_Tasks_IndividualCosts.png', 'Original_Tasks_JacobianRanks.png', 'Original_Tasks_JointPositions.png', 'TotalCostComparaison.png', 'TotalCostPercentages.png', 'TrackingCostComparaison.png']
 
-        html_body = "<html><head></head><body><h1>"+self.plot_save_dir+"</h1><p>"+str(self.solver_parameters)+"</p>"
+        html_body = "<html><head></head><body><h1>"+html_save_dir+"</h1><p>"+str(self.solver_parameters)+"</p>"
         for i in images:
-            im_path = os.path.join(self.plot_save_dir, i)
+            im_path = os.path.join(html_save_dir, i)
             if server_root_dir is not None:
                 im_path = os.path.relpath(im_path, server_root_dir)
                 im_path = "/"+im_path
-                
+
             html_body += "<br><img src='"+im_path+"'>"
 
         html_body += "</body></html>"
