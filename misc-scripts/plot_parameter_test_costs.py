@@ -1,10 +1,13 @@
+import matplotlib
+# Force matplotlib to not use any Xwindows backend.
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import pickle
 import os
 import sys
 import re
 sys.path.append("../plotting-scripts")
-from one_com_waypoint_static.plot import *
+from one_com_waypoint_static import *
 from color_palette import *
 import fileinput
 
@@ -21,12 +24,12 @@ index_html_path = os.path.join(server_root_dir, 'index.html')
 def addPlotsToIndexHtml(rel_paths_to_plot, sub):
     html_content = "<br>"
     for link in rel_paths_to_plot:
-        html_content += "<a href='"+ link +"'><img src='" + link + "' width='200'></a>"
+        html_content += "<a href='"+ link +"'><img src='" + link + "' width='400'></a>"
 
     with fileinput.FileInput(index_html_path, inplace=True, backup='.bak') as file:
         for line in file:
             textToSearch = "<h2>BO Tests</h2>"
-            if sub = 'cma'
+            if sub == 'cma':
                 textToSearch = "<h2>CMA-ES Tests</h2>"
             textToReplace = textToSearch + html_content + "<br>"
             print(line.replace(textToSearch, textToReplace), end='')
@@ -36,40 +39,47 @@ def generatePlots(opt_data, costs_used, solver_parameters, sub, save_path):
     iteration_opt_was_found = []
     n_iters = []
     for i, (opt, cos, sol) in enumerate(zip(opt_data, costs_used, solver_parameters)):
-        optimal_costs.append(opt_data['optimal_cost'])
-        iteration_opt_was_found.append(opt_data['opt_row'])
-        n_iters.append(opt_data['n_iter'])
+        optimal_costs.append(opt['optimal_cost'][0,0])
+        iteration_opt_was_found.append(opt['opt_row'])
+        n_iters.append(opt['n_iter'])
 
 
     rel_paths_to_plot = []
 
+    if sub == 'bo':
+        fname_prefix = 'BO_'
+    else:
+        fname_prefix = 'CMA_'
 
-    fname = 'OptimalCosts'
+    fname = fname_prefix + 'OptimalCosts'
     print("Plotting the", fname, "figure.")
     fig, (ax) = plt.subplots(1, 1, num=fname, figsize=(10, 8), facecolor='w', edgecolor='k')
     ax.plot(optimal_costs, color=palettes.Blues().dark, lw=3)
     ax.set_xlabel('test no.')
     ax.set_ylabel('optimal cost')
-    plot.saveAndShow(fig, save_dir=save_path, filename=fname)
-    rel_paths_to_plot.append( "/" + os.path.relpath(os.path.join(save_path,fname), server_root_dir) )
+    ax.set_ylabel(fname)
+    plot.saveAndShow(fig, show_plot=False, save_dir=save_path, filename=fname)
+    rel_paths_to_plot.append( "/" + os.path.relpath(os.path.join(save_path,fname+".png"), server_root_dir) )
 
-    fname = 'IterationOfOptimum'
+    fname = fname_prefix + 'IterationOfOptimum'
     print("Plotting the", fname, "figure.")
     fig, (ax) = plt.subplots(1, 1, num=fname, figsize=(10, 8), facecolor='w', edgecolor='k')
     ax.plot(iteration_opt_was_found, color=palettes.Purples().dark, lw=3)
     ax.set_xlabel('test no.')
     ax.set_ylabel('iteration of optimum')
-    plot.saveAndShow(fig, save_dir=save_path, filename=fname)
-    rel_paths_to_plot.append( "/" + os.path.relpath(os.path.join(save_path,fname), server_root_dir) )
+    ax.set_ylabel(fname)
+    plot.saveAndShow(fig, show_plot=False, save_dir=save_path, filename=fname)
+    rel_paths_to_plot.append( "/" + os.path.relpath(os.path.join(save_path,fname+".png"), server_root_dir) )
 
-    fname = 'NumberOfIterations'
+    fname = fname_prefix + 'NumberOfIterations'
     print("Plotting the", fname, "figure.")
     fig, (ax) = plt.subplots(1, 1, num=fname, figsize=(10, 8), facecolor='w', edgecolor='k')
     ax.plot(n_iters, color=palettes.Greens().dark, lw=3)
     ax.set_xlabel('test no.')
     ax.set_ylabel('total number of iterations')
-    plot.saveAndShow(fig, save_dir=save_path, filename=fname)
-    rel_paths_to_plot.append( "/" + os.path.relpath(os.path.join(save_path,fname), server_root_dir) )
+    ax.set_ylabel(fname)
+    plot.saveAndShow(fig, show_plot=False, save_dir=save_path, filename=fname)
+    rel_paths_to_plot.append( "/" + os.path.relpath(os.path.join(save_path,fname+".png"), server_root_dir) )
 
     addPlotsToIndexHtml(rel_paths_to_plot, sub)
 
