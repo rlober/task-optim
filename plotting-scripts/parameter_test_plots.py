@@ -21,7 +21,7 @@ index_html_path = os.path.join(server_root_dir, 'index.html')
 
 def createIndexHtml(opt_data, sol_params, html_path):
 
-    entry_link = "<a href='"+ html_path +"'>see trial data</a>"
+    entry_link = "<a href='"+ os.path.relpath(html_path, server_root_dir) +"'>see trial data</a>"
 
     if opt_data['solver'] == 'RoboSolver':
         bo_table_entries.append( "<tr>" + "<td>" + entry_link + "</td>" + "<td>" + str(sol_params['max_iter']) + "</td>" + "<td>" + str(sol_params['tolfun']) + "</td>" + "<td>" + str(sol_params['par']) + "</td>" + "<td>" + str(sol_params['kernel']) + "</td>" + "<td>" + str(sol_params['acquisition']) + "</td>" + "<td>" + str(sol_params['maximizer']) + "</td>" + "</tr>")
@@ -67,5 +67,5 @@ for i,sub in enumerate(sub_tests_dir):
         print("======================================================================\n")
         test_data = data.TestData(test)
         test_data.generatePlots()
-        opt_data, sol_params, html_path = test_data.generateHtml()
+        opt_data, sol_params, html_path = test_data.generateHtml(server_root_dir)
         createIndexHtml(opt_data, sol_params, html_path)

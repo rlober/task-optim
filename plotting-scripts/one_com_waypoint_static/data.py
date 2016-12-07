@@ -32,7 +32,15 @@ class TestData():
         self.costs_used_path = os.path.join(self.test_dir, 'costs_used.pickle')
         self.costs_used = pickle.load( open( self.costs_used_path, 'rb' ) )
 
-        self.cost_scaling_factor = self.opt_data['Y_init'][0,0]
+        self.cost_scaling_factor = 1.0
+        if np.shape(self.opt_data['Y_init']) == ():
+            self.cost_scaling_factor = self.opt_data['Y_init']
+        elif np.shape(self.opt_data['Y_init']) == (1,):
+            self.cost_scaling_factor = self.opt_data['Y_init'][0]
+        elif np.shape(self.opt_data['Y_init']) == (1,1):
+            self.cost_scaling_factor = self.opt_data['Y_init'][0,0]
+        else:
+            print(" -- WARNING: Could not parse opt_data['Y_init']")
 
         self.extractDataFromTest()
 
@@ -132,7 +140,7 @@ class TestData():
         com_fig, com_ax = com_plot.plot3dScatter(self.opt_data['X'], self.opt_data['Y'], lower_bounds, upper_bounds)
         plot.saveAndShow(com_fig, save_dir=save_path, filename='CoMScatter')
 
-    def generateHtml(self):
+    def generateHtml(self, server_root_dir=None):
         html_path = os.path.join(self.plot_save_dir, 'results.html')
 
         f = open(html_path,'w')
@@ -142,6 +150,10 @@ class TestData():
         html_body = "<html><head></head><body><h1>"+self.plot_save_dir+"</h1><p>"+str(self.solver_parameters)+"</p>"
         for i in images:
             im_path = os.path.join(self.plot_save_dir, i)
+            if server_root_dir is not None:
+                im_path = os.path.relpath(im_path, server_root_dir)
+                im_path = "/"+im_path
+                
             html_body += "<br><img src='"+im_path+"'>"
 
         html_body += "</body></html>"
