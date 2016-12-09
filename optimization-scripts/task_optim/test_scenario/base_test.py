@@ -5,9 +5,13 @@ from robo.task.base_task import BaseTask
 import numpy as np
 import pickle
 
+
 class BaseTest(BaseTask):
 
-    def __init__(self, root_path, right_hand_starting_waypoints, com_starting_waypoints, costs=['tracking', 'goal', 'energy'], skip_init=False, trial_dir=None):
+    def __init__(self, root_path, costs=['tracking', 'goal', 'energy'], skip_init=False, trial_dir=None):
+
+        head, tail = os.path.split(os.path.abspath(__file__))
+        self.rootPath = os.path.abspath(head+"/../../../")
 
         self.costs = costs
         self.useTrackingCost = False
@@ -28,11 +32,8 @@ class BaseTest(BaseTask):
         if not skip_init:
             self.root_path = root_path
 
-
             print("Using the following costs:", self.costs)
 
-            self.right_hand_waypoints = right_hand_starting_waypoints
-            self.com_waypoints = com_starting_waypoints
             self.createTrialDir()
 
             self.costs_used_pickle_path = os.path.join(self.trial_dir_path, "costs_used.pickle")
@@ -60,11 +61,14 @@ class BaseTest(BaseTask):
 
         else:
             self.trial_dir_path = trial_dir
-            self.right_hand_waypoints = right_hand_starting_waypoints
+            self.initSkipMethod()
 
     """
     Implement these methods...
     """
+    def initSkipMethod(self):
+        pass
+
     def getInitialX(self):
         pass
 
@@ -74,6 +78,17 @@ class BaseTest(BaseTask):
     def setBounds(self):
         pass
 
+    def getControllerArgs(self):
+        pass
+
+    def getClientArgs(self, isOptimal=False):
+        pass
+
+    def getGazeboWorld(self):
+        pass
+
+    def saveWaypointsToFile(self, iteration_dir_path, isOptimal=False):
+        pass
 
 
     """
@@ -95,18 +110,8 @@ class BaseTest(BaseTask):
             os.makedirs(self.iteration_dir_path)
         except:
             print("Warning, the dir:", self.iteration_dir_path, "already exists. Overwriting previous data.")
-            
-        if isOptimal:
-            self.right_hand_waypoint_file_path = self.iteration_dir_path + "/rightHandWaypoints_optimal.txt"
-            self.com_waypoint_file_path = self.iteration_dir_path + "/comWaypoints_optimal.txt"
-        else:
-            self.right_hand_waypoint_file_path = self.iteration_dir_path + "/rightHandWaypoints.txt"
-            self.com_waypoint_file_path = self.iteration_dir_path + "/comWaypoints.txt"
 
-        np.savetxt(self.right_hand_waypoint_file_path, self.right_hand_waypoints)
-        np.savetxt(self.com_waypoint_file_path, self.com_waypoints)
-        # print("Saving com waypoints\n", self.com_waypoints, "\n to: ", self.com_waypoint_file_path)
-        # print("Saving right hand waypoints\n", self.right_hand_waypoints, "\n to: ", self.right_hand_waypoint_file_path)
+        self.saveWaypointsToFile(self.iteration_dir_path, isOptimal)
 
     def iterateSimulation(self):
         print("Simulating new parameters...")
@@ -115,7 +120,7 @@ class BaseTest(BaseTask):
         max_trials = 20
         while number_of_trials <= max_trials:
             try:
-                simulate(self.right_hand_waypoint_file_path, self.com_waypoint_file_path, self.iteration_dir_path, verbose=False, visual=False)
+                simulate(self.getControllerArgs(), self.getClientArgs(), self.getGazeboWorld(), self.iteration_dir_path, verbose=True, visual=True)
                 self.task_data = getDataFromFiles(self.iteration_dir_path)
                 break
             except:
@@ -142,9 +147,9 @@ class BaseTest(BaseTask):
         print("Simulating optimal parameters...")
         self.createIterationDir(isOptimal=True)
         if show_simulation:
-            simulate(self.right_hand_waypoint_file_path, self.com_waypoint_file_path, self.iteration_dir_path, verbose=True, visual=True, askUserForReplay=True, goToHome=True)
+            simulate(self.getControllerArgs(), self.getClientArgs(isOptimal=True), self.getGazeboWorld(), self.iteration_dir_path, verbose=True, visual=True, askUserForReplay=True)
         else:
-            simulate(self.right_hand_waypoint_file_path, self.com_waypoint_file_path, self.iteration_dir_path, verbose=False, visual=False)
+            simulate(self.getControllerArgs(), self.getClientArgs(), self.getGazeboWorld(), self.iteration_dir_path, verbose=False, visual=False)
         self.task_data = getDataFromFiles(self.iteration_dir_path)
         self.n_tasks = len(self.task_data)
         observed_cost = self.calculateTotalCost()

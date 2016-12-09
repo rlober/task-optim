@@ -1,13 +1,10 @@
 import subprocess
 import time
 import shlex
-import os
 
-head, tail = os.path.split(os.path.abspath(__file__))
-rootPath = os.path.abspath(head+"/../../../")
 
 def killProcesses():
-    proc_list = ["yarpserver", "gzserver", "gzclient", "ocra-icub-server", "reach-client"]
+    proc_list = ["yarpserver", "gzserver", "gzclient", "ocra-icub-server", "reach-client", "stand-client"]
     total_killed = 0
     for p in proc_list:
         args = ["pkill", "-c", "-9", p]
@@ -20,19 +17,10 @@ def killProcesses():
 
     return total_killed
 
-def simulate(pathToRightHandWptFile, pathToComWptFile, savePath=None, verbose=False, visual=False, askUserForReplay=False, goToHome=False):
-
+def simulate(controllerArgs, clientArgs, icubWorldPath, savePath=None, verbose=False, visual=False, askUserForReplay=False):
 
     replay = True
     while replay:
-        # Gazebo world file
-        pathToIcubGazeboWorlds = rootPath + "/gazebo_worlds"
-        icubWorldPath = pathToIcubGazeboWorlds + "/balancing.world"
-
-        # Task set path
-        allTaskSets = rootPath + "/reaching-task-sets/icubGazeboSim"
-        taskSetPath = allTaskSets + "/TaskOptimizationTaskSet.xml"
-
 
         if verbose:
             print('Starting script...')
@@ -53,29 +41,20 @@ def simulate(pathToRightHandWptFile, pathToComWptFile, savePath=None, verbose=Fa
         time.sleep(4)
 
 
-        # args1 = "ocra-icub-server --floatingBase --controllerType HOCRA --solver QPOASES --taskSet " + taskSetPath + " --absolutePath"
-        args1 = "ocra-icub-server --floatingBase --taskSet " + taskSetPath + " --absolutePath --useOdometry"
-        args = shlex.split(args1)
+        ctrl_args = shlex.split(controllerArgs)
         if verbose:
-            print('-- Launching ocra-icub-server with args: ', args)
-        controller = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            print('-- Launching ocra-icub-server with args: ', ctrl_args)
+        controller = subprocess.Popen(ctrl_args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
         time.sleep(5)
 
         if savePath != None:
-            save_args = " --savePath " + savePath
-        else:
-            save_args = ""
+            clientArgs += " --savePath " + savePath
 
-        args1 = "reach-client --rightHandWptFile "+pathToRightHandWptFile+" --comWptFile " + pathToComWptFile + save_args
-
-        if goToHome:
-            args1 += " --home"
-
-        args = shlex.split(args1)
+        clArgs = shlex.split(clientArgs)
         if verbose:
-            print('-- Launching reach-client with args: ', args)
-        client = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            print('-- Launching client with args: ', clArgs)
+        client = subprocess.Popen(clArgs)#, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
         timeout = 40.0
         try:

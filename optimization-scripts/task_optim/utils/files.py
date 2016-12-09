@@ -19,25 +19,35 @@ def getDataFromFiles(root_dir):
     root_dir_path = verifyCanonicalPath(root_dir)
     print("Parsing data from: "+root_dir_path)
     timeline = np.loadtxt(root_dir_path + "/timeline.txt")
+    usingRightHandTask = True
+
+    try:
+        rightHandExpectedDuration = np.loadtxt(root_dir_path + "/rightHandExpectedDuration.txt")
+        rightHandPositionReal = np.loadtxt(root_dir_path + "/rightHandPositionReal.txt")
+        rightHandPositionRef = np.loadtxt(root_dir_path + "/rightHandPositionRef.txt")
+        rightHandWaypoints = np.loadtxt(root_dir_path + "/rightHandWaypoints.txt")
+        rightHandJacobians = np.loadtxt(root_dir_path + "/rightHandJacobians.txt")
+    except:
+        usingRightHandTask = False
+        print("No right hand cartesian task in this test.")
+
     comExpectedDuration = np.loadtxt(root_dir_path + "/comExpectedDuration.txt")
-    rightHandExpectedDuration = np.loadtxt(root_dir_path + "/rightHandExpectedDuration.txt")
     comPositionReal = np.loadtxt(root_dir_path + "/comPositionReal.txt")
     comPositionRef = np.loadtxt(root_dir_path + "/comPositionRef.txt")
     comWaypoints = np.loadtxt(root_dir_path + "/comWaypoints.txt")
-    rightHandPositionReal = np.loadtxt(root_dir_path + "/rightHandPositionReal.txt")
-    rightHandPositionRef = np.loadtxt(root_dir_path + "/rightHandPositionRef.txt")
-    rightHandWaypoints = np.loadtxt(root_dir_path + "/rightHandWaypoints.txt")
     torques = np.loadtxt(root_dir_path + "/torques.txt")
     comBounds = np.loadtxt(root_dir_path + "/comBounds.txt")
-    rightHandJacobians = np.loadtxt(root_dir_path + "/rightHandJacobians.txt")
     comJacobians = np.loadtxt(root_dir_path + "/comJacobians.txt")
     jointPositions = np.loadtxt(root_dir_path + "/jointPositions.txt")
     jointLimits = np.loadtxt(root_dir_path + "/jointLimits.txt")
 
     comData = TaskData(timeline, comExpectedDuration, comPositionReal, comPositionRef, comWaypoints, torques, comBounds, comJacobians, jointPositions, jointLimits, "CoM")
 
-    rightHandData = TaskData(timeline, rightHandExpectedDuration, rightHandPositionReal, rightHandPositionRef, rightHandWaypoints, torques, comBounds, rightHandJacobians, jointPositions, jointLimits, "Right_Hand")
-    return [comData, rightHandData]
+    if usingRightHandTask:
+        rightHandData = TaskData(timeline, rightHandExpectedDuration, rightHandPositionReal, rightHandPositionRef, rightHandWaypoints, torques, comBounds, rightHandJacobians, jointPositions, jointLimits, "Right_Hand")
+        return [comData, rightHandData]
+    else:
+        return [comData]
 
 def getDateAndTimeString():
     dt = datetime.now()

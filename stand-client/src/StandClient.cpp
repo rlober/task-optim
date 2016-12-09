@@ -21,10 +21,9 @@ bool StandClient::configure(yarp::os::ResourceFinder &rf)
         savePath = rf.find("savePath").asString().c_str();
         savePath = boost::filesystem::canonical(savePath).string();
         std::cout << "savePath: \n" << savePath << std::endl;
-        if(!createDataFiles()) {
-            return false;
-        }
+
     }
+    return true;
 }
 
 bool StandClient::initialize()
@@ -36,13 +35,17 @@ bool StandClient::initialize()
     leftLegContactTask = std::make_shared<ocra_recipes::TaskConnection>("LeftUpperLegContact");
     rightLegContactTask = std::make_shared<ocra_recipes::TaskConnection>("RightUpperLegContact");
 
-    if ( logData ) {
-        getComBounds();
-        getJointLimits();
-    }
 
     if ( !getComWaypoints() ) {
         return false;
+    }
+
+    if(!createDataFiles()) {
+        return false;
+    }
+    if ( logData ) {
+        getComBounds();
+        getJointLimits();
     }
 
 
