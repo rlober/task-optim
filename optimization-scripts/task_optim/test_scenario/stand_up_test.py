@@ -9,7 +9,7 @@ class StandUpTest(BaseTest):
 
 
     def getInitialX(self):
-        return np.array([self.task_data[0].middleWaypoints()])
+        return self.task_data[0].middleWaypoints()
 
     def extractTaskWaypointsFromSolutionVector(self, x):
         self.com_waypoints = np.array([x])

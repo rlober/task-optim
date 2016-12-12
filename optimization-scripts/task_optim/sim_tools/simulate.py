@@ -54,7 +54,7 @@ def simulate(controllerArgs, clientArgs, icubWorldPath, savePath=None, verbose=F
         clArgs = shlex.split(clientArgs)
         if verbose:
             print('-- Launching client with args: ', clArgs)
-        client = subprocess.Popen(clArgs)#, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        client = subprocess.Popen(clArgs, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
         timeout = 40.0
         try:
