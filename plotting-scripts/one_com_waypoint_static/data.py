@@ -53,17 +53,11 @@ class TestData():
 
     def extractDataFromTest(self):
         self.iteration_data = []
-        # rh = right hand
         for d in self.iter_dirs:
-            com_task_data, rh_task_data = getDataFromFiles(d)
-            self.iteration_data.append([com_task_data, rh_task_data])
+            self.iteration_data.append(getDataFromFiles(d))
 
-        com_task_data, rh_task_data = getDataFromFiles(self.iter_dirs[0])
-        self.original_data = [com_task_data, rh_task_data]
-
-
-        com_task_data, rh_task_data = getDataFromFiles(self.opt_dir[0])
-        self.optimal_data = [com_task_data, rh_task_data]
+        self.original_data = getDataFromFiles(self.iter_dirs[0])
+        self.optimal_data = getDataFromFiles(self.opt_dir[0])
 
 
     def printInfoAboutTest(self):
