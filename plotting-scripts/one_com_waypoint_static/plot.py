@@ -34,7 +34,11 @@ class DataPlots():
     """docstring for DataPlots."""
     def __init__(self, task_data, costs_used=['tracking', 'goal', 'energy'], cost_scaling_factor=1.0):
         self.com_task_data = task_data[0]
-        self.rh_task_data = task_data[1]
+        self.use_rh_data = False
+
+        if len(task_data) == 2:
+            self.use_rh_data = True
+            self.rh_task_data = task_data[1]
         self.costs_used = costs_used
         self.cost_scaling_factor = cost_scaling_factor
 
@@ -57,18 +61,25 @@ class DataPlots():
         self.total_cost = np.zeros((self.com_task_data.nTimeSteps,))
 
         if self.useTrackingCost:
-            self.com_tracking_cost = self.com_task_data.positionErrorSquaredNormTimeAveraged()
-            self.rh_tracking_cost = self.rh_task_data.positionErrorSquaredNormTimeAveraged()
-            self.n_component_costs += 2
 
-            self.total_cost += self.com_tracking_cost + self.rh_tracking_cost
+            self.com_tracking_cost = self.com_task_data.positionErrorSquaredNormTimeAveraged()
+            self.n_component_costs += 1
+            self.total_cost += self.com_tracking_cost
+
+            if self.use_rh_data:
+                self.rh_tracking_cost = self.rh_task_data.positionErrorSquaredNormTimeAveraged()
+                self.n_component_costs += 1
+                self.total_cost += self.rh_tracking_cost
 
         if self.useGoalCost:
             self.com_goal_cost = self.com_task_data.goalPositionErrorSquaredNormPenalized()
-            self.rh_goal_cost = self.rh_task_data.goalPositionErrorSquaredNormPenalized()
-            self.n_component_costs += 2
+            self.n_component_costs += 1
+            self.total_cost += self.com_goal_cost
 
-            self.total_cost += self.com_goal_cost + self.rh_goal_cost
+            if self.use_rh_data:
+                self.rh_goal_cost = self.rh_task_data.goalPositionErrorSquaredNormPenalized()
+                self.n_component_costs += 1
+                self.total_cost += self.rh_goal_cost
 
         if self.useEnergyCost:
             self.energy_cost = self.com_task_data.torquesSquaredNormTimeAveragedScaled()
@@ -91,13 +102,15 @@ class DataPlots():
         if self.useTrackingCost:
             tracking_ax.set_ylabel(r'$j_{tracking}$')
             tracking_ax.plot(self.com_task_data.time, self.com_tracking_cost, color=self.com_color.light, lw=3, label='com_tracking_cost')
-            tracking_ax.plot(self.rh_task_data.time, self.rh_tracking_cost, color=self.rh_color.light, lw=3, label='rh_tracking_cost')
+            if self.use_rh_data:
+                tracking_ax.plot(self.rh_task_data.time, self.rh_tracking_cost, color=self.rh_color.light, lw=3, label='rh_tracking_cost')
             tracking_ax.legend()
 
         if self.useGoalCost:
             goal_ax.set_ylabel(r'$j_{goal}$')
             goal_ax.plot(self.com_task_data.time, self.com_goal_cost , color=self.com_color.dark, lw=3, label='com_goal_cost')
-            goal_ax.plot(self.rh_task_data.time, self.rh_goal_cost, color=self.rh_color.dark, lw=3, label='rh_goal_cost')
+            if self.use_rh_data:
+                goal_ax.plot(self.rh_task_data.time, self.rh_goal_cost, color=self.rh_color.dark, lw=3, label='rh_goal_cost')
             goal_ax.legend()
 
         if self.useEnergyCost:
@@ -120,19 +133,21 @@ class DataPlots():
         labels = []
         if self.useTrackingCost:
             costs.append( (self.com_tracking_cost / self.total_cost)*100.0/self.cost_scaling_factor )
-            costs.append( (self.rh_tracking_cost / self.total_cost)*100.0/self.cost_scaling_factor )
             colors.append(self.com_color.light)
-            colors.append(self.rh_color.light)
             labels.append('com_tracking_cost')
-            labels.append('rh_tracking_cost')
+            if self.use_rh_data:
+                costs.append( (self.rh_tracking_cost / self.total_cost)*100.0/self.cost_scaling_factor )
+                colors.append(self.rh_color.light)
+                labels.append('rh_tracking_cost')
 
         if self.useGoalCost:
             costs.append( (self.com_goal_cost / self.total_cost)*100.0/self.cost_scaling_factor )
-            costs.append( (self.rh_goal_cost / self.total_cost)*100.0/self.cost_scaling_factor )
             colors.append(self.com_color.dark)
-            colors.append(self.rh_color.dark)
             labels.append('com_goal_cost')
-            labels.append('rh_goal_cost')
+            if self.use_rh_data:
+                costs.append( (self.rh_goal_cost / self.total_cost)*100.0/self.cost_scaling_factor )
+                colors.append(self.rh_color.dark)
+                labels.append('rh_goal_cost')
 
         if self.useEnergyCost:
             costs.append( (self.energy_cost / self.total_cost)*100.0/self.cost_scaling_factor )
@@ -169,19 +184,21 @@ class DataPlots():
         labels = []
         if self.useTrackingCost:
             costs.append( (self.com_tracking_cost.sum() / self.total_cost.sum())*100.0/self.cost_scaling_factor )
-            costs.append( (self.rh_tracking_cost.sum() / self.total_cost.sum())*100.0/self.cost_scaling_factor )
             colors.append(self.com_color.light)
-            colors.append(self.rh_color.light)
             labels.append('com_tracking_cost')
-            labels.append('rh_tracking_cost')
+            if self.use_rh_data:
+                costs.append( (self.rh_tracking_cost.sum() / self.total_cost.sum())*100.0/self.cost_scaling_factor )
+                colors.append(self.rh_color.light)
+                labels.append('rh_tracking_cost')
 
         if self.useGoalCost:
             costs.append( (self.com_goal_cost.sum() / self.total_cost.sum())*100.0/self.cost_scaling_factor )
-            costs.append( (self.rh_goal_cost.sum() / self.total_cost.sum())*100.0/self.cost_scaling_factor )
             colors.append(self.com_color.dark)
-            colors.append(self.rh_color.dark)
             labels.append('com_goal_cost')
-            labels.append('rh_goal_cost')
+            if self.use_rh_data:
+                costs.append( (self.rh_goal_cost.sum() / self.total_cost.sum())*100.0/self.cost_scaling_factor )
+                colors.append(self.rh_color.dark)
+                labels.append('rh_goal_cost')
 
         if self.useEnergyCost:
             costs.append( (self.energy_cost.sum() / self.total_cost.sum())*100.0/self.cost_scaling_factor )
@@ -212,10 +229,15 @@ class DataPlots():
 
         nRows = []
         ranks = []
-        for cj, rj, in zip(self.com_task_data.jacobians, self.rh_task_data.jacobians):
-            bigJ = np.vstack((cj, rj))
-            nRows.append(np.shape(bigJ)[0])
-            ranks.append(np.linalg.matrix_rank(bigJ))
+        if self.use_rh_data:
+            for cj, rj, in zip(self.com_task_data.jacobians, self.rh_task_data.jacobians):
+                bigJ = np.vstack((cj, rj))
+                nRows.append(np.shape(bigJ)[0])
+                ranks.append(np.linalg.matrix_rank(bigJ))
+        else:
+            for cj in self.com_task_data.jacobians:
+                nRows.append(np.shape(cj)[0])
+                ranks.append(np.linalg.matrix_rank(cj))
 
         title = "Concatenated Jacobian Ranks"
         fig, (ranks_ax) = plt.subplots(1, 1, num=title, figsize=(10, 8), facecolor='w', edgecolor='k')
@@ -267,9 +289,12 @@ class DataPlots():
         if self.useTrackingCost:
             fig, (ax) = plt.subplots(1, num='Tracking Costs', figsize=(8,6), facecolor='w', edgecolor='k')
             ax.plot(self.com_task_data.time, self.com_tracking_cost, color=self.com_color.light, lw=3, label='com_tracking_cost_original')
-            ax.plot(self.rh_task_data.time, self.rh_tracking_cost, color=self.rh_color.light, lw=3, label='rh_tracking_cost_original')
             ax.plot(other.com_task_data.time, other.com_tracking_cost, color=other.com_color.light, lw=3, label='com_tracking_cost_optimal', ls='--')
-            ax.plot(other.rh_task_data.time, other.rh_tracking_cost, color=other.rh_color.light, lw=3, label='rh_tracking_cost_optimal', ls='--')
+
+            if self.use_rh_data:
+                ax.plot(self.rh_task_data.time, self.rh_tracking_cost, color=self.rh_color.light, lw=3, label='rh_tracking_cost_original')
+                ax.plot(other.rh_task_data.time, other.rh_tracking_cost, color=other.rh_color.light, lw=3, label='rh_tracking_cost_optimal', ls='--')
+
             ax.legend()
             ax.set_xlabel('time (sec)')
             ax.set_ylabel(r'$j_{tracking}$')
@@ -278,9 +303,10 @@ class DataPlots():
         if self.useGoalCost:
             fig, (ax) = plt.subplots(1, num='Goal Costs', figsize=(8,6), facecolor='w', edgecolor='k')
             ax.plot(self.com_task_data.time, self.com_goal_cost, color=self.com_color.dark, lw=3, label='com_goal_cost_original')
-            ax.plot(self.rh_task_data.time, self.rh_goal_cost, color=self.rh_color.dark, lw=3, label='rh_goal_cost_original')
             ax.plot(other.com_task_data.time, other.com_goal_cost, color=other.com_color.dark, lw=3, label='com_goal_cost_optimal', ls='--')
-            ax.plot(other.rh_task_data.time, other.rh_goal_cost, color=other.rh_color.dark, lw=3, label='rh_goal_cost_optimal', ls='--')
+            if self.use_rh_data:
+                ax.plot(self.rh_task_data.time, self.rh_goal_cost, color=self.rh_color.dark, lw=3, label='rh_goal_cost_original')
+                ax.plot(other.rh_task_data.time, other.rh_goal_cost, color=other.rh_color.dark, lw=3, label='rh_goal_cost_optimal', ls='--')
             ax.legend()
             ax.set_xlabel('time (sec)')
             ax.set_ylabel(r'$j_{goal}$')
