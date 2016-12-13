@@ -113,9 +113,7 @@ class BaseTest(BaseTask):
 
         self.saveWaypointsToFile(self.iteration_dir_path, isOptimal)
 
-    def iterateSimulation(self):
-        print("Simulating new parameters...")
-        self.createIterationDir()
+    def trySimulation(self):
         number_of_trials = 0
         max_trials = 20
         while number_of_trials <= max_trials:
@@ -133,6 +131,10 @@ class BaseTest(BaseTask):
         if number_of_trials > max_trials:
             print("Couldn't get the simulation to work after "+str(max_trials)+". I am giving up.")
 
+    def iterateSimulation(self):
+        print("Simulating new parameters...")
+        self.createIterationDir()
+        self.trySimulation()
         self.n_tasks = len(self.task_data)
         self.optimization_iteration += 1
         print("Simulation complete.")
@@ -149,7 +151,8 @@ class BaseTest(BaseTask):
         if show_simulation:
             simulate(self.getControllerArgs(), self.getClientArgs(isOptimal=True), self.getGazeboWorld(), self.iteration_dir_path, verbose=True, visual=True, askUserForReplay=True)
         else:
-            simulate(self.getControllerArgs(), self.getClientArgs(), self.getGazeboWorld(), self.iteration_dir_path, verbose=False, visual=False)
+            self.trySimulation()
+
         self.task_data = getDataFromFiles(self.iteration_dir_path)
         self.n_tasks = len(self.task_data)
         observed_cost = self.calculateTotalCost()
