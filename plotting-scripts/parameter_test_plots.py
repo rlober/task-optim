@@ -7,7 +7,8 @@ from one_com_waypoint_static.plot import *
 
 class HtmlGenerator():
     """docstring for HtmlGenerator."""
-    def __init__(self):
+    def __init__(self, server_root_dir):
+        self.server_root_dir = server_root_dir
 
         self.bo_table = ""
         self.cma_table = ""
@@ -23,7 +24,7 @@ class HtmlGenerator():
 
         self.bo_table_entries = []
         self.cma_table_entries = []
-        self.server_root_dir = os.path.join(os.path.expanduser("~"),'Optimization_Tests')
+        # self.server_root_dir = os.path.join(os.path.expanduser("~"),'Optimization_Tests')
         self.index_html_path = os.path.join(self.server_root_dir, 'index.html')
 
     def regenerateTableTags(self):
@@ -149,7 +150,7 @@ class HtmlGenerator():
         ax.set_ylabel('optimal cost')
         ax.set_title(fname)
         saveAndShow(fig, show_plot=False, save_dir=save_path, filename=fname)
-        rel_paths_to_plot.append( "/" + os.path.relpath(os.path.join(save_path,fname+".png"), self.server_root_dir) )
+        rel_paths_to_plot.append( os.path.relpath(os.path.join(save_path,fname+".png"), self.server_root_dir) )
 
         fname = fname_prefix + 'IterationOfOptimum'
         print("Plotting the", fname, "figure.")
@@ -159,7 +160,7 @@ class HtmlGenerator():
         ax.set_ylabel('iteration of optimum')
         ax.set_title(fname)
         saveAndShow(fig, show_plot=False, save_dir=save_path, filename=fname)
-        rel_paths_to_plot.append( "/" + os.path.relpath(os.path.join(save_path,fname+".png"), self.server_root_dir) )
+        rel_paths_to_plot.append( os.path.relpath(os.path.join(save_path,fname+".png"), self.server_root_dir) )
 
         fname = fname_prefix + 'NumberOfIterations'
         print("Plotting the", fname, "figure.")
@@ -169,7 +170,7 @@ class HtmlGenerator():
         ax.set_ylabel('total number of iterations')
         ax.set_title(fname)
         saveAndShow(fig, show_plot=False, save_dir=save_path, filename=fname)
-        rel_paths_to_plot.append( "/" + os.path.relpath(os.path.join(save_path,fname+".png"), self.server_root_dir) )
+        rel_paths_to_plot.append( os.path.relpath(os.path.join(save_path,fname+".png"), self.server_root_dir) )
 
         fname = fname_prefix + 'CostTimesOptIter'
         print("Plotting the", fname, "figure.")
@@ -199,43 +200,59 @@ class HtmlGenerator():
         ax.set_ylabel('cost * opt_iter')
         ax.set_title(fname)
         saveAndShow(fig, show_plot=False, save_dir=save_path, filename=fname)
-        rel_paths_to_plot.append( "/" + os.path.relpath(os.path.join(save_path,fname+".png"), self.server_root_dir) )
+        rel_paths_to_plot.append( os.path.relpath(os.path.join(save_path,fname+".png"), self.server_root_dir) )
 
         self.addPlotsToIndexHtml(rel_paths_to_plot, sub)
         self.regenerateIndex()
 ##########################################################################################################
 
-page = HtmlGenerator()
 
-root_dir = os.path.join(os.path.expanduser("~"),'Optimization_Tests/parameter_tests')
 
-sub_tests_dir = ['bo', 'cma']
 
-for i,sub in enumerate(sub_tests_dir):
+def analyseParameterTest(root_dir, test_name='OneComWaypointStaticTest', html_only=False):
 
-    opt_data_list = []
-    costs_used_list = []
-    solver_parameters_list = []
+    page = HtmlGenerator(root_dir)
+    sub_tests_dir = ['bo', 'cma']
 
-    root_tests_dir = os.path.join(root_dir, sub)
-    dirs = [d for d in os.listdir(root_tests_dir) if os.path.isdir(os.path.join(root_tests_dir, d))]
-    test_dirs = sorted([os.path.join(root_tests_dir, d) for d in dirs if re.match('OneComWaypointStaticTest.*', d)])
+    for i,sub in enumerate(sub_tests_dir):
 
-    for j, test in enumerate(test_dirs):
-        print("\n\n======================================================================")
-        print("Analysing test", j, "of", len(test_dirs)-1, "for", sub, "trials.")
-        print("======================================================================\n")
-        ## to not plot stuff
-        test_data = data.TestData(test, extract_data=False)
-        ## to plot stuff
-        # test_data = data.TestData(test, extract_data=True)
-        # test_data.generatePlots()
+        opt_data_list = []
+        costs_used_list = []
+        solver_parameters_list = []
 
-        opt_data, sol_params, html_path = test_data.generateHtml(page.server_root_dir)
-        page.updateIndexTables(opt_data, sol_params, html_path, j)
+        root_tests_dir = os.path.join(root_dir, sub)
+        dirs = [d for d in os.listdir(root_tests_dir) if os.path.isdir(os.path.join(root_tests_dir, d))]
+        test_dirs = sorted([os.path.join(root_tests_dir, d) for d in dirs if re.match(test_name+'.*', d)])
 
-        opt_data_list.append(test_data.opt_data)
-        costs_used_list.append(test_data.solver_parameters)
-        solver_parameters_list.append(test_data.costs_used)
+        for j, test in enumerate(test_dirs):
+            print("\n\n======================================================================")
+            print("Analysing test", j, "of", len(test_dirs)-1, "for", sub, "trials.")
+            print("======================================================================\n")
+            if html_only:
+                ## to not plot stuff
+                test_data = data.TestData(test, extract_data=False)
+            else:
+                ## to plot stuff
+                test_data = data.TestData(test, extract_data=True)
+                test_data.generatePlots()
 
-    page.generatePlots(opt_data_list, costs_used_list, solver_parameters_list, sub, root_dir)
+            opt_data, sol_params, html_path = test_data.generateHtml(page.server_root_dir)
+            page.updateIndexTables(opt_data, sol_params, html_path, j)
+
+            opt_data_list.append(test_data.opt_data)
+            costs_used_list.append(test_data.solver_parameters)
+            solver_parameters_list.append(test_data.costs_used)
+
+        page.generatePlots(opt_data_list, costs_used_list, solver_parameters_list, sub, root_dir)
+
+
+
+
+
+# root_dir = [os.path.join(os.path.expanduser("~"),'Optimization_Tests/parameter_tests')]
+#
+# for r in root_dir:
+#     analyseParameterTest(r)
+
+root_dir = os.path.join(os.path.expanduser("~"),'Optimization_Tests/parameter_tests-stand_up')
+analyseParameterTest(root_dir, 'StandUpTest')

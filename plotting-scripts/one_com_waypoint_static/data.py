@@ -150,14 +150,14 @@ class TestData():
 
         images = ['CostCurve.png', 'GoalCostComparaison.png', 'Optimal_Tasks_CostPercentages.png', 'Optimal_Tasks_IndividualCosts.png', 'Optimal_Tasks_JacobianRanks.png', 'Optimal_Tasks_JointPositions.png', 'Original_Tasks_CostPercentages.png', 'Original_Tasks_IndividualCosts.png', 'Original_Tasks_JacobianRanks.png', 'Original_Tasks_JointPositions.png', 'TotalCostComparaison.png', 'TotalCostPercentages.png', 'TrackingCostComparaison.png']
 
-        results_html_path =  "/"+os.path.relpath(html_save_dir, server_root_dir)
-        html_body = "<html><head><style type='text/css'>body {text-align: center}</style></head><body><h1>"+results_html_path+"</h1><p>"+str(self.solver_parameters)+"</p>"
+        results_html_path =  os.path.relpath(html_save_dir+"/../", html_save_dir)
+        html_body = "<html><head><style type='text/css'>body {text-align: center}</style></head><body><h3>"+str(self.solver_parameters)+"</h3>"
         html_body += "<br><p><a href='"+ results_html_path +"'>Go to Results Folder</a>\n<p><a href='"+os.path.relpath(server_root_dir, self.save_dir)+"'>home</a></p>"
         for i in images:
             im_path = os.path.join(html_save_dir, i)
             if server_root_dir is not None:
-                im_path = os.path.relpath(im_path, server_root_dir)
-                im_path = "/"+im_path
+                im_path = os.path.relpath(im_path, html_save_dir)
+                # im_path = "/"+im_path
 
             html_body += "<br><h3>"+i+"</h3><br><img src='"+im_path+"'>"
 
