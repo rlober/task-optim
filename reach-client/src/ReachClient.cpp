@@ -125,22 +125,8 @@ bool ReachClient::configure(yarp::os::ResourceFinder &rf)
         if (ok) {
             rightHandGoalPosition = *rightHandWaypointList.rbegin();
             comGoalPosition = *comWaypointList.rbegin();
-            std::cout << "-------------------------------------------------------------------" << std::endl;
-            std::cout << "Right Hand" << std::endl;
-            std::cout << "-------------------------------------------------------------------" << std::endl;
-            std::cout << "Starting position: " <<  model->getSegmentPosition("r_hand").getTranslation().transpose()  << std::endl;
-            std::cout << "Goal position: " <<  rightHandGoalPosition.transpose()  << std::endl;
-            std::cout << "Waypoints: \n";
-            for (auto v:rightHandWaypointList){std::cout << v.transpose() << std::endl;}
-            std::cout << "\n";
-            std::cout << "-------------------------------------------------------------------" << std::endl;
-            std::cout << "CoM" << std::endl;
-            std::cout << "-------------------------------------------------------------------" << std::endl;
-            std::cout << "Starting position: " <<  model->getCoMPosition().transpose()  << std::endl;
-            std::cout << "Goal position: " <<  comGoalPosition.transpose()  << std::endl;
-            std::cout << "Waypoints: \n";
-            for (auto v:comWaypointList){std::cout << v.transpose() << std::endl;}
-            std::cout << "\n";
+            rightHandSegmentName = "r_hand";
+
             return true;
         } else {
             return false;
@@ -191,6 +177,22 @@ bool ReachClient::initialize()
     rightHandTask = std::make_shared<ocra_recipes::TaskConnection>("RightHandCartesian");
     comTask = std::make_shared<ocra_recipes::TaskConnection>("ComTask");
 
+    std::cout << "-------------------------------------------------------------------" << std::endl;
+    std::cout << "Right Hand" << std::endl;
+    std::cout << "-------------------------------------------------------------------" << std::endl;
+    std::cout << "Starting position: " <<  rightHandTask->getTaskState().getPosition().getTranslation().transpose()  << std::endl;
+    std::cout << "Goal position: " <<  rightHandGoalPosition.transpose()  << std::endl;
+    std::cout << "Waypoints: \n";
+    for (auto v:rightHandWaypointList){std::cout << v.transpose() << std::endl;}
+    std::cout << "\n";
+    std::cout << "-------------------------------------------------------------------" << std::endl;
+    std::cout << "CoM" << std::endl;
+    std::cout << "-------------------------------------------------------------------" << std::endl;
+    std::cout << "Starting position: " <<  model->getCoMPosition().transpose()  << std::endl;
+    std::cout << "Goal position: " <<  comGoalPosition.transpose()  << std::endl;
+    std::cout << "Waypoints: \n";
+    for (auto v:comWaypointList){std::cout << v.transpose() << std::endl;}
+    std::cout << "\n";
 
     initialRightHandState = rightHandTask->getDesiredTaskState();
     initialComState = comTask->getDesiredTaskState();
@@ -317,12 +319,13 @@ void ReachClient::logClientData()
 {
     timelineFile << relativeTime << "\n";
     rightHandPositionRefFile << rightHandTask->getDesiredTaskState().getPosition().getTranslation().transpose() << "\n";
-    rightHandPositionRealFile << model->getSegmentPosition("r_hand").getTranslation().transpose() << "\n";
+    rightHandPositionRealFile << rightHandTask->getTaskState().getPosition().getTranslation().transpose() << "\n";
+    // rightHandPositionRealFile << model->getSegmentPosition("r_hand").getTranslation().transpose() << "\n";
     comPositionRefFile << comTask->getDesiredTaskState().getPosition().getTranslation().transpose() << "\n";
     comPositionRealFile << model->getCoMPosition().transpose() << "\n";
     torquesFile << model->getJointTorques().transpose() << "\n";
 
-    rightHandJacobian = model->getSegmentJacobian("r_hand");
+    rightHandJacobian = model->getSegmentJacobian(rightHandSegmentName);
     comJacobian = model->getCoMJacobian();
     rightHandJacobiansFile << Eigen::VectorXd( Eigen::Map<Eigen::VectorXd>(rightHandJacobian.data(), rightHandJacobian.rows()*rightHandJacobian.cols()) ).transpose() << "\n";
     comJacobiansFile << Eigen::VectorXd( Eigen::Map<Eigen::VectorXd>(comJacobian.data(), comJacobian.rows()*comJacobian.cols()) ).transpose() << "\n";

@@ -113,6 +113,8 @@ private:
     ocra::TaskState initialRightHandState;
     ocra::TaskState initialComState;
 
+    std::string rightHandSegmentName;
+
 };
 
 
