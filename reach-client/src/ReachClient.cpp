@@ -173,6 +173,9 @@ bool ReachClient::initialize()
 
     if (usingComTask) {
         comTrajThread = std::make_shared<ocra_recipes::TrajectoryThread>(10, "ComTask", comWaypointList, trajType, comTermStrategy);
+
+        // comTrajThread->setMaxVelocityAndAcceleration(0.005, 0.005);
+
     }
     rightHandTask = std::make_shared<ocra_recipes::TaskConnection>("RightHandCartesian");
     comTask = std::make_shared<ocra_recipes::TaskConnection>("ComTask");
@@ -281,7 +284,7 @@ void ReachClient::loop()
     }
     relativeTime = yarp::os::Time::now() - startTime;
 
-    if (rightHandTrajThread->goalAttained()) {
+    if (rightHandTrajThread->goalAttained() || (rightHandTrajThread->isReturningHome() && !returningHome) ) {
         if (!goToHomeOnRelease) {
             std::cout << "Attained Goal. Stopping." << std::endl;
             stop();
@@ -290,6 +293,9 @@ void ReachClient::loop()
         } else {
             std::cout << "Attained Goal. Returning to home position." << std::endl;
             returningHome = true;
+            if (usingComTask) {
+                comTrajThread->returnToHome();
+            }
         }
     }
 
