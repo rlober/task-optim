@@ -4,6 +4,7 @@ import numpy as np
 class TaskData(object):
     """docstring for TestData"""
     def __init__(self, time, expectedDuration, real, ref, waypoints, torques, comBounds, jacobians, jointPositions, jointLimits, name=""):
+        self.data_truncated = False
         self.name = name
         self.time = time
         self.dt_vector = np.diff(self.time)
@@ -46,6 +47,27 @@ class TaskData(object):
         if self.torques.shape[0] != self.nTimeSteps:
             print("Torques shape doesn't match time's shape...")
 
+    def cutOffDataAfter(self, secs):
+        for i,t in enumerate(self.time):
+            if t >= secs:
+                cuttoff_index = i
+                break
+        print('Truncating data at time =', t, 'and index =', cuttoff_index)
+
+        self.time = self.time[:cuttoff_index]
+        self.real = self.real[:cuttoff_index :]
+        self.ref = self.ref[:cuttoff_index, :]
+        self.torques = self.torques[:cuttoff_index :]
+        self.jointPositions = self.jointPositions[:cuttoff_index,:]
+        self.jacobians = self.jacobians[:cuttoff_index]
+
+        self.dt_vector = np.diff(self.time)
+        self.dt = self.dt_vector.mean()
+        self.nTimeSteps = self.time.shape[0]
+        self.duration = self.time[-1]
+        self.setBetaFactor(1.0)
+        self.setEnergyScalingFactor(1e-4)
+        self.data_truncated = True
 
     def setBetaFactor(self, newBeta):
         """Sets the exponential factor for goal cost scaling.
@@ -62,7 +84,10 @@ class TaskData(object):
         return self.waypoints[0, :]
 
     def goal(self):
-        return self.waypoints[-1, :]
+        if self.data_truncated:
+            return self.ref[-1, :]
+        else:
+            return self.waypoints[-1, :]
 
     def nMiddleWaypoints(self):
         return self.waypoints.shape[0]-2
