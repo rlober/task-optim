@@ -3,9 +3,7 @@
 <!-- Important tasks to optimize -->
 
 <task name="ComTask" type="CoM">
-    <params kd="0.0" kp="100" weight="1.0" axes="XYZ"/>
-    <!-- <params kd="0.0" kp="200" weight="1.0" axes="XY"/> -->
-    <!-- <params kd="0.0" kp="400" weight="1.0" axes="XYZ"/> -->
+    <params kd="0.0" kp="200" weight="1.0" axes="XYZ"/>
 </task>
 <!--
 <task name="TorsoCartesianTask" type="Cartesian">
@@ -15,31 +13,21 @@
 
 <task name="TorsoCartesianTask" type="Cartesian">
     <segment>neck_1</segment>
-    <params kd="0.0" kp="100" weight="0.05" axes="XY"/>
-    <!-- <params kd="0.0" kp="40" weight="0.05" axes="XY"/> -->
+    <params kd="0.0" kp="40" weight="0.05" axes="XY"/>
 </task>
 
 <task name="FullPosture" type="FullPosture">
    <params kd="0.0" kp="10.0" weight="0.00001" />
-   <!-- <joints> -->
-       <!-- <joint name="l_ankle_pitch"  weight="0.001"/> -->
-       <!-- <joint name="r_ankle_pitch"  weight="0.001"/> -->
-       <!-- <joint name="l_knee"         weight="0.00000001"/> -->
-       <!-- <joint name="r_knee"         weight="0.00000001"/> -->
-       <!-- <joint name="torso_pitch"    weight="0.01"/> -->
-       <!-- <joint name="torso_roll"     weight="0.01"/> -->
-       <!-- <joint name="torso_yaw"      weight="0.001"/> -->
-   <!-- </joints> -->
 </task>
 
 <task name="RightHandCartesian" type="Cartesian">
     <segment>r_hand_dh_frame</segment>
-    <params kd="0.0" kp="280.0" weight="0.001" axes="XYZ" />
+    <params kd="0.0" kp="150.0" weight="0.001" axes="XYZ" />
 </task>
 
 <task name="LeftHandCartesian" type="Cartesian">
     <segment>l_hand_dh_frame</segment>
-    <params kd="0.0" kp="150.0" weight="0.0001" axes="XYZ" />
+    <params kd="0.0" kp="100.0" weight="0.0001" axes="XYZ" />
 </task>
 
 

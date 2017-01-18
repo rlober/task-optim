@@ -34,7 +34,7 @@
 
 <task name="RightHandCartesian" type="Cartesian">
     <segment>r_hand_dh_frame</segment>
-    <params kd="0.0" kp="280.0" weight="0.001" axes="XYZ" />
+    <params kd="0.0" kp="150.0" weight="0.001" axes="XYZ" />
 </task>
 
 <task name="LeftHandCartesian" type="Cartesian">
