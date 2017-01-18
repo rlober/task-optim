@@ -37,6 +37,7 @@ bool StandClient::initialize()
 
 
     if ( !getComWaypoints() ) {
+        std::cout << "[ERROR] Couldn't read CoM waypoints." << std::endl;
         return false;
     }
 
