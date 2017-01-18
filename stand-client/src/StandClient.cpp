@@ -41,10 +41,10 @@ bool StandClient::initialize()
         return false;
     }
 
-    if(!createDataFiles()) {
-        return false;
-    }
     if ( logData ) {
+        if(!createDataFiles()) {
+            return false;
+        }
         getComBounds();
         getJointLimits();
     }
