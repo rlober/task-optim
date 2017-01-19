@@ -59,8 +59,8 @@ def getDateAndTimeString():
     s = dt.second
     return str(y)+"-"+str(mo).zfill(2)+"-"+str(d).zfill(2)+"_"+str(h).zfill(2)+":"+str(m).zfill(2)+":"+str(s).zfill(2)
 
-def getLastTestDir():
-    root_dir = os.path.expanduser("~") + "/Optimization_Tests/"
+def getLastTestDir(test_name=''):
+    root_dir = os.path.expanduser("~") + "/Optimization_Tests/" + test_name + '/'
     dirs = [os.path.join(root_dir,o) for o in os.listdir(root_dir) if os.path.isdir(os.path.join(root_dir,o))]
     dirs.sort()
     return dirs[-1]
