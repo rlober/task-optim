@@ -3,7 +3,10 @@
 import GPy
 from robo.models.gpy_model import GPyModel
 from robo.acquisition.lcb import LCB
+from robo.acquisition.ei import EI
+from robo.acquisition.log_ei import LogEI
 from robo.maximizers.cmaes import CMAES
+from robo.maximizers.direct import Direct
 from robo.solver.bayesian_optimization import BayesianOptimization
 from robo.task.base_task import BaseTask
 import numpy as np
@@ -22,21 +25,54 @@ class ReachingWithBalance(BaseTask):
 
         return y[:, np.newaxis]
 
-task = ReachingWithBalance()
+class ExampleTask(BaseTask):
+    def __init__(self):
+        X_lower = np.array([0])
+        X_upper = np.array([6])
+        super(ExampleTask, self).__init__(X_lower, X_upper)
+
+    def objective_function(self, x):
+        return np.sin(3 * x) * 4 * (x - 1) * (x + 2)
+
+task = ExampleTask()
+
+# task = ReachingWithBalance()
 # kernel = GPy.kern.Matern52(input_dim=task.n_dims)
 kernel = GPy.kern.RBF(input_dim=task.n_dims)
 model = GPyModel(kernel)
 
-acquisition_func = LCB(model,
-                     X_upper=task.X_upper,
-                     X_lower=task.X_lower,
-                     par=0.1)
+PAR = 0.1
+# acquisition_func = LCB(model, X_upper=task.X_upper, X_lower=task.X_lower, par=PAR)
+# acquisition_func = EI(model, X_upper=task.X_upper, X_lower=task.X_lower, par=PAR)
+acquisition_func = LogEI(model, X_upper=task.X_upper, X_lower=task.X_lower, par=PAR)
 
-maximizer = CMAES(acquisition_func, task.X_lower, task.X_upper)
+maximizer = Direct(acquisition_func, task.X_lower, task.X_upper)
 
 bo = BayesianOptimization(acquisition_func=acquisition_func,
                           model=model,
                           maximize_func=maximizer,
                           task=task)
 
-bo.run()
+x_best, fval = bo.run()
+
+print('x_best', task.retransform(x_best), 'fval', fval)
+
+import matplotlib.pyplot as plt
+
+plt.figure()
+X= np.linspace(0,6,100)
+plt.plot(X, task.objective_function(X))
+plt.plot(task.retransform(x_best), task.objective_function(task.retransform(x_best)), 'ro')
+plt.show(block=True)
+
+# from robo.fmin import fmin
+#
+# def objective_function(x):
+#     return  np.sin(3 * x) * 4 * (x - 1) * (x + 2)
+#
+# X_lower = np.array([0])
+# X_upper = np.array([6])
+#
+# x_best, fval = fmin(objective_function, X_lower, X_upper)
+#
+# print('x_best', x_best, 'fval', fval)
