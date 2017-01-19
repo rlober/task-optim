@@ -4,6 +4,7 @@ import GPy
 from robo.models.gpy_model import GPyModel
 from robo.acquisition.lcb import LCB
 from robo.acquisition.ei import EI
+from robo.acquisition.log_ei import LogEI
 from robo.maximizers.cmaes import CMAES
 from robo.maximizers.direct import Direct
 # from robo.maximizers.gradient_ascent import GradientAscent
@@ -49,6 +50,8 @@ class RoboSolver(BaseSolver):
 
             if self.solver_parameters['acquisition'] == 'EI':
                 self.acquisition = EI(self.model, X_upper=self.test.X_upper, X_lower=self.test.X_lower, par=self.par)
+            elif self.solver_parameters['acquisition'] == 'LogEI':
+                self.acquisition = LogEI(self.model, X_upper=self.test.X_upper, X_lower=self.test.X_lower, par=self.par)
             elif self.solver_parameters['acquisition'] == 'LCB':
                 self.acquisition = LCB(self.model, X_upper=self.test.X_upper, X_lower=self.test.X_lower, par=self.par)
             else:
