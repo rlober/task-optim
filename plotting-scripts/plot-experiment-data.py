@@ -33,7 +33,7 @@ def calculateTotalCost(task_data, costs=['tracking', 'goal', 'energy']):
 
 
 
-costs_used=['tracking', 'goal', 'energy']
+# costs_used=['tracking', 'goal', 'energy']
 # costs_used=['tracking', 'goal']
 # costs_used=['energy']
 
@@ -69,23 +69,32 @@ optimal_data[1].cutOffDataAfter(cuttoff_time)
 
 
 
-cost_scaling_factor = calculateTotalCost(original_data, costs_used)
-print('Total original cost:', calculateTotalCost(original_data, costs_used))
-print('Total optimal cost:', calculateTotalCost(optimal_data, costs_used))
+costs_used=[['tracking', 'goal', 'energy'], ['tracking', 'energy'], ['tracking', 'goal'], ['goal', 'energy'], ['tracking'], ['goal'], ['energy']]
 
-print("Plotting Original task set data.")
-orig = plot.DataPlots(original_data, costs_used, cost_scaling_factor)
-orig.plotIndividualCosts(show_plot=False, save_dir=plot_save_dir, filename='Original_Tasks_IndividualCosts')
-orig.plotCostPercentages(show_plot=False, save_dir=plot_save_dir, filename='Original_Tasks_CostPercentages')
-orig.plotJacobianRanks(show_plot=False, save_dir=plot_save_dir, filename='Original_Tasks_JacobianRanks')
-orig.plotJointPositions(show_plot=False, save_dir=plot_save_dir, filename='Original_Tasks_JointPositions')
+for c in costs_used:
+    print(c)
+    print('Total original cost:', calculateTotalCost(original_data, c))
+    print('Total optimal cost:', calculateTotalCost(optimal_data, c))
 
-print("Plotting Optimal task set data.")
-opt = plot.DataPlots(optimal_data, costs_used, cost_scaling_factor)
-opt.plotIndividualCosts(show_plot=False, save_dir=plot_save_dir, filename='Optimal_Tasks_IndividualCosts')
-opt.plotCostPercentages(show_plot=False, save_dir=plot_save_dir, filename='Optimal_Tasks_CostPercentages')
-opt.plotJacobianRanks(show_plot=False, save_dir=plot_save_dir, filename='Optimal_Tasks_JacobianRanks')
-opt.plotJointPositions(show_plot=False, save_dir=plot_save_dir, filename='Optimal_Tasks_JointPositions')
 
-print("Plotting Original/Optimal comparaisons.")
-orig.compare(opt, save_dir=plot_save_dir)
+
+# cost_scaling_factor = calculateTotalCost(original_data, costs_used)
+# print('Total original cost:', calculateTotalCost(original_data, costs_used))
+# print('Total optimal cost:', calculateTotalCost(optimal_data, costs_used))
+
+# print("Plotting Original task set data.")
+# orig = plot.DataPlots(original_data, costs_used, cost_scaling_factor)
+# orig.plotIndividualCosts(show_plot=False, save_dir=plot_save_dir, filename='Original_Tasks_IndividualCosts')
+# orig.plotCostPercentages(show_plot=False, save_dir=plot_save_dir, filename='Original_Tasks_CostPercentages')
+# orig.plotJacobianRanks(show_plot=False, save_dir=plot_save_dir, filename='Original_Tasks_JacobianRanks')
+# orig.plotJointPositions(show_plot=False, save_dir=plot_save_dir, filename='Original_Tasks_JointPositions')
+#
+# print("Plotting Optimal task set data.")
+# opt = plot.DataPlots(optimal_data, costs_used, cost_scaling_factor)
+# opt.plotIndividualCosts(show_plot=False, save_dir=plot_save_dir, filename='Optimal_Tasks_IndividualCosts')
+# opt.plotCostPercentages(show_plot=False, save_dir=plot_save_dir, filename='Optimal_Tasks_CostPercentages')
+# opt.plotJacobianRanks(show_plot=False, save_dir=plot_save_dir, filename='Optimal_Tasks_JacobianRanks')
+# opt.plotJointPositions(show_plot=False, save_dir=plot_save_dir, filename='Optimal_Tasks_JointPositions')
+#
+# print("Plotting Original/Optimal comparaisons.")
+# orig.compare(opt, save_dir=plot_save_dir)
