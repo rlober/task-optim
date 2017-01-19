@@ -5,7 +5,7 @@ from task_optim.solvers.robo_solver import RoboSolver
 from task_optim.solvers.cma_solver import CmaSolver
 
 home_path = os.path.expanduser("~")
-root_path = home_path + "/Optimization_Tests/parameter_tests-stand_up/"
+root_path = home_path + "/Optimization_Tests/parameter_tests-standing/"
 
 com_starting_waypoints = np.array([[-0.0456897, -0.0872765, 0.380022]])
 
@@ -13,7 +13,7 @@ bo_test_path = root_path + "/bo/"
 cma_test_path = root_path + "/cma/"
 
 tolerance = 1e-11
-maxIter = 36
+maxIter = 44
 
 bo_test_number = 1
 cma_test_number = 1
@@ -27,7 +27,7 @@ costs_to_use = ['tracking', 'goal', 'energy']
 
 pars = [0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0]
 kernels = ['RBF', 'Matern52']
-acquisitionFunctions = ['EI', 'LCB']
+acquisitionFunctions = ['EI', 'LogEI', 'LCB']
 maximizers = ['Direct', 'CMAES']
 # Total number of tests
 bo_n_tests = len(pars) * len(kernels) * len(acquisitionFunctions) * len(maximizers)
