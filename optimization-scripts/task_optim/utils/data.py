@@ -7,6 +7,8 @@ class TaskData(object):
         self.data_truncated = False
         self.name = name
         self.time = time
+        if np.size(self.time) == 0:
+            raise NameError('EmptyData')
         self.dt_vector = np.diff(self.time)
         self.dt = self.dt_vector.mean()
         self.expectedDuration = expectedDuration

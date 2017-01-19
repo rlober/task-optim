@@ -54,7 +54,11 @@ class TestData():
     def extractDataFromTest(self):
         self.iteration_data = []
         for d in self.iter_dirs:
-            self.iteration_data.append(getDataFromFiles(d))
+            try:
+                data = getDataFromFiles(d)
+                self.iteration_data.append(data)
+            except:
+                print("Iter dir:", d, "was empty.") 
 
         self.original_data = getDataFromFiles(self.iter_dirs[0])
         self.optimal_data = getDataFromFiles(self.opt_dir[0])
