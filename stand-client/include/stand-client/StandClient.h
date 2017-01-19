@@ -9,6 +9,9 @@
 
 #include <ocra/util/StringUtilities.h>
 
+#include <yarp/os/all.h>
+
+
 class StandClient : public ocra_recipes::ControllerClient
 {
 DEFINE_CLASS_POINTER_TYPEDEFS(StandClient)
@@ -39,6 +42,9 @@ private:
     bool getComWaypoints();
     Eigen::Vector3d getComGoalWaypoint();
     std::list<Eigen::VectorXd> getManualSolutionWaypoints();
+
+    void startRecording();
+    void stopRecording();
 
 
 
@@ -92,6 +98,13 @@ private:
     double relativeTime;
     double contactReleaseDelay;
     bool contactsReleased;
+
+    yarp::os::RpcClient cameraPort;
+    yarp::os::Network yarp;
+    bool recordSimulation;
+    std::string recordDir;
+    std::string recordName;
+    double recordDelay;
 
 };
 
