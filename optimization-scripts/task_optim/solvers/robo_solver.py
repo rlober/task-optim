@@ -109,9 +109,9 @@ class RoboSolver(BaseSolver):
 
     def updateSolver(self):
         # Multiply by -1 because we are maximizing with RoBO
-        Y = self.Y.copy() * -1.0
+        # Y = self.Y.copy() * -1.0
         # Get the next solution to test
-        next_solution_to_test = self.bo.choose_next(self.X, Y)
+        next_solution_to_test = self.bo.choose_next(self.X, self.Y)
         # The provided solution is scaled bectween 0-1 so we retransform it back to physical coordinates
         X_new = self.test.retransform(next_solution_to_test)
         # test X_new
