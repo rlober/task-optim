@@ -120,6 +120,39 @@ bool ReachClient::configure(yarp::os::ResourceFinder &rf)
             usingComTask = false;
         }
 
+        if (rf.check("record")) {
+            recordSimulation = true;
+            if (rf.check("recordDir")) {
+                recordDir = rf.find("recordDir").asString().c_str();
+                recordDir = boost::filesystem::canonical(recordDir).string();
+            } else {
+                recordDir = savePath;
+            }
+
+            if (rf.check("recordName")) {
+                recordName = rf.find("recordName").asString().c_str();
+            } else {
+                recordName = "reaching";
+            }
+
+            if (rf.check("recordDelay")) {
+                recordDelay = rf.find("recordDelay").asDouble();
+            } else {
+                recordDelay = 0.0;
+            }
+
+            std::cout << "recordDir: " << recordDir << std::endl;
+            std::cout << "recordName: " << recordName << std::endl;
+            std::cout << "recordDelay: " << recordDelay << std::endl;
+
+            std::string cameraPortName("/ReachClient/camera/rpc:o");
+            cameraPort.open(cameraPortName);
+            yarp.connect(cameraPortName, "/Gazebo/yarp_camera_sensor/rpc:i");
+
+        } else {
+            recordSimulation = false;
+        }
+
 
 
         if (ok) {
@@ -202,6 +235,9 @@ bool ReachClient::initialize()
 
     getComBounds();
     getJointLimits();
+    if (recordSimulation) {
+        startRecording();
+    }
     return true;
 }
 
@@ -262,6 +298,10 @@ void ReachClient::release()
     if (logData) {
         writeWaypointsToFile();
         closeDataFiles();
+    }
+
+    if (recordSimulation) {
+        stopRecording();
     }
     if(rightHandTrajThread){rightHandTrajThread->stop();}
     if (usingComTask) {
@@ -364,5 +404,36 @@ void ReachClient::setLoopTimeLimit()
         LOOP_TIME_LIMIT = std::fmax(comExpectedDuration, rightHandExpectedDuration)*limitFactor;
     } else {
         LOOP_TIME_LIMIT = rightHandExpectedDuration*limitFactor;
+    }
+}
+
+
+void ReachClient::startRecording()
+{
+    yarp::os::Bottle message, reply;
+    message.addString("record");
+    message.addInt(1);
+    message.addString(recordDir);
+    message.addString(recordName);
+    cameraPort.write(message, reply);
+    if (reply.get(0).asBool()) {
+        std::cout << "Recording started." << std::endl;
+    } else {
+        std::cout << "[ERROR] Failed to start simulation recording." << std::endl;
+    }
+    yarp::os::Time::delay(recordDelay);
+}
+
+void ReachClient::stopRecording()
+{
+    yarp::os::Time::delay(recordDelay);
+    yarp::os::Bottle message, reply;
+    message.addString("record");
+    message.addInt(0);
+    cameraPort.write(message, reply);
+    if (reply.get(0).asBool()) {
+        std::cout << "Recording stopped." << std::endl;
+    } else {
+        std::cout << "[ERROR] Failed to stop simulation recording." << std::endl;
     }
 }
