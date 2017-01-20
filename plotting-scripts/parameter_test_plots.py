@@ -181,7 +181,8 @@ class HtmlGenerator():
         fname = fname_prefix + 'CostTimesOptIter'
         print("Plotting the", fname, "figure.")
         fig, (ax) = plt.subplots(1, 1, num=fname, figsize=(10, 8), facecolor='w', edgecolor='k')
-        cost_opt = np.array(optimal_costs)*np.array(iteration_opt_was_found)
+        # cost_opt = np.array(optimal_costs)*np.array(iteration_opt_was_found)
+        cost_opt = np.array(optimal_costs)*np.array(n_iters)
         cost_opt_min = 10000
         cost_opt_min_index = 0
         idxs = []
@@ -268,5 +269,5 @@ def analyseParameterTest(root_dir, test_name='OneComWaypointStaticTest', html_on
 root_dir = os.path.join(os.path.expanduser("~"),'Optimization_Tests/parameter_tests-reaching')
 analyseParameterTest(root_dir, 'OneComWaypointStaticTest', html_only=True)
 #
-# root_dir = os.path.join(os.path.expanduser("~"),'Optimization_Tests/parameter_tests-standing')
-# analyseParameterTest(root_dir, 'StandUpTest', html_only=True)
+root_dir = os.path.join(os.path.expanduser("~"),'Optimization_Tests/parameter_tests-standing')
+analyseParameterTest(root_dir, 'StandUpTest', html_only=True)
