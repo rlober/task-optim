@@ -47,7 +47,7 @@ root_path = home_path + "/Optimization_Tests/rand_right_hand_target_tests/"
 right_hand_starting_waypoints = np.array([[0.36, -0.23, 0.5]])
 com_starting_waypoints = np.array([[0.015, -0.11, 0.51]])
 
-n_samples = 10
+n_samples = 100
 rh_targets = np.random.rand(n_samples, 3)
 
 
@@ -74,7 +74,8 @@ maxIter = 44
 
 costs_to_use=['tracking', 'goal', 'energy']
 
-bo_solver_parameters  = {'max_iter':maxIter, 'tolfun':tolerance, 'par':0.01, 'kernel':'Matern52', 'acquisition':'LogEI', 'maximizer':'Direct'}
+bo_solver_parameters  = {'max_iter':maxIter, 'tolfun':tolerance, 'par':1000.0, 'kernel':'Matern52', 'acquisition':'EI', 'maximizer':'Direct'}
+bo_test_path = root_path + "/bo/"
 
 
 ######################################################################################
