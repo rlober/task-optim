@@ -22,8 +22,8 @@ costs_to_use=[['tracking', 'goal', 'energy'], ['tracking', 'energy'], ['tracking
 
 number_of_repeats = 10
 
-bo_solver_parameters  = {'max_iter':maxIter, 'tolfun':tolerance, 'par':0.01, 'kernel':'Matern52', 'acquisition':'LogEI', 'maximizer':'Direct'}
-cma_solver_parameters = {'max_iter':maxIter, 'tolfun':tolerance, 'initial_sigma':0.5}
+bo_solver_parameters  = {'max_iter':maxIter, 'tolfun':tolerance, 'par':1000.0, 'kernel':'Matern52', 'acquisition':'EI', 'maximizer':'Direct'}
+cma_solver_parameters = {'max_iter':maxIter, 'tolfun':tolerance, 'initial_sigma':0.1}
 ######################################################################################
 
 print("\n\n\n\n\n\n=================================================")
