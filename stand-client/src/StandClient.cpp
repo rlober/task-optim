@@ -83,9 +83,7 @@ bool StandClient::initialize()
         getJointLimits();
     }
 
-    if (recordSimulation) {
-        startRecording();
-    }
+
 
 
     ocra_recipes::TRAJECTORY_TYPE trajType = ocra_recipes::TIME_OPTIMAL;
@@ -98,6 +96,10 @@ bool StandClient::initialize()
     comTrajThread->setMaxVelocityAndAcceleration(0.1, 0.1);
 
     contactsReleased = false;
+
+    if (recordSimulation) {
+        startRecording();
+    }
 
     comTrajThread->start();
 
@@ -141,6 +143,7 @@ void StandClient::release()
 
     if (recordSimulation) {
         stopRecording();
+        cameraPort.close();
     }
 
     if(comTrajThread) {
