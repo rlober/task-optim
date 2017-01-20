@@ -28,8 +28,8 @@ if(COMPILER_SUPPORTS_CXX11)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 else()
     message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
- endif() 
- 
+ endif()
+
  # Build as Release (Change Release to Debug for better debugging symbols)
 set(CMAKE_BUILD_TYPE Release)
 
@@ -39,8 +39,6 @@ set(${PROJECT_NAME}_MINOR_VERSION 0)
 set(${PROJECT_NAME}_PATCH_VERSION 0)
 set(${PROJECT_NAME}_VERSION ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}_MINOR_VERSION}.${${PROJECT_NAME}_PATCH_VERSION})
 
-# Add some helpful CMake functions
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules)
 
 # Find OcraIcub
 find_package(OcraIcub REQUIRED)
@@ -73,4 +71,4 @@ ${OcraIcub_LIBRARIES}
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
 
 # Add an uninstallation target so you can just run - make uninstall - to remove the binary.
-include(AddUninstallTarget)
+# include(AddUninstallTarget)
