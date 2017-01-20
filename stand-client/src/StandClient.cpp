@@ -23,6 +23,40 @@ bool StandClient::configure(yarp::os::ResourceFinder &rf)
         std::cout << "savePath: \n" << savePath << std::endl;
 
     }
+
+    if (rf.check("record")) {
+        recordSimulation = true;
+        if (rf.check("recordDir")) {
+            recordDir = rf.find("recordDir").asString().c_str();
+            recordDir = boost::filesystem::canonical(recordDir).string();
+        } else {
+            recordDir = savePath;
+        }
+
+        if (rf.check("recordName")) {
+            recordName = rf.find("recordName").asString().c_str();
+        } else {
+            recordName = "reaching";
+        }
+
+        if (rf.check("recordDelay")) {
+            recordDelay = rf.find("recordDelay").asDouble();
+        } else {
+            recordDelay = 0.0;
+        }
+
+        std::cout << "recordDir: " << recordDir << std::endl;
+        std::cout << "recordName: " << recordName << std::endl;
+        std::cout << "recordDelay: " << recordDelay << std::endl;
+
+        std::string cameraPortName("/StandClient/camera/rpc:o");
+        cameraPort.open(cameraPortName);
+        yarp.connect(cameraPortName, "/Gazebo/yarp_camera_sensor/rpc:i");
+
+    } else {
+        recordSimulation = false;
+    }
+
     return true;
 }
 
@@ -50,6 +84,8 @@ bool StandClient::initialize()
     }
 
 
+
+
     ocra_recipes::TRAJECTORY_TYPE trajType = ocra_recipes::TIME_OPTIMAL;
     ocra_recipes::TERMINATION_STRATEGY termStrategy = ocra_recipes::STOP_THREAD;
 
@@ -60,6 +96,10 @@ bool StandClient::initialize()
     comTrajThread->setMaxVelocityAndAcceleration(0.1, 0.1);
 
     contactsReleased = false;
+
+    if (recordSimulation) {
+        startRecording();
+    }
 
     comTrajThread->start();
 
@@ -100,6 +140,12 @@ void StandClient::release()
         writeWaypointsToFile();
         closeDataFiles();
     }
+
+    if (recordSimulation) {
+        stopRecording();
+        cameraPort.close();
+    }
+
     if(comTrajThread) {
         comTrajThread->stop();
     }
@@ -331,4 +377,35 @@ void StandClient::deactivateLegContacts()
     std::cout << "Deactivating back leg contacts." << std::endl;
     leftLegContactTask->deactivate();
     rightLegContactTask->deactivate();
+}
+
+
+void StandClient::startRecording()
+{
+    yarp::os::Bottle message, reply;
+    message.addString("record");
+    message.addInt(1);
+    message.addString(recordDir);
+    message.addString(recordName);
+    cameraPort.write(message, reply);
+    if (reply.get(0).asBool()) {
+        std::cout << "Recording started." << std::endl;
+    } else {
+        std::cout << "[ERROR] Failed to start simulation recording." << std::endl;
+    }
+    yarp::os::Time::delay(recordDelay);
+}
+
+void StandClient::stopRecording()
+{
+    yarp::os::Time::delay(recordDelay);
+    yarp::os::Bottle message, reply;
+    message.addString("record");
+    message.addInt(0);
+    cameraPort.write(message, reply);
+    if (reply.get(0).asBool()) {
+        std::cout << "Recording stopped." << std::endl;
+    } else {
+        std::cout << "[ERROR] Failed to stop simulation recording." << std::endl;
+    }
 }

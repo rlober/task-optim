@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <model name="RightHandTarget">
+    <static>true</static>
+    <link name="link">
+
+      <visual name="visual">
+        <pose>0.0 0.0 0.0 0 0 0</pose>
+        <geometry>
+          <sphere>
+              <radius>0.03</radius>
+          </sphere>
+        </geometry>
+
+        <material>
+            <ambient>   1.0 0.0 0.0 0.6 </ambient>
+            <diffuse>   1.0 0.0 0.0 0.6 </diffuse>
+        </material>
+
+        <transparency>0.2</transparency>
+
+      </visual>
+
+    </link>
+    <plugin name="yarp_model_move" filename="libyarp_model_move.so"/>
+    <plugin name="task_optimization_change_color" filename="libtask_optimization_change_color.so"/>
+
+  </model>
+</sdf>

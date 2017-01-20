@@ -9,6 +9,8 @@
 
 #include <ocra/util/StringUtilities.h>
 
+#include <yarp/os/all.h>
+
 class ReachClient : public ocra_recipes::ControllerClient
 {
 DEFINE_CLASS_POINTER_TYPEDEFS(ReachClient)
@@ -34,6 +36,10 @@ private:
     void setLoopTimeLimit();
     void getComBounds();
     void getJointLimits();
+
+    void startRecording();
+    void stopRecording();
+    void changeTargetColor();
 
 
 
@@ -114,6 +120,20 @@ private:
     ocra::TaskState initialComState;
 
     std::string rightHandSegmentName;
+
+    yarp::os::RpcClient cameraPort;
+    yarp::os::Network yarp;
+    bool recordSimulation;
+    std::string recordDir;
+    std::string recordName;
+    double recordDelay;
+
+    yarp::os::Port posPort;
+    yarp::os::Port visPort;
+    bool usingGazeboSim;
+    bool sentVisPortMessage;
+    yarp::os::Bottle posBottle;
+
 
 };
 
