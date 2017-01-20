@@ -43,7 +43,7 @@ for c in costs_to_use:
         solver.returnSolution(show_simulation=False)
 
         print("\n\nUsing CMA-ES...\n\n")
-        first_test = OneComWaypointStaticTest(cma_test_path, right_hand_starting_waypoints, com_starting_waypoints, costs_to_use)
+        first_test = OneComWaypointStaticTest(cma_test_path, right_hand_starting_waypoints, com_starting_waypoints, c)
         solver = CmaSolver(first_test, cma_solver_parameters)
         solver.optimize()
         solver.returnSolution(show_simulation=False)
