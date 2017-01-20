@@ -149,6 +149,8 @@ class HtmlGenerator():
         ax.set_xlabel('test no.')
         ax.set_ylabel('optimal cost')
         ax.set_title(fname)
+        ax.set_xticks(range(len(optimal_costs)), minor=True)
+        ax.grid(which='both')
         saveAndShow(fig, show_plot=False, save_dir=save_path, filename=fname)
         rel_paths_to_plot.append( os.path.relpath(os.path.join(save_path,fname+".png"), self.server_root_dir) )
 
@@ -159,6 +161,8 @@ class HtmlGenerator():
         ax.set_xlabel('test no.')
         ax.set_ylabel('iteration of optimum')
         ax.set_title(fname)
+        ax.set_xticks(range(len(optimal_costs)), minor=True)
+        ax.grid(which='both')
         saveAndShow(fig, show_plot=False, save_dir=save_path, filename=fname)
         rel_paths_to_plot.append( os.path.relpath(os.path.join(save_path,fname+".png"), self.server_root_dir) )
 
@@ -169,6 +173,8 @@ class HtmlGenerator():
         ax.set_xlabel('test no.')
         ax.set_ylabel('total number of iterations')
         ax.set_title(fname)
+        ax.set_xticks(range(len(optimal_costs)), minor=True)
+        ax.grid(which='both')
         saveAndShow(fig, show_plot=False, save_dir=save_path, filename=fname)
         rel_paths_to_plot.append( os.path.relpath(os.path.join(save_path,fname+".png"), self.server_root_dir) )
 
@@ -199,6 +205,8 @@ class HtmlGenerator():
         ax.set_xlabel('test no.')
         ax.set_ylabel('cost * opt_iter')
         ax.set_title(fname)
+        ax.set_xticks(range(len(optimal_costs)), minor=True)
+        ax.grid(which='both')
         saveAndShow(fig, show_plot=False, save_dir=save_path, filename=fname)
         rel_paths_to_plot.append( os.path.relpath(os.path.join(save_path,fname+".png"), self.server_root_dir) )
 
@@ -254,5 +262,11 @@ def analyseParameterTest(root_dir, test_name='OneComWaypointStaticTest', html_on
 # for r in root_dir:
 #     analyseParameterTest(r)
 
-root_dir = os.path.join(os.path.expanduser("~"),'Optimization_Tests/parameter_tests-stand_up')
-analyseParameterTest(root_dir, 'StandUpTest')
+# root_dir = os.path.join(os.path.expanduser("~"),'Optimization_Tests/parameter_tests-stand_up')
+# analyseParameterTest(root_dir, 'StandUpTest')
+
+root_dir = os.path.join(os.path.expanduser("~"),'Optimization_Tests/parameter_tests-reaching')
+analyseParameterTest(root_dir, 'OneComWaypointStaticTest', html_only=True)
+#
+# root_dir = os.path.join(os.path.expanduser("~"),'Optimization_Tests/parameter_tests-standing')
+# analyseParameterTest(root_dir, 'StandUpTest', html_only=True)
