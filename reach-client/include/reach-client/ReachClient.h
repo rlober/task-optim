@@ -39,6 +39,7 @@ private:
 
     void startRecording();
     void stopRecording();
+    void changeTargetColor();
 
 
 
@@ -126,6 +127,13 @@ private:
     std::string recordDir;
     std::string recordName;
     double recordDelay;
+
+    yarp::os::Port posPort;
+    yarp::os::Port visPort;
+    bool usingGazeboSim;
+    bool sentVisPortMessage;
+    yarp::os::Bottle posBottle;
+
 
 };
 

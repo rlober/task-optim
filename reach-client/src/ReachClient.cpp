@@ -153,6 +153,20 @@ bool ReachClient::configure(yarp::os::ResourceFinder &rf)
             recordSimulation = false;
         }
 
+        sentVisPortMessage = false;
+        usingGazeboSim = yarp.exists("/Gazebo/RightHandTarget:i");
+        usingGazeboSim &= yarp.exists("/Gazebo/TaskOptim/RightHandTarget/change_color:i");
+        if (usingGazeboSim) {
+            std::string posPortName("/ReachClient/target/position:o");
+            std::string visPortName("/ReachClient/target/visual:o");
+            posPort.open(posPortName);
+            visPort.open(visPortName);
+            yarp.connect(posPortName, "/Gazebo/RightHandTarget:i");
+            yarp.connect(visPortName, "/Gazebo/TaskOptim/RightHandTarget/change_color:i");
+        } else {
+            std::cout << "\n\n\nUsing real robot.\n\n" << std::endl;
+        }
+
 
 
         if (ok) {
@@ -235,6 +249,14 @@ bool ReachClient::initialize()
 
     getComBounds();
     getJointLimits();
+
+    if (usingGazeboSim) {
+        Eigen::Vector3d l_sole_center(0.0, 0.135, 0.0);// = model->getSegmentPosition("l_sole").getTranslation();
+        Eigen::Vector3d rh_target_gazebo = rightHandGoalPosition + l_sole_center;
+        posBottle.addDouble(rh_target_gazebo(0));
+        posBottle.addDouble(rh_target_gazebo(1));
+        posBottle.addDouble(rh_target_gazebo(2));
+    }
     if (recordSimulation) {
         startRecording();
     }
@@ -302,6 +324,11 @@ void ReachClient::release()
 
     if (recordSimulation) {
         stopRecording();
+        cameraPort.close();
+    }
+    if (usingGazeboSim) {
+        posPort.close();
+        visPort.close();
     }
     if(rightHandTrajThread){rightHandTrajThread->stop();}
     if (usingComTask) {
@@ -309,6 +336,16 @@ void ReachClient::release()
     }
     rightHandTask->setDesiredTaskState(initialRightHandState);
     comTask->setDesiredTaskState(initialComState);
+}
+
+void ReachClient::changeTargetColor()
+{
+    if (usingGazeboSim && !sentVisPortMessage) {
+        yarp::os::Bottle b;
+        b.addInt(1);
+        visPort.write(b);
+        sentVisPortMessage = true;
+    }
 }
 
 void ReachClient::loop()
@@ -322,16 +359,23 @@ void ReachClient::loop()
         setLoopTimeLimit();
         trigger = false;
     }
+    if (usingGazeboSim) {
+        posPort.write(posBottle);
+    }
     relativeTime = yarp::os::Time::now() - startTime;
 
     if (rightHandTrajThread->goalAttained() || (rightHandTrajThread->isReturningHome() && !returningHome) ) {
+
+
         if (!goToHomeOnRelease) {
             std::cout << "Attained Goal. Stopping." << std::endl;
+            changeTargetColor();
             stop();
         } else if (returningHome) {
             stop();
         } else {
             std::cout << "Attained Goal. Returning to home position." << std::endl;
+            changeTargetColor();
             returningHome = true;
             if (usingComTask) {
                 comTrajThread->returnToHome();
