@@ -17,7 +17,7 @@ def killProcesses():
 
     return total_killed
 
-def simulate(controllerArgs, clientArgs, icubWorldPath, savePath=None, verbose=False, visual=False, askUserForReplay=False):
+def simulate(controllerArgs, clientArgs, icubWorldPath, savePath=None, verbose=False, visual=False, askUserForReplay=False, runningRemotely=False):
 
     replay = True
     while replay:
@@ -31,7 +31,14 @@ def simulate(controllerArgs, clientArgs, icubWorldPath, savePath=None, verbose=F
 
         if verbose:
             print('-- Launching gzserver with icub.world @', icubWorldPath)
-        gzserver = subprocess.Popen(["gzserver", icubWorldPath], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+        gz_args = ["gzserver"]
+        if runningRemotely:
+            import os
+            os.environ["DISPLAY"] = ":0"
+
+        gz_args.append(icubWorldPath)
+        gzserver = subprocess.Popen(gz_args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
         if visual:
             if verbose:
