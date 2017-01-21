@@ -1,9 +1,11 @@
+import re
+import os
 import subprocess
 import time
 import shlex
 
 def combineVideos(test_dir):
-    ffmpeg_args = """ffmpeg -i """ + test_dir + """/original.mp4 -i """ + test_dir + """/optimal.mp4 -filter_complex "[0:v][1:v]hstack=inputs=2[v]" -map "[v]" -ac 2 temp_0.mp4 \
+    ffmpeg_args = """ffmpeg -y -i """ + test_dir + """/original.mp4 -i """ + test_dir + """/optimal.mp4 -filter_complex "[0:v][1:v]hstack=inputs=2[v]" -map "[v]" -ac 2 """+test_dir+"""/temp_0.mp4 \
     && \
     ffmpeg -i """ + test_dir + """/temp_0.mp4 -y -vf drawtext="text='ORIGINAL':\
     fontcolor=white:\
@@ -23,11 +25,12 @@ def combineVideos(test_dir):
     x=(main_w)*3/4:\
     y=main_h-(text_h*2)" -codec:a copy """ + test_dir + """/optimal_and_original.mp4 \
     && \
-    rm temp_0.mp4 temp_1.mp4
+    rm """+test_dir+"""/temp_0.mp4 """+test_dir+"""/temp_1.mp4
     """
 
     ffmpeg_args = shlex.split(ffmpeg_args)
-    subprocess.Popen(ffmpeg_args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    print(ffmpeg_args)
+    subprocess.Popen(ffmpeg_args)#, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     print("View video at:\n", test_dir + "/optimal_and_original.mp4")
 
 
