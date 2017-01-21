@@ -52,9 +52,9 @@ test_name = 'OneComWaypointStaticTest'
 dirs = [d for d in os.listdir(root_tests_dir) if os.path.isdir(os.path.join(root_tests_dir, d))]
 test_dirs = sorted([os.path.join(root_tests_dir, d) for d in dirs if re.match(test_name+'.*', d)])
 
-for i, t in enumerate(test_dirs[0:1]):
+for i, t in enumerate(test_dirs):
     print('Recording simulation for test', i+1, 'of', len(test_dirs), '.', (i+1)/len(test_dirs)*100, "% complete.")
-    # try:
-    combineVideos(t)
-    # except:
-    #     print("Couldn't format videos from:\n", t)
+    try:
+        combineVideos(t)
+    except:
+        print("Couldn't format videos from:\n", t)
