@@ -77,6 +77,9 @@ costs_to_use=['tracking', 'goal', 'energy']
 bo_solver_parameters  = {'max_iter':maxIter, 'tolfun':tolerance, 'par':1000.0, 'kernel':'Matern52', 'acquisition':'EI', 'maximizer':'Direct'}
 bo_test_path = root_path + "/bo/"
 
+com_starting_waypoints = np.array([[0.015, -0.11, 0.51]])
+
+
 
 ######################################################################################
 
@@ -89,7 +92,7 @@ for i,t in enumerate(rh_targets):
     print("Test number:", i+1, "of", n_samples, "tests.\nRight hand target:", t)
     print("========================================")
 
-    first_test = OneComWaypointStaticTest(bo_test_path, t, com_starting_waypoints, costs_to_use)
+    first_test = OneComWaypointStaticTest(bo_test_path, np.array([t]), com_starting_waypoints, costs_to_use)
     solver = RoboSolver(first_test, bo_solver_parameters)
     solver.optimize()
     solver.returnSolution(show_simulation=False)
