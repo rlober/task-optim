@@ -55,7 +55,7 @@ test_dirs = sorted([os.path.join(root_tests_dir, d) for d in dirs if re.match(te
 
 for i, t in enumerate(test_dirs):
     print('Copying', i+1, 'of', len(test_dirs), '-', (i+1)/len(test_dirs)*100, "% complete.")
-    args = """cp """+t+"""/optimal_and_original.mp4 """+dropbox_dir
+    args = """cp """+t+"""/optimal_and_original.mp4 """+dropbox_dir+"""/"""+str(i).zfill(3)+""".mp4"""
     args = shlex.split(args)
     proc = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     proc.wait()
