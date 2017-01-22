@@ -9,8 +9,7 @@ def combineVideos(test_dir):
         ffmpeg_args = """ffmpeg -y -i """ + test_dir + """/original.mp4 -i """ + test_dir + """/optimal.mp4 -filter_complex "[0:v][1:v]hstack=inputs=2[v]" -map "[v]" -ac 2 """+test_dir+"""/temp_0.mp4"""
 
         ffmpeg_args = shlex.split(ffmpeg_args)
-        print('ffmpeg_args', ffmpeg_args)
-        proc_1 = subprocess.Popen(ffmpeg_args)#, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        proc_1 = subprocess.Popen(ffmpeg_args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         proc_1.wait()
 
         ffmpeg_args = """ffmpeg -i """ + test_dir + """/temp_0.mp4 -y -vf drawtext="text='ORIGINAL':\
@@ -23,8 +22,7 @@ def combineVideos(test_dir):
         y=main_h-(text_h*2)" -codec:a copy """ + test_dir + """/temp_1.mp4"""
 
         ffmpeg_args = shlex.split(ffmpeg_args)
-        print('ffmpeg_args', ffmpeg_args)
-        proc_1 = subprocess.Popen(ffmpeg_args)#, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        proc_1 = subprocess.Popen(ffmpeg_args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         proc_1.wait()
 
         ffmpeg_args = """ffmpeg -i """ + test_dir + """/temp_1.mp4 -y -vf drawtext="text='OPTIMAL':\
@@ -37,32 +35,29 @@ def combineVideos(test_dir):
         y=main_h-(text_h*2)" -codec:a copy """ + test_dir + """/temp_2.mp4"""
 
         ffmpeg_args = shlex.split(ffmpeg_args)
-        print('ffmpeg_args', ffmpeg_args)
-        proc_1 = subprocess.Popen(ffmpeg_args)#, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        proc_1 = subprocess.Popen(ffmpeg_args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         proc_1.wait()
 
         video_path = test_dir + "/optimal_and_original.mp4"
 
 
-        ffmpeg_args = """ffmpeg -i """ + test_dir + """/temp_2.mp4 -y -vf drawtext="text='"""+video_path+"""':\
+        ffmpeg_args = """ffmpeg -i """ + test_dir + """/temp_2.mp4 -y -vf drawtext="text='"""+video_path.replace(':','_')+"""':\
         fontcolor=white:\
         fontsize=24:\
         box=1:\
         boxcolor=black@0.8:\
         boxborderw=10:\
-        x=(main_w)/2:\
-        y=(text_h*2)" -codec:a copy """ + test_dir + """/optimal_and_original.mp4"""
+        x=(main_w-text_w)/2:\
+        y=(text_h*3)" -codec:a copy """ + test_dir + """/optimal_and_original.mp4"""
 
         ffmpeg_args = shlex.split(ffmpeg_args)
-        print('ffmpeg_args', ffmpeg_args)
-        proc_1 = subprocess.Popen(ffmpeg_args)#, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        proc_1 = subprocess.Popen(ffmpeg_args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         proc_1.wait()
 
         ffmpeg_args = """rm """+test_dir+"""/temp_0.mp4 """+test_dir+"""/temp_1.mp4 """+test_dir+"""/temp_2.mp4"""
 
         ffmpeg_args = shlex.split(ffmpeg_args)
-        print('ffmpeg_args', ffmpeg_args)
-        proc_1 = subprocess.Popen(ffmpeg_args)#, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        proc_1 = subprocess.Popen(ffmpeg_args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         proc_1.wait()
 
         print("View video at:\n", video_path)
@@ -121,8 +116,8 @@ def copyAllTestVideos(root_tests_dir, destination_dir, videos_to_copy=["optimal_
 
 
 
-root_tests_dir = "/Users/Ryan/Dropbox/ffmpeg_tests/"
-# root_tests_dir = os.path.expanduser("~") + "/Optimization_Tests/rand_right_hand_target_tests/bo/"
+#root_tests_dir = "/home/ryan/Dropbox/ffmpeg_tests/"
+root_tests_dir = os.path.expanduser("~") + "/Optimization_Tests/rand_right_hand_target_tests/bo/"
 dropbox_dir = os.path.expanduser("~") + "/Dropbox/RandReachVideos/"
 
 test_name = 'OneComWaypointStaticTest'
