@@ -79,8 +79,7 @@ def concatenateTestVideos(root_tests_dir, destination_dir, video_name):
     for i, t in enumerate(test_dirs):
         vid_path = os.path.join(t,"optimal_and_original.mp4")
         if os.path.exists(vid_path):
-            # print('Processing', i+1, 'of', len(test_dirs), '-', (i+1)/len(test_dirs)*100, "% complete.")
-            line_text = "file " + vid_path + "\n"
+            line_text = "file " + vid_path.replace(':', '\\:') + "\n"
             cat_file.write(line_text)
 
 
@@ -120,15 +119,15 @@ def copyAllTestVideos(root_tests_dir, destination_dir, videos_to_copy=["optimal_
 root_tests_dir = os.path.expanduser("~") + "/Optimization_Tests/rand_right_hand_target_tests/bo/"
 dropbox_dir = os.path.expanduser("~") + "/Dropbox/RandReachVideos/"
 
-test_name = 'OneComWaypointStaticTest'
-dirs = [d for d in os.listdir(root_tests_dir) if os.path.isdir(os.path.join(root_tests_dir, d))]
-test_dirs = sorted([os.path.join(root_tests_dir, d) for d in dirs if re.match(test_name+'.*', d)])
+# test_name = 'OneComWaypointStaticTest'
+# dirs = [d for d in os.listdir(root_tests_dir) if os.path.isdir(os.path.join(root_tests_dir, d))]
+# test_dirs = sorted([os.path.join(root_tests_dir, d) for d in dirs if re.match(test_name+'.*', d)])
+#
+# for i, t in enumerate(test_dirs):
+#      print('Combining', i+1, 'of', len(test_dirs), '-', (i+1)/len(test_dirs)*100, "% complete.")
+#      combineVideos(t)
 
-for i, t in enumerate(test_dirs):
-     print('Combining', i+1, 'of', len(test_dirs), '-', (i+1)/len(test_dirs)*100, "% complete.")
-     combineVideos(t)
-
-# concatenateTestVideos(root_tests_dir, dropbox_dir, "RandReachVideos.mp4")
+concatenateTestVideos(root_tests_dir, dropbox_dir, "RandReachVideos.mp4")
 
 
 
