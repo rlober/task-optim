@@ -79,7 +79,7 @@ def concatenateTestVideos(root_tests_dir, destination_dir, video_name):
     for i, t in enumerate(test_dirs):
         vid_path = os.path.join(t,"optimal_and_original.mp4")
         if os.path.exists(vid_path):
-            line_text = "file " + vid_path.replace(':', '\\:') + "\n"
+            line_text = "file '" + vid_path + "'\n"
             cat_file.write(line_text)
 
 
@@ -92,7 +92,7 @@ def concatenateTestVideos(root_tests_dir, destination_dir, video_name):
 
     final_vid_path = os.path.join(destination_dir, video_name)
 
-    args = "ffmpeg -f concat -i " + cat_file_path + " -c copy " + final_vid_path
+    args = "ffmpeg -f concat -safe 0 -i " + cat_file_path + " -c copy " + final_vid_path
     args = shlex.split(args)
     proc = subprocess.Popen(args)
     proc.wait()
