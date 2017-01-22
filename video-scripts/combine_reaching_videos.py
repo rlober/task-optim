@@ -9,7 +9,8 @@ def combineVideos(test_dir):
         ffmpeg_args = """ffmpeg -y -i """ + test_dir + """/original.mp4 -i """ + test_dir + """/optimal.mp4 -filter_complex "[0:v][1:v]hstack=inputs=2[v]" -map "[v]" -ac 2 """+test_dir+"""/temp_0.mp4"""
 
         ffmpeg_args = shlex.split(ffmpeg_args)
-        proc_1 = subprocess.Popen(ffmpeg_args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        print('ffmpeg_args', ffmpeg_args)
+        proc_1 = subprocess.Popen(ffmpeg_args)#, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         proc_1.wait()
 
         ffmpeg_args = """ffmpeg -i """ + test_dir + """/temp_0.mp4 -y -vf drawtext="text='ORIGINAL':\
@@ -22,7 +23,8 @@ def combineVideos(test_dir):
         y=main_h-(text_h*2)" -codec:a copy """ + test_dir + """/temp_1.mp4"""
 
         ffmpeg_args = shlex.split(ffmpeg_args)
-        proc_1 = subprocess.Popen(ffmpeg_args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        print('ffmpeg_args', ffmpeg_args)
+        proc_1 = subprocess.Popen(ffmpeg_args)#, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         proc_1.wait()
 
         ffmpeg_args = """ffmpeg -i """ + test_dir + """/temp_1.mp4 -y -vf drawtext="text='OPTIMAL':\
@@ -35,7 +37,8 @@ def combineVideos(test_dir):
         y=main_h-(text_h*2)" -codec:a copy """ + test_dir + """/temp_2.mp4"""
 
         ffmpeg_args = shlex.split(ffmpeg_args)
-        proc_1 = subprocess.Popen(ffmpeg_args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        print('ffmpeg_args', ffmpeg_args)
+        proc_1 = subprocess.Popen(ffmpeg_args)#, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         proc_1.wait()
 
         video_path = test_dir + "/optimal_and_original.mp4"
@@ -51,13 +54,15 @@ def combineVideos(test_dir):
         y=(text_h*2)" -codec:a copy """ + test_dir + """/optimal_and_original.mp4"""
 
         ffmpeg_args = shlex.split(ffmpeg_args)
-        proc_1 = subprocess.Popen(ffmpeg_args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        print('ffmpeg_args', ffmpeg_args)
+        proc_1 = subprocess.Popen(ffmpeg_args)#, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         proc_1.wait()
 
         ffmpeg_args = """rm """+test_dir+"""/temp_0.mp4 """+test_dir+"""/temp_1.mp4 """+test_dir+"""/temp_2.mp4"""
 
         ffmpeg_args = shlex.split(ffmpeg_args)
-        proc_1 = subprocess.Popen(ffmpeg_args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        print('ffmpeg_args', ffmpeg_args)
+        proc_1 = subprocess.Popen(ffmpeg_args)#, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         proc_1.wait()
 
         print("View video at:\n", video_path)
@@ -115,7 +120,9 @@ def copyAllTestVideos(root_tests_dir, destination_dir, videos_to_copy=["optimal_
             proc.wait()
 
 
-root_tests_dir = os.path.expanduser("~") + "/Optimization_Tests/rand_right_hand_target_tests/bo/"
+
+root_tests_dir = "/Users/Ryan/Dropbox/ffmpeg_tests/"
+# root_tests_dir = os.path.expanduser("~") + "/Optimization_Tests/rand_right_hand_target_tests/bo/"
 dropbox_dir = os.path.expanduser("~") + "/Dropbox/RandReachVideos/"
 
 test_name = 'OneComWaypointStaticTest'
@@ -126,7 +133,7 @@ for i, t in enumerate(test_dirs):
      print('Combining', i+1, 'of', len(test_dirs), '-', (i+1)/len(test_dirs)*100, "% complete.")
      combineVideos(t)
 
-concatenateTestVideos(root_tests_dir, dropbox_dir, "RandReachVideos.mp4")
+# concatenateTestVideos(root_tests_dir, dropbox_dir, "RandReachVideos.mp4")
 
 
 
