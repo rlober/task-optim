@@ -92,6 +92,10 @@ def simulate(controllerArgs, clientArgs, icubWorldPath, savePath=None, verbose=F
             controller.kill()
         if verbose:
             print('-- Terminating gzserver')
+
+        if runningRemotely:
+            time.sleep(10)
+
         gzserver.terminate()
         if visual:
             gzclient.terminate()
