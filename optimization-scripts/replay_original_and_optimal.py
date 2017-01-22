@@ -25,7 +25,7 @@ def replayOriginalAndOptimalReachingSimulation(test_dir):
 
     original_failed = []
     optimal_failed = []
-    max_trials = 5
+    max_trials = 1
     if not os.path.exists( os.path.join(test_dir, "original.mp4") ):
         number_of_trials = 0
         while number_of_trials <= max_trials:
@@ -73,9 +73,19 @@ test_name = 'OneComWaypointStaticTest'
 dirs = [d for d in os.listdir(root_tests_dir) if os.path.isdir(os.path.join(root_tests_dir, d))]
 test_dirs = sorted([os.path.join(root_tests_dir, d) for d in dirs if re.match(test_name+'.*', d)])
 
+original_failed = []
+optimal_failed = []
+
 for i, t in enumerate(test_dirs):
     print('Recording simulation for test', i+1, 'of', len(test_dirs), '.', (i+1)/len(test_dirs)*100, "% complete.")
-    original_failed, optimal_failed = replayOriginalAndOptimalReachingSimulation(t)
+    orig_failed, opt_failed = replayOriginalAndOptimalReachingSimulation(t)
+    original_failed.append(orig_failed)
+    optimal_failed.append(opt_failed)
 
-print("\n\noriginal_failed\n", original_failed)
-print("\n\noptimal_failed\n", optimal_failed)
+print("\n\n-------------------------\noriginal_failed\n-------------------------")
+for o in original_failed:
+    print(o)
+
+print("\n\n-------------------------\noptimal_failed\n-------------------------")
+for o in optimal_failed:
+    print(o)
