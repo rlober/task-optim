@@ -19,6 +19,14 @@ def analyseCostTests(pickle_path):
     combo_5 = ['goal']
     combo_6 = ['energy']
 
+    combo_0_label = "tracking\ngoal\nenergy"
+    combo_1_label = "tracking\nenergy"
+    combo_2_label = "tracking\ngoal"
+    combo_3_label = "goal\nenergy"
+    combo_4_label = "tracking"
+    combo_5_label = "goal"
+    combo_6_label = "energy"
+
 
     bo_cma_data = []
 
@@ -66,63 +74,88 @@ def analyseCostTests(pickle_path):
 
     bo_cost_means = []
     bo_cost_std = []
+    bo_opt_iter_means = []
+    bo_opt_iter_std = []
+    bo_n_iter_means = []
+    bo_n_iter_std = []
 
     cma_cost_means = []
     cma_cost_std = []
+    cma_opt_iter_means = []
+    cma_opt_iter_std = []
+    cma_n_iter_means = []
+    cma_n_iter_std = []
 
     for d in bo_cma_data[0]:
         orig = []
         opt = []
+        opt_iter = []
+        n_iter = []
         for s in d:
             orig.append(s[0])
             opt.append(s[1])
+            opt_iter.append(s[2])
+            n_iter.append(s[3])
 
         costs = np.array(opt) / np.array(orig) # opt_costs/orig_costs
         bo_cost_means.append( np.mean(costs) )
         bo_cost_std.append( np.std(costs) )
+        bo_opt_iter_means.append( np.mean(opt_iter) )
+        bo_opt_iter_std.append( np.std(opt_iter) )
+        bo_n_iter_means.append( np.mean(n_iter) )
+        bo_n_iter_std.append( np.std(n_iter) )
+
     for d in bo_cma_data[1]:
         orig = []
         opt = []
+        opt_iter = []
+        n_iter = []
         for s in d:
             orig.append(s[0])
             opt.append(s[1])
+            opt_iter.append(s[2])
+            n_iter.append(s[3])
 
         costs = np.array(opt) / np.array(orig) # opt_costs/orig_costs
         cma_cost_means.append( np.mean(costs) )
         cma_cost_std.append( np.std(costs) )
+        cma_opt_iter_means.append( np.mean(opt_iter) )
+        cma_opt_iter_std.append( np.std(opt_iter) )
+        cma_n_iter_means.append( np.mean(n_iter) )
+        cma_n_iter_std.append( np.std(n_iter) )
 
     import matplotlib.pyplot as plt
 
     N = 7
-
     ind = np.arange(N)  # the x locations for the groups
     width = 0.35       # the width of the bars
 
-    fig, ax = plt.subplots()
-    rects1 = ax.bar(ind, bo_cost_means, width, color='r', yerr=bo_cost_std)
+    title = "wadwdawd"
+    fig, (cost_ax, opt_iter_ax, n_iter_ax) = plt.subplots(1, 3, num=title, figsize=(24, 8), facecolor='w', edgecolor='k')
 
-    rects2 = ax.bar(ind + width, cma_cost_means, width, color='y', yerr=cma_cost_std)
-
-    # add some text for labels, title and axes ticks
-    ax.set_ylabel('Optimal Cost')
-    ax.set_xticks(ind + width / 2)
-    ax.set_xticklabels((combo_0, combo_1, combo_2, combo_3, combo_4, combo_5, combo_6))
-
-    ax.legend((rects1[0], rects2[0]), ('BO', 'CMA-ES'))
+    rects1 = cost_ax.bar(ind, bo_cost_means, width, color='r', yerr=bo_cost_std)
+    rects2 = cost_ax.bar(ind + width, cma_cost_means, width, color='y', yerr=cma_cost_std)
+    cost_ax.set_ylabel('Optimal Cost')
+    cost_ax.set_xticks(ind + width)
+    cost_ax.set_xticklabels((combo_0_label, combo_1_label, combo_2_label, combo_3_label, combo_4_label, combo_5_label, combo_6_label))
+    cost_ax.legend((rects1[0], rects2[0]), ('BO', 'CMA-ES'))
 
 
-    def autolabel(rects):
-        """
-        Attach a text label above each bar displaying its height
-        """
-        for rect in rects:
-            height = rect.get_height()
-            ax.text(rect.get_x() + rect.get_width()/2., 1.05*height,
-                    '%d' % float(height),
-                    ha='center', va='bottom')
+    rects3 = opt_iter_ax.bar(ind, bo_opt_iter_means, width, color='r', yerr=bo_opt_iter_std)
+    rects4 = opt_iter_ax.bar(ind + width, cma_opt_iter_means, width, color='y', yerr=cma_opt_iter_std)
+    opt_iter_ax.set_ylabel('Optimal Iteration')
+    opt_iter_ax.set_xticks(ind + width)
+    opt_iter_ax.set_xticklabels((combo_0_label, combo_1_label, combo_2_label, combo_3_label, combo_4_label, combo_5_label, combo_6_label))
+    opt_iter_ax.legend((rects3[0], rects4[0]), ('BO', 'CMA-ES'))
 
-    autolabel(rects1)
-    autolabel(rects2)
+
+    rects5 = n_iter_ax.bar(ind, bo_n_iter_means, width, color='r', yerr=bo_n_iter_std)
+    rects6 = n_iter_ax.bar(ind + width, cma_n_iter_means, width, color='y', yerr=cma_n_iter_std)
+    n_iter_ax.set_ylabel('Total iterations')
+    n_iter_ax.set_xticks(ind + width)
+    n_iter_ax.set_xticklabels((combo_0_label, combo_1_label, combo_2_label, combo_3_label, combo_4_label, combo_5_label, combo_6_label))
+    n_iter_ax.legend((rects5[0], rects6[0]), ('BO', 'CMA-ES'))
+
 
     plt.show()
 
@@ -183,5 +216,5 @@ def extractCostTestsData(root_dir, test_name='OneComWaypointStaticTest'):
 root_dir = os.path.join(os.path.expanduser("~"),'Optimization_Tests/cost_tests-reaching')
 # extractCostTestsData(root_dir, 'OneComWaypointStaticTest')
 
-pickle_path = os.path.join(os.path.expanduser("~"),'Optimization_Tests/cost_tests-reaching/cost_test_plotting_data.pickle')
+pickle_path = "../plotting-data/cost_test_data-reaching/cost_test_plotting_data.pickle"
 analyseCostTests(pickle_path)
