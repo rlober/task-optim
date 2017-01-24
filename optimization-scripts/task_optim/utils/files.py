@@ -64,3 +64,8 @@ def getLastTestDir(test_name=''):
     dirs = [os.path.join(root_dir,o) for o in os.listdir(root_dir) if os.path.isdir(os.path.join(root_dir,o))]
     dirs.sort()
     return dirs[-1]
+
+def getSortedTestDirs(root_tests_dir, test_name='OneComWaypointStaticTest'):
+    dirs = [d for d in os.listdir(root_tests_dir) if os.path.isdir(os.path.join(root_tests_dir, d))]
+    test_dirs = sorted([os.path.join(root_tests_dir, d) for d in dirs if re.match(test_name+'.*', d)])
+    return test_dirs
