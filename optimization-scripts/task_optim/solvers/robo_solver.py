@@ -74,7 +74,7 @@ class RoboSolver(BaseSolver):
 
             elif self.solver_parameters['maximizer'] == 'Direct':
                 pass
-                self.maximizer = Direct(self.acquisition, self.test.X_lower, self.test.X_upper)
+                self.maximizer = Direct(self.acquisition, self.test.X_lower, self.test.X_upper, n_func_evals=800, n_iters=400)
 
             elif self.solver_parameters['maximizer'] == 'GridSearch':
                 pass

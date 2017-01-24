@@ -3,10 +3,10 @@ from .base_test import *
 
 class OneComWaypointStaticTest(BaseTest):
     """docstring for OneComWaypointStaticTest."""
-    def __init__(self, root_path, right_hand_starting_waypoints, com_starting_waypoints, costs, skip_init=False, trial_dir=None):
+    def __init__(self, root_path, right_hand_starting_waypoints, com_starting_waypoints, costs, skip_init=False, trial_dir=None, cost_weights=None):
         self.right_hand_waypoints = right_hand_starting_waypoints
         self.com_waypoints = com_starting_waypoints
-        super(OneComWaypointStaticTest, self).__init__(root_path, costs, skip_init, trial_dir)
+        super(OneComWaypointStaticTest, self).__init__(root_path, costs, skip_init, trial_dir, cost_weights)
 
     def initSkipMethod(self):
         """Any custom things to do when initialization is skipped."""

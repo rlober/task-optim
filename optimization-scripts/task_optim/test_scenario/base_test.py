@@ -8,7 +8,7 @@ import pickle
 
 class BaseTest(BaseTask):
 
-    def __init__(self, root_path, costs=['tracking', 'goal', 'energy'], skip_init=False, trial_dir=None):
+    def __init__(self, root_path, costs=['tracking', 'goal', 'energy'], skip_init=False, trial_dir=None, cost_weights=None):
 
         head, tail = os.path.split(os.path.abspath(__file__))
         self.rootPath = os.path.abspath(head+"/../../../")
@@ -18,15 +18,44 @@ class BaseTest(BaseTask):
         self.useGoalCost = False
         self.useEnergyCost = False
 
+        self.weights_used = {}
+
         for c in self.costs:
             if c == 'tracking':
                 self.useTrackingCost = True
+                if cost_weights is not None:
+                    if 'tracking' in cost_weights:
+                        self.tracking_cost_weight = cost_weights['tracking']
+                    else:
+                        self.tracking_cost_weight = 1.0
+                else:
+                    self.tracking_cost_weight = 1.0
+
+                self.weights_used['tracking'] = self.tracking_cost_weight
 
             if c == 'goal':
                 self.useGoalCost = True
+                if cost_weights is not None:
+                    if 'goal' in cost_weights:
+                        self.goal_cost_weight = cost_weights['goal']
+                    else:
+                        self.goal_cost_weight = 1.0
+                else:
+                    self.goal_cost_weight = 1.0
+
+                self.weights_used['goal'] = self.goal_cost_weight
 
             if c == 'energy':
                 self.useEnergyCost = True
+                if cost_weights is not None:
+                    if 'energy' in cost_weights:
+                        self.energy_cost_weight = cost_weights['energy']
+                    else:
+                        self.energy_cost_weight = 1.0
+                else:
+                    self.energy_cost_weight = 1.0
+
+                self.weights_used['energy'] = self.energy_cost_weight
 
 
         if not skip_init:
@@ -171,11 +200,11 @@ class BaseTest(BaseTask):
             j_goal += t.goalCost()
 
         if self.useTrackingCost:
-            j_total += j_tracking
+            j_total += self.tracking_cost_weight * j_tracking
         if self.useGoalCost:
-            j_total += j_goal
+            j_total += self.goal_cost_weight * j_goal
         if self.useEnergyCost:
-            j_total += j_energy
+            j_total += self.energy_cost_weight * j_energy
 
 
         return np.array([[j_total]])

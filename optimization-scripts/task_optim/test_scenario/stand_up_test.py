@@ -3,9 +3,9 @@ from .base_test import *
 
 class StandUpTest(BaseTest):
     """docstring for StandUpTest."""
-    def __init__(self, root_path, com_starting_waypoints, costs, skip_init=False, trial_dir=None):
+    def __init__(self, root_path, com_starting_waypoints, costs, skip_init=False, trial_dir=None, cost_weights=None):
         self.com_waypoints = com_starting_waypoints
-        super(StandUpTest, self).__init__(root_path, costs, skip_init, trial_dir)
+        super(StandUpTest, self).__init__(root_path, costs, skip_init, trial_dir, cost_weights)
 
 
     def getInitialX(self):
