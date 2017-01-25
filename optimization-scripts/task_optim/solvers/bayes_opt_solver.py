@@ -1,6 +1,7 @@
 from .base_solver import BaseSolver
 import numpy as np
 from sklearn import gaussian_process
+import cma
 
 class BayesOptSolver(BaseSolver):
     """docstring for BayesOptSolver."""
@@ -13,7 +14,7 @@ class BayesOptSolver(BaseSolver):
         super(BayesOptSolver, self).__init__(test, solver_parameters)
 
     def initializeSolver(self):
-        self.kernel = 0.5 * gaussian_process.kernels.Matern(length_scale=1.0, length_scale_bounds=(1e-1, 10.0), nu=1.5)
+        self.kernel = 0.5 * gaussian_process.kernels.Matern(length_scale=100.0, length_scale_bounds=(1e-1, 10.0), nu=1.5)
         self.gp = gaussian_process.GaussianProcessRegressor(self.kernel)
 
     def updateSolver(self):
@@ -28,6 +29,9 @@ class BayesOptSolver(BaseSolver):
         Y_new = self.test.objective_function(X_new)
         # scale the cost wrt the original cost
         Y_new = ( Y_new / self.test.Y_init )
+        thresh = 2.0
+        if Y_new > thresh:
+            Y_new = np.array([[thresh]])
 
         self.X = np.vstack((self.X, X_new))
         self.Y = np.vstack((self.Y, Y_new))
@@ -39,7 +43,7 @@ class BayesOptSolver(BaseSolver):
 
         # self.verbose_level = -9
         self.verbose_level = 0
-        self.n_func_evals = 2000
+        self.n_func_evals = 10000
         self.restarts = 1
         res = cma.fmin(self.LCB,
                 x0=start_point[0],
@@ -57,12 +61,14 @@ class BayesOptSolver(BaseSolver):
 
 
     def LCB(self, X):
+        if len(X.shape)==1:
+            X = np.array([X])
         mean, variance = self.gp.predict(X, return_std=True)
         variance = np.reshape(variance, (variance.size, 1))
-        print('mean.shape', mean.shape)
-        print('var.shape', var.shape)
+        #print('mean.shape', mean.shape)
+        #print('variance.shape', variance.shape)
         lcb = (mean - self.par * np.sqrt(variance))[0,0]
-        print('lcb', lcb)
+        #print('lcb', lcb)
         return lcb
 
     def solverFinished(self):
