@@ -8,7 +8,7 @@ class CmaSolver(BaseSolver):
         assert('max_iter' in solver_parameters)
         self.initial_sigma = 0.5
         self.tolfun = 1e-11
-
+        self.old_sol = None
         super(CmaSolver, self).__init__(test, solver_parameters)
 
     def testSolution(self, s):
@@ -54,18 +54,39 @@ class CmaSolver(BaseSolver):
 
 
     def solverFinished(self):
-        if not self.cmaes_solver.stop() and (self.test.optimization_iteration <= self.solver_parameters['max_iter']):
+        best_x = self.cmaes_solver.result()[0]
+
+        if self.old_sol is not None:
+            # check for tolerance:
+            if 'tolfun' in self.solver_parameters:
+                deltaSol = np.linalg.norm(self.old_sol - best_x)
+                print("deltaSol", deltaSol)
+                if deltaSol <= self.solver_parameters['tolfun']:
+                    print("Solution tolerance,", self.solver_parameters['tolfun'], "reached. Stopping optimization.")
+                    self.testSolution(best_x)
+                    return True
+
+
+        if (self.test.optimization_iteration <= self.solver_parameters['max_iter']):
+            self.old_sol = best_x
             return False
 
         else:
-            if self.test.optimization_iteration > self.solver_parameters['max_iter']:
-                print("Maximum number of iterations exceeded. Stopping optimization.")
-            else:
-                print("CMA-ES Solver has converged. Stopping optimization.")
-
-            print("\nOptimization complete - testing best incumbent solution...")
-            best_x = self.cmaes_solver.result()[0]
+            print("Maximum number of iterations exceeded. Stopping optimization.")
             self.testSolution(best_x)
-            print("Finished.")
-
             return True
+
+        # if not self.cmaes_solver.stop() and (self.test.optimization_iteration <= self.solver_parameters['max_iter']):
+        #     return False
+        #
+        # else:
+        #     if self.test.optimization_iteration > self.solver_parameters['max_iter']:
+        #         print("Maximum number of iterations exceeded. Stopping optimization.")
+        #     else:
+        #         print("CMA-ES Solver has converged. Stopping optimization.")
+        #
+        #     print("\nOptimization complete - testing best incumbent solution...")
+        #     self.testSolution(best_x)
+        #     print("Finished.")
+        #
+        #     return True
