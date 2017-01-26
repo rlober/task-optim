@@ -36,6 +36,8 @@ class BayesOptSolver(BaseSolver):
         self.X = np.vstack((self.X, X_new))
         self.Y = np.vstack((self.Y, Y_new))
 
+        print('getIncumbent:\n', self.getIncumbent())
+
     def chooseNext(self, X, Y):
         self.gp.fit(X, Y)
 
@@ -70,6 +72,15 @@ class BayesOptSolver(BaseSolver):
         lcb = (mean - self.par * np.sqrt(variance))[0,0]
         #print('lcb', lcb)
         return lcb
+
+    def getIncumbent(self):
+        opt_row, opt_col = np.unravel_index(np.argmin(self.Y), np.shape(self.Y))
+        incumbent = self.X[[opt_row], :].copy()
+        obeserved_cost = self.Y[[opt_row], :].copy()
+        pred_cost, pred_variance = self.gp.predict(self.test.transform(incumbent), return_std=True)
+        return incumbent, obeserved_cost, pred_cost, pred_variance
+
+
 
     def solverFinished(self):
         if self.X.shape[0] >= 2:
