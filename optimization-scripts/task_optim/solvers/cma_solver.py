@@ -19,7 +19,10 @@ class CmaSolver(BaseSolver):
         Y_new = self.test.objective_function(X_new)
         # scale the cost wrt the original cost
         Y_new = ( Y_new / self.test.Y_init )
-
+        thresh = 2.0
+        if Y_new > thresh:
+            Y_new = np.array([[thresh]])
+            
         self.X = np.vstack((self.X, X_new))
         self.Y = np.vstack((self.Y, Y_new))
 
