@@ -14,11 +14,12 @@ class BayesOptSolver(BaseSolver):
         super(BayesOptSolver, self).__init__(test, solver_parameters)
 
     def initializeSolver(self):
-        self.kernel = gaussian_process.kernels.Matern(length_scale=100.0, length_scale_bounds=(1e-1, 1000.0), nu=2.0)
+        self.kernel = 0.5*gaussian_process.kernels.Matern(length_scale=100.0, length_scale_bounds=(1e-1, 1e6), nu=8.0)
         self.gp = gaussian_process.GaussianProcessRegressor(self.kernel, n_restarts_optimizer=10)
 
     def updateSolver(self):
-
+        # Save old incumbent
+        self.old_incumbent = self.getIncumbent()[0]
         # Put X 0-1
         X_scaled = self.test.transform(self.X)
         # Get the next solution to test
@@ -33,10 +34,13 @@ class BayesOptSolver(BaseSolver):
         if Y_new > thresh:
             Y_new = np.array([[thresh]])
 
+        print('nextSolutionToTest:\n', X_new, '\nPredicted cost mean and variance:', self.gp.predict(next_solution_to_test, return_std=True), '\nLCB:', self.LCB(next_solution_to_test))
+        print('getIncumbent:\n', self.getIncumbent())
         self.X = np.vstack((self.X, X_new))
         self.Y = np.vstack((self.Y, Y_new))
+        self.par *= 0.7
+        print('par:', self.par)
 
-        print('getIncumbent:\n', self.getIncumbent())
 
     def chooseNext(self, X, Y):
         self.gp.fit(X, Y)
@@ -86,7 +90,8 @@ class BayesOptSolver(BaseSolver):
         if self.X.shape[0] >= 2:
             # check for tolerance:
             if 'tolfun' in self.solver_parameters:
-                deltaSol = np.linalg.norm(self.X[-1,:] - self.X[-2,:])
+                deltaSol = np.linalg.norm(self.X[-1,:] - self.old_incumbent)
+                print('deltaSol:',deltaSol)
                 if deltaSol <= self.solver_parameters['tolfun']:
                     print("Solution tolerance,", self.solver_parameters['tolfun'], "reached. Stopping optimization.")
                     return True
