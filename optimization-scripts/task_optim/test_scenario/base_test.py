@@ -68,6 +68,9 @@ class BaseTest(BaseTask):
             self.costs_used_pickle_path = os.path.join(self.trial_dir_path, "costs_used.pickle")
             pickle.dump(self.costs, open( self.costs_used_pickle_path, "wb" ) )
 
+            self.costs_weights_pickle_path = os.path.join(self.trial_dir_path, "costs_weights.pickle")
+            pickle.dump(self.weights_used, open( self.costs_weights_pickle_path, "wb" ) )
+
             self.optimization_iteration = 0
             self.iterateSimulation()
             self.X_init = self.getInitialX()
