@@ -6,7 +6,7 @@ from task_optim.solvers.cma_solver import CmaSolver
 from task_optim.solvers.bayes_opt_solver import BayesOptSolver
 
 
-root_path = os.path.join(os.path.expanduser("~"), "/Optimization_Tests/reaching_tests/")
+root_path = os.path.join(os.path.expanduser("~"), "/Optimization_Tests/reaching_tests_target_set_01/")
 
 costs_to_use=['tracking', 'goal', 'energy']
 
@@ -33,14 +33,16 @@ print("=================================================\n\n\n")
 for i,t in enumerate(rh_targets):
     print("\n\n========================================")
     print("Test number:", i+1, "of", n_samples, "tests.\nRight hand target:", t)
-    print("========================================")
+    print("========================================\n\n")
 
-    first_test = OneComWaypointStaticTest(bo_test_path, np.array([t]), com_starting_waypoints, costs_to_use, trial_dir=str(i))
+    trial_dir_name = "target_"+str(i).zfill(4)
+
+    first_test = OneComWaypointStaticTest(bo_test_path, np.array([t]), com_starting_waypoints, costs_to_use, trial_dir=trial_dir_name)
     solver = BayesOptSolver(first_test, bo_solver_parameters)
     solver.optimize()
     solver.returnSolution(show_simulation=False)
 
-    first_test = OneComWaypointStaticTest(cma_test_path, np.array([t]), com_starting_waypoints, costs_to_use, trial_dir=str(i))
+    first_test = OneComWaypointStaticTest(cma_test_path, np.array([t]), com_starting_waypoints, costs_to_use, trial_dir=trial_dir_name)
     solver = CmaSolver(first_test, cma_solver_parameters)
     solver.optimize()
     solver.returnSolution(show_simulation=False)
