@@ -39,5 +39,5 @@ solver.returnSolution(show_simulation=False)
 
 ####################################################
 
-# replayOriginalAndOptimalReachingSimulation(getSortedTestDirs(bo_tests_path)[-1])
-# replayOriginalAndOptimalReachingSimulation(getSortedTestDirs(cma_tests_path)[-1])
+replayOriginalAndOptimalStandingSimulation(getSortedTestDirs(bo_tests_path, test_name="StandUpTest")[-1])
+# replayOriginalAndOptimalStandingSimulation(getSortedTestDirs(cma_tests_path, test_name="StandUpTest")[-1])
