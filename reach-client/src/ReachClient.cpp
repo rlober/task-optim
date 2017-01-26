@@ -34,6 +34,7 @@ bool ReachClient::createDataFiles()
     comJacobiansFilePath = savePath + "/comJacobians.txt";
     jointPositionsFilePath = savePath + "/jointPositions.txt";
     jointLimitsFilePath = savePath + "/jointLimits.txt";
+    attainedGoalFilePath = savePath + "/attainedGoal.txt";
 
     rightHandPositionRealFile.open(rightHandPositionRealFilePath);
     rightHandPositionRefFile.open(rightHandPositionRefFilePath);
@@ -51,6 +52,7 @@ bool ReachClient::createDataFiles()
     comJacobiansFile.open(comJacobiansFilePath);
     jointPositionsFile.open(jointPositionsFilePath);
     jointLimitsFile.open(jointLimitsFilePath);
+    attainedGoalFile.open(attainedGoalFilePath);
 
 
     bool ok = true;
@@ -69,6 +71,7 @@ bool ReachClient::createDataFiles()
     ok &= comJacobiansFile.is_open();
     ok &= jointPositionsFile.is_open();
     ok &= jointLimitsFile.is_open();
+    ok &= attainedGoalFile.is_open();
     return ok;
 }
 
@@ -90,6 +93,7 @@ void ReachClient::closeDataFiles()
     comJacobiansFile.close();
     jointPositionsFile.close();
     jointLimitsFile.close();
+    attainedGoalFile.close();
 }
 
 bool ReachClient::configure(yarp::os::ResourceFinder &rf)
@@ -273,8 +277,8 @@ void ReachClient::getComBounds()
 
     Eigen::Vector3d l_sole_center =  model->getSegmentPosition("l_sole").getTranslation();
 
-    Eigen::Vector3d l_sole_FrontLeft = l_sole_center + Eigen::Vector3d(0.06, -0.02, 0.0);
-    Eigen::Vector3d l_sole_BackLeft = l_sole_center + Eigen::Vector3d(-0.02, -0.02, 0.0);
+    Eigen::Vector3d l_sole_FrontLeft = l_sole_center + Eigen::Vector3d(0.06, 0.02, 0.0);
+    Eigen::Vector3d l_sole_BackLeft = l_sole_center + Eigen::Vector3d(-0.02, 0.02, 0.0);
 
     // <task name="RightFootContact_BackRight" type="PointContact">
     // <offset x="-0.02" y=" 0.02" z="0.0" qw="0.0" qx="-0.707107" qy="-0.707107" qz="0.0" />
@@ -284,8 +288,8 @@ void ReachClient::getComBounds()
 
     Eigen::Vector3d r_sole_center =  model->getSegmentPosition("r_sole").getTranslation();
 
-    Eigen::Vector3d r_sole_FrontRight = r_sole_center + Eigen::Vector3d(0.06, 0.02, 0.0);
-    Eigen::Vector3d r_sole_BackRight = r_sole_center + Eigen::Vector3d(-0.02, 0.02, 0.0);
+    Eigen::Vector3d r_sole_FrontRight = r_sole_center + Eigen::Vector3d(0.06, -0.02, 0.0);
+    Eigen::Vector3d r_sole_BackRight = r_sole_center + Eigen::Vector3d(-0.02, -0.02, 0.0);
 
     double x_min = std::fmax(r_sole_BackRight(0), l_sole_BackLeft(0));
     double x_max = std::fmin(r_sole_FrontRight(0), l_sole_FrontLeft(0));
@@ -370,11 +374,13 @@ void ReachClient::loop()
         if (!goToHomeOnRelease) {
             std::cout << "Attained Goal. Stopping." << std::endl;
             changeTargetColor();
+            attainedGoalFile << "1\n";
             stop();
         } else if (returningHome) {
             stop();
         } else {
             std::cout << "Attained Goal. Returning to home position." << std::endl;
+            attainedGoalFile << "1\n";
             changeTargetColor();
             returningHome = true;
             if (usingComTask) {
@@ -386,10 +392,12 @@ void ReachClient::loop()
     if (relativeTime > LOOP_TIME_LIMIT) {
         if (!goToHomeOnRelease) {
             std::cout << "Loop time limit exceeded. Stopping." << std::endl;
+            attainedGoalFile << "0\n";
             stop();
         } else {
             if (!returningHome) {
                 std::cout << "Loop time limit exceeded. Returning to home position." << std::endl;
+                attainedGoalFile << "0\n";
                 rightHandTrajThread->returnToHome();
                 if (usingComTask) {
                     comTrajThread->returnToHome();

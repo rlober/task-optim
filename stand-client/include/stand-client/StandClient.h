@@ -63,6 +63,7 @@ private:
     std::string comJacobiansFilePath;
     std::string jointPositionsFilePath;
     std::string jointLimitsFilePath;
+    std::string contactLocationsFilePath;
 
     std::ofstream comPositionRealFile;
     std::ofstream comPositionRefFile;
@@ -74,6 +75,7 @@ private:
     std::ofstream comJacobiansFile;
     std::ofstream jointPositionsFile;
     std::ofstream jointLimitsFile;
+    std::ofstream contactLocationsFile;
 
     // Waypoint lists
     std::list<Eigen::VectorXd> comWaypointList;

@@ -196,6 +196,7 @@ bool StandClient::createDataFiles()
     comJacobiansFilePath = savePath + "/comJacobians.txt";
     jointPositionsFilePath = savePath + "/jointPositions.txt";
     jointLimitsFilePath = savePath + "/jointLimits.txt";
+    contactLocationsFilePath = savePath + "/contactLocations.txt";
 
     comPositionRealFile.open(comPositionRealFilePath);
     comPositionRefFile.open(comPositionRefFilePath);
@@ -208,6 +209,7 @@ bool StandClient::createDataFiles()
     comJacobiansFile.open(comJacobiansFilePath);
     jointPositionsFile.open(jointPositionsFilePath);
     jointLimitsFile.open(jointLimitsFilePath);
+    contactLocationsFile.open(contactLocationsFilePath);
 
 
     bool ok = true;
@@ -221,6 +223,7 @@ bool StandClient::createDataFiles()
     ok &= comJacobiansFile.is_open();
     ok &= jointPositionsFile.is_open();
     ok &= jointLimitsFile.is_open();
+    ok &= contactLocationsFile.is_open();
     return ok;
 }
 
@@ -237,6 +240,7 @@ void StandClient::closeDataFiles()
     comJacobiansFile.close();
     jointPositionsFile.close();
     jointLimitsFile.close();
+    contactLocationsFile.close();
 }
 
 
@@ -299,8 +303,8 @@ void StandClient::getComBounds()
 
     Eigen::Vector3d l_sole_center =  model->getSegmentPosition("l_sole").getTranslation();
 
-    Eigen::Vector3d l_sole_FrontLeft = l_sole_center + Eigen::Vector3d(0.06, -0.02, 0.0);
-    Eigen::Vector3d l_sole_BackLeft = l_sole_center + Eigen::Vector3d(-0.02, -0.02, 0.0);
+    Eigen::Vector3d l_sole_FrontLeft = l_sole_center + Eigen::Vector3d(0.06, 0.02, 0.0);
+    Eigen::Vector3d l_sole_BackLeft = l_sole_center + Eigen::Vector3d(-0.02, 0.02, 0.0);
 
     // <task name="RightFootContact_BackRight" type="PointContact">
     // <offset x="-0.02" y=" 0.02" z="0.0" qw="0.0" qx="-0.707107" qy="-0.707107" qz="0.0" />
@@ -310,12 +314,18 @@ void StandClient::getComBounds()
 
     Eigen::Vector3d r_sole_center =  model->getSegmentPosition("r_sole").getTranslation();
 
-    Eigen::Vector3d r_sole_FrontRight = r_sole_center + Eigen::Vector3d(0.06, 0.02, 0.0);
-    Eigen::Vector3d r_sole_BackRight = r_sole_center + Eigen::Vector3d(-0.02, 0.02, 0.0);
+    Eigen::Vector3d r_sole_FrontRight = r_sole_center + Eigen::Vector3d(0.06, -0.02, 0.0);
+    Eigen::Vector3d r_sole_BackRight = r_sole_center + Eigen::Vector3d(-0.02, -0.02, 0.0);
 
     Eigen::Vector3d l_legContact = leftLegContactTask->getTaskState().getPosition().getTranslation();
     Eigen::Vector3d r_legContact = rightLegContactTask->getTaskState().getPosition().getTranslation();
 
+    contactLocationsFile << l_sole_FrontLeft.transpose() << "\n";
+    contactLocationsFile << l_sole_BackLeft.transpose() << "\n";
+    contactLocationsFile << r_sole_FrontRight.transpose() << "\n";
+    contactLocationsFile << r_sole_BackRight.transpose() << "\n";
+    contactLocationsFile << l_legContact.transpose() << "\n";
+    contactLocationsFile << r_legContact.transpose() << "\n";
 
     double x_min = std::fmax(l_legContact(0), r_legContact(0));
     double x_max = std::fmin(r_sole_FrontRight(0), l_sole_FrontLeft(0));

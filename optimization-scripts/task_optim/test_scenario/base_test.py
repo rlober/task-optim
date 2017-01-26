@@ -63,7 +63,15 @@ class BaseTest(BaseTask):
 
             print("Using the following costs:", self.costs)
 
-            self.createTrialDir()
+            if trial_dir is not None:
+                self.trial_dir_name = trial_dir
+                self.trial_dir_path = os.path.join(self.root_path, self.trial_dir_name)
+                if os.path.exists(self.trial_dir_path):
+                    print("WARNING: The specified trial_dir --", self.trial_dir_path, "-- already exists and will be overwritten.")
+                else:
+                    os.makedirs(self.trial_dir_path)
+            else:
+                self.createTrialDir()
 
             self.costs_used_pickle_path = os.path.join(self.trial_dir_path, "costs_used.pickle")
             pickle.dump(self.costs, open( self.costs_used_pickle_path, "wb" ) )
