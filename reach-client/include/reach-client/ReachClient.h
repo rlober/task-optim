@@ -64,6 +64,7 @@ private:
     std::string comJacobiansFilePath;
     std::string jointPositionsFilePath;
     std::string jointLimitsFilePath;
+    std::string attainedGoalFilePath;
 
     std::ofstream rightHandPositionRealFile;
     std::ofstream rightHandPositionRefFile;
@@ -80,6 +81,7 @@ private:
     std::ofstream comJacobiansFile;
     std::ofstream jointPositionsFile;
     std::ofstream jointLimitsFile;
+    std::ofstream attainedGoalFile;
 
     // Waypoint lists
     std::list<Eigen::VectorXd> rightHandWaypointList;
