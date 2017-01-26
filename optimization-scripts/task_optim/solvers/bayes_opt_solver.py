@@ -14,7 +14,7 @@ class BayesOptSolver(BaseSolver):
         super(BayesOptSolver, self).__init__(test, solver_parameters)
 
     def initializeSolver(self):
-        self.kernel = 0.5*gaussian_process.kernels.Matern(length_scale=100.0, length_scale_bounds=(1e-1, 1e6), nu=8.0)
+        self.kernel = 0.5*gaussian_process.kernels.Matern(length_scale=100.0, length_scale_bounds=(1e-1, 1e6), nu=16.0)
         self.gp = gaussian_process.GaussianProcessRegressor(self.kernel, n_restarts_optimizer=10)
 
     def updateSolver(self):

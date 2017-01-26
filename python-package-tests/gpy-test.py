@@ -5,10 +5,10 @@ from matplotlib import pyplot as plt
 import GPy
 
 
-X = np.random.uniform(-3.,3.,(20,1))
-Y = np.sin(X) + np.random.randn(20,1)*0.05
+X = np.array([[0.0],[0.1],[0.2],[0.8]])
+Y = np.array([[0.8],[1.0],[0.4],[2.0]])
 
-kernel = GPy.kern.RBF(input_dim=1, variance=1., lengthscale=1.)
+kernel = GPy.kern.RBF(input_dim=1)#, variance=0.1, lengthscale=0.1)
 m = GPy.models.GPRegression(X,Y,kernel)
 
 fig = m.plot()

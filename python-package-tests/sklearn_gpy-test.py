@@ -31,12 +31,12 @@ def LCB(x, user_data=None):
     var = np.reshape(var, (var.shape[0],1))
     return mean - par*np.sqrt(var)
 
-from DIRECT import solve
-x_opt, fmin, ierror = solve(LCB,[0.0],[1.0],Jones=1)
+# from DIRECT import solve
+# x_opt, fmin, ierror = solve(LCB,[0.0],[1.0])
 
 # res = cma.fmin(LCB, [0.5], sigma0=0.8)
-# x_opt = res[0]
 
+fmin_l_bfgs_b
 
 print(x_opt)
 #

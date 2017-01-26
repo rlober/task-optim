@@ -14,6 +14,8 @@ from robo.maximizers.direct import Direct
 
 from robo.solver.bayesian_optimization import BayesianOptimization
 
+from robo.initial_design.init_random_uniform import init_random_uniform
+
 class RoboSolver(BaseSolver):
     """docstring for RoboSolver."""
     def __init__(self, test, solver_parameters):
@@ -74,14 +76,14 @@ class RoboSolver(BaseSolver):
 
             elif self.solver_parameters['maximizer'] == 'Direct':
                 pass
-                self.maximizer = Direct(self.acquisition, self.test.X_lower, self.test.X_upper, n_func_evals=800, n_iters=400)
+                self.maximizer = Direct(self.acquisition, self.test.X_lower, self.test.X_upper, n_func_evals=1600, n_iters=800)
 
             elif self.solver_parameters['maximizer'] == 'GridSearch':
                 pass
                 # self.maximizer = GridSearch(self.acquisition, self.test.X_lower, self.test.X_upper)
 
             elif self.solver_parameters['maximizer'] == 'CMAES':
-                self.maximizer = CMAES(self.acquisition, self.test.X_lower, self.test.X_upper)
+                self.maximizer = CMAES(self.acquisition, self.test.X_lower, self.test.X_upper, restarts=10, n_func_evals=10000)
             else:
                 self.maximizer = CMAES(self.acquisition, self.test.X_lower, self.test.X_upper)
 
@@ -111,13 +113,32 @@ class RoboSolver(BaseSolver):
         # Multiply by -1 because we are maximizing with RoBO
         # Y = self.Y.copy() * -1.0
         # Get the next solution to test
-        next_solution_to_test = self.bo.choose_next(self.X, self.Y)
+        # if (self.test.optimization_iteration > 0) and (self.test.optimization_iteration % 5 == 0):
+        # marginalize = False
+        # if (self.test.optimization_iteration % 2 == 0):
+        #     marginalize = True
+        #     print("Optimizing GP model.")
+        # next_solution_to_test = self.bo.choose_next(self.X, self.Y, do_optimize=marginalize)
+        next_solution_to_test = self.bo.choose_next(self.test.transform(self.X), self.Y, do_optimize=True)
+
+        if self.test.optimization_iteration > 1:
+            opt_row, opt_col = np.unravel_index(np.argmin(self.Y), np.shape(self.Y))
+            best_X = self.test.transform(self.X[[opt_row], :].copy())
+            mean1, var1 = self.acquisition.model.predict(next_solution_to_test)
+            mean2, var2 = self.acquisition.model.predict(best_X)
+            print("New solution: ", self.test.retransform(next_solution_to_test), "-->", mean1, var1)
+            print("Best solution: ", self.test.retransform(best_X), "-->", mean2, var2)
+
         # The provided solution is scaled bectween 0-1 so we retransform it back to physical coordinates
         X_new = self.test.retransform(next_solution_to_test)
         # test X_new
         Y_new = self.test.objective_function(X_new)
         # scale the cost wrt the original cost
         Y_new = ( Y_new / self.test.Y_init )
+
+        thresh = 2.0
+        if Y_new > thresh:
+            Y_new = np.array([[thresh]])
 
         self.X = np.vstack((self.X, X_new))
         self.Y = np.vstack((self.Y, Y_new))
