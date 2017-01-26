@@ -273,8 +273,8 @@ void ReachClient::getComBounds()
 
     Eigen::Vector3d l_sole_center =  model->getSegmentPosition("l_sole").getTranslation();
 
-    Eigen::Vector3d l_sole_FrontLeft = l_sole_center + Eigen::Vector3d(0.06, -0.02, 0.0);
-    Eigen::Vector3d l_sole_BackLeft = l_sole_center + Eigen::Vector3d(-0.02, -0.02, 0.0);
+    Eigen::Vector3d l_sole_FrontLeft = l_sole_center + Eigen::Vector3d(0.06, 0.02, 0.0);
+    Eigen::Vector3d l_sole_BackLeft = l_sole_center + Eigen::Vector3d(-0.02, 0.02, 0.0);
 
     // <task name="RightFootContact_BackRight" type="PointContact">
     // <offset x="-0.02" y=" 0.02" z="0.0" qw="0.0" qx="-0.707107" qy="-0.707107" qz="0.0" />
@@ -284,8 +284,8 @@ void ReachClient::getComBounds()
 
     Eigen::Vector3d r_sole_center =  model->getSegmentPosition("r_sole").getTranslation();
 
-    Eigen::Vector3d r_sole_FrontRight = r_sole_center + Eigen::Vector3d(0.06, 0.02, 0.0);
-    Eigen::Vector3d r_sole_BackRight = r_sole_center + Eigen::Vector3d(-0.02, 0.02, 0.0);
+    Eigen::Vector3d r_sole_FrontRight = r_sole_center + Eigen::Vector3d(0.06, -0.02, 0.0);
+    Eigen::Vector3d r_sole_BackRight = r_sole_center + Eigen::Vector3d(-0.02, -0.02, 0.0);
 
     double x_min = std::fmax(r_sole_BackRight(0), l_sole_BackLeft(0));
     double x_max = std::fmin(r_sole_FrontRight(0), l_sole_FrontLeft(0));
