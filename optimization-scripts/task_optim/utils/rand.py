@@ -43,7 +43,7 @@ def generateRandomRightHandTargets(n_samples=100, save_path=None, lower_bounds=N
     rh_targets[:,2] = rh_targets[:,2] * z_range + zmin
 
     if save_path is not None and os.path.exists(save_path):
-        np.savetxt(os.path.join(save_path, "rh_targets.txt"), save_path)
+        np.savetxt(os.path.join(save_path, "rh_targets.txt"), rh_targets)
 
     return rh_targets, lb, ub
 
