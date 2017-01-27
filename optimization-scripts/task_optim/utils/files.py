@@ -41,11 +41,19 @@ def getDataFromFiles(root_dir):
     comJacobians = np.loadtxt(root_dir_path + "/comJacobians.txt")
     jointPositions = np.loadtxt(root_dir_path + "/jointPositions.txt")
     jointLimits = np.loadtxt(root_dir_path + "/jointLimits.txt")
-
-    comData = TaskData(timeline, comExpectedDuration, comPositionReal, comPositionRef, comWaypoints, torques, comBounds, comJacobians, jointPositions, jointLimits, "CoM")
+    try:
+        contactLocations = np.loadtxt(root_dir_path + "/contactLocations.txt")
+        comData = TaskData(timeline, comExpectedDuration, comPositionReal, comPositionRef, comWaypoints, torques, comBounds, comJacobians, jointPositions, jointLimits, "CoM", contactLocations=contactLocations)
+    except:
+        comData = TaskData(timeline, comExpectedDuration, comPositionReal, comPositionRef, comWaypoints, torques, comBounds, comJacobians, jointPositions, jointLimits, "CoM")
 
     if usingRightHandTask:
-        rightHandData = TaskData(timeline, rightHandExpectedDuration, rightHandPositionReal, rightHandPositionRef, rightHandWaypoints, torques, comBounds, rightHandJacobians, jointPositions, jointLimits, "Right_Hand")
+        try:
+            attainedGoal = np.loadtxt(root_dir_path + "/attainedGoal.txt")
+            rightHandData = TaskData(timeline, rightHandExpectedDuration, rightHandPositionReal, rightHandPositionRef, rightHandWaypoints, torques, comBounds, rightHandJacobians, jointPositions, jointLimits, "Right_Hand", attainedGoal=attainedGoal)
+        except:
+            rightHandData = TaskData(timeline, rightHandExpectedDuration, rightHandPositionReal, rightHandPositionRef, rightHandWaypoints, torques, comBounds, rightHandJacobians, jointPositions, jointLimits, "Right_Hand")
+            
         return [comData, rightHandData]
     else:
         return [comData]

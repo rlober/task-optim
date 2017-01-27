@@ -3,7 +3,7 @@ import numpy as np
 
 class TaskData(object):
     """docstring for TestData"""
-    def __init__(self, time, expectedDuration, real, ref, waypoints, torques, comBounds, jacobians, jointPositions, jointLimits, name=""):
+    def __init__(self, time, expectedDuration, real, ref, waypoints, torques, comBounds, jacobians, jointPositions, jointLimits, name="", contactLocations=None, attainedGoal=None):
         self.data_truncated = False
         self.name = name
         self.time = time
@@ -21,6 +21,10 @@ class TaskData(object):
         self.comBounds = comBounds
         self.lower_bounds = self.comBounds[:,0]
         self.upper_bounds = self.comBounds[:,1]
+        if contactLocations is not None:
+            self.contactLocations = contactLocations
+        if attainedGoal is not None:
+            self.attainedGoal = attainedGoal
 
         if self.name is "CoM":
             nRows = 3
