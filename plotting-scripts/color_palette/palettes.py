@@ -11,7 +11,7 @@ class ColorPalette():
 
     def normalize(self, rgb_tuple):
         """Converts a 0-255 rgb values to 0-1 values."""
-        return tuple(v / self.max_rgb_value for v in rgb_tuple)
+        return tuple(v / float(self.max_rgb_value) for v in rgb_tuple)
 
     def setRgbNormalize(self, b):
         """Turn normalization on or off.
