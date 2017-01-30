@@ -48,6 +48,9 @@ class ColorPalette():
         return self.dark
 
 
+def colorToString(color_tuple):
+    return str(color_tuple[0])+" "+str(color_tuple[1])+" "+str(color_tuple[2])
+
 
 # Multi Hue:
 class BuGn(ColorPalette):
