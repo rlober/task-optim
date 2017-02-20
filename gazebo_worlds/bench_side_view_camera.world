@@ -58,6 +58,12 @@
         <self_collide>0</self_collide>
         <kinematic>0</kinematic>
         <gravity>1</gravity>
+        <sensor name='ground_contact_sensor' type='contact'>
+          <plugin name="seat_contact_plugin" filename="libseat_contact_plugin.so"/>
+          <contact>
+            <collision>collision</collision>
+          </contact>
+        </sensor>
       </link>
     </model>
     <physics name='default_physics' default='0' type='ode'>
@@ -78,6 +84,7 @@
       <heading_deg>0</heading_deg>
     </spherical_coordinates>
     <model name='chair'>
+        <!-- <static>1</static> -->
       <link name='chair::low_part'>
         <pose frame=''>0 0 0.18 0 -0 0</pose>
         <inertial>
@@ -519,6 +526,12 @@
         </visual>
         <self_collide>0</self_collide>
         <kinematic>0</kinematic>
+        <sensor name='l_upper_leg_contact_sensor' type='contact'>
+          <plugin name="seat_contact_plugin" filename="libseat_contact_plugin.so"/>
+          <contact>
+            <collision>l_upper_leg_collision</collision>
+          </contact>
+        </sensor>
       </link>
       <joint name='iCub::l_hip_yaw' type='revolute'>
         <child>iCub::l_upper_leg</child>
@@ -775,6 +788,12 @@
         </visual>
         <self_collide>0</self_collide>
         <kinematic>0</kinematic>
+        <sensor name='l_foot_contact_sensor' type='contact'>
+          <plugin name="seat_contact_plugin" filename="libseat_contact_plugin.so"/>
+          <contact>
+            <collision>l_foot_collision</collision>
+          </contact>
+        </sensor>
       </link>
       <joint name='iCub::l_foot_ft_sensor' type='revolute'>
         <child>iCub::l_foot</child>
@@ -1045,6 +1064,12 @@
         </visual>
         <self_collide>0</self_collide>
         <kinematic>0</kinematic>
+        <sensor name='r_upper_leg_contact_sensor' type='contact'>
+          <plugin name="seat_contact_plugin" filename="libseat_contact_plugin.so"/>
+          <contact>
+            <collision>r_upper_leg_collision</collision>
+          </contact>
+        </sensor>
       </link>
       <joint name='iCub::r_hip_yaw' type='revolute'>
         <child>iCub::r_upper_leg</child>
@@ -1301,6 +1326,12 @@
         </visual>
         <self_collide>0</self_collide>
         <kinematic>0</kinematic>
+        <sensor name='r_foot_contact_sensor' type='contact'>
+          <plugin name="seat_contact_plugin" filename="libseat_contact_plugin.so"/>
+          <contact>
+            <collision>r_foot_collision</collision>
+          </contact>
+        </sensor>
       </link>
       <joint name='iCub::r_foot_ft_sensor' type='revolute'>
         <child>iCub::r_foot</child>

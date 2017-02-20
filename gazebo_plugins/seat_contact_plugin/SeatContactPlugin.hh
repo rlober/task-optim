@@ -2,9 +2,11 @@
 #define _GAZEBO_CONTACT_PLUGIN_HH_
 
 #include <string>
-#include <yarp/os/All.h>
+#include <yarp/os/all.h>
 #include <gazebo/gazebo.hh>
 #include <gazebo/sensors/sensors.hh>
+#include <fstream>
+#include <cmath>
 
 namespace gazebo
 {
@@ -31,6 +33,17 @@ namespace gazebo
     /// \brief Connection that maintains a link between the contact sensor's
     /// updated signal and the OnUpdate callback.
     private: event::ConnectionPtr updateConnection;
+
+
+    double start_time, rt, pos_x, pos_y, pos_z, force_x, force_y, force_z;
+    std::ofstream contactFile;
+    bool firstCall;
+    bool recordStart;
+    bool recordStop;
+    bool doRecord;
+    yarp::os::BufferedPort<yarp::os::Bottle> port;
+    yarp::os::Network yarp;
+    std::string sensorName;
   };
 }
 #endif
