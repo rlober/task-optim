@@ -36,7 +36,7 @@ bool StandClient::configure(yarp::os::ResourceFinder &rf)
         if (rf.check("recordName")) {
             recordName = rf.find("recordName").asString().c_str();
         } else {
-            recordName = "reaching";
+            recordName = "standing";
         }
 
         if (rf.check("recordDelay")) {
@@ -52,6 +52,14 @@ bool StandClient::configure(yarp::os::ResourceFinder &rf)
         std::string cameraPortName("/StandClient/camera/rpc:o");
         cameraPort.open(cameraPortName);
         yarp.connect(cameraPortName, "/Gazebo/yarp_camera_sensor/rpc:i");
+
+        std::string contactPortName("/StandClient/contact:o");
+        contactPort.open(contactPortName);
+        yarp.connect(contactPortName, "/Gazebo/SeatContactPlugin/l_foot_contact_sensor:i");
+        yarp.connect(contactPortName, "/Gazebo/SeatContactPlugin/r_foot_contact_sensor:i");
+        yarp.connect(contactPortName, "/Gazebo/SeatContactPlugin/r_upper_leg_contact_sensor:i");
+        yarp.connect(contactPortName, "/Gazebo/SeatContactPlugin/l_upper_leg_contact_sensor:i");
+        yarp.connect(contactPortName, "/Gazebo/SeatContactPlugin/ground_contact_sensor:i");
 
     } else {
         recordSimulation = false;
@@ -144,6 +152,7 @@ void StandClient::release()
     if (recordSimulation) {
         stopRecording();
         cameraPort.close();
+        contactPort.close();
     }
 
     if(comTrajThread) {
@@ -303,7 +312,7 @@ void StandClient::getComBounds()
 
     Eigen::Vector3d l_sole_center =  model->getSegmentPosition("l_sole").getTranslation();
 
-    Eigen::Vector3d l_sole_FrontLeft = l_sole_center + Eigen::Vector3d(0.06, 0.02, 0.0);
+    Eigen::Vector3d l_sole_FrontLeft = l_sole_center + Eigen::Vector3d(0.08, 0.02, 0.0);
     Eigen::Vector3d l_sole_BackLeft = l_sole_center + Eigen::Vector3d(-0.02, 0.02, 0.0);
 
     // <task name="RightFootContact_BackRight" type="PointContact">
@@ -314,7 +323,7 @@ void StandClient::getComBounds()
 
     Eigen::Vector3d r_sole_center =  model->getSegmentPosition("r_sole").getTranslation();
 
-    Eigen::Vector3d r_sole_FrontRight = r_sole_center + Eigen::Vector3d(0.06, -0.02, 0.0);
+    Eigen::Vector3d r_sole_FrontRight = r_sole_center + Eigen::Vector3d(0.08, -0.02, 0.0);
     Eigen::Vector3d r_sole_BackRight = r_sole_center + Eigen::Vector3d(-0.02, -0.02, 0.0);
 
     Eigen::Vector3d l_legContact = leftLegContactTask->getTaskState().getPosition().getTranslation();
@@ -328,7 +337,7 @@ void StandClient::getComBounds()
     contactLocationsFile << r_legContact.transpose() << "\n";
 
     double x_min = std::fmax(l_legContact(0), r_legContact(0));
-    double x_max = std::fmin(r_sole_FrontRight(0), l_sole_FrontLeft(0));
+    double x_max = std::fmax(r_sole_FrontRight(0), l_sole_FrontLeft(0));
 
     double y_min = std::fmax(r_sole_BackRight(1), r_sole_FrontRight(1));
     double y_max = std::fmin(l_sole_BackLeft(1), l_sole_FrontLeft(1));
@@ -404,6 +413,10 @@ void StandClient::startRecording()
         std::cout << "[ERROR] Failed to start simulation recording." << std::endl;
     }
     yarp::os::Time::delay(recordDelay);
+
+    message.clear();
+    message.addInt(1);
+    contactPort.write(message);
 }
 
 void StandClient::stopRecording()
@@ -418,4 +431,8 @@ void StandClient::stopRecording()
     } else {
         std::cout << "[ERROR] Failed to stop simulation recording." << std::endl;
     }
+
+    message.clear();
+    message.addInt(0);
+    contactPort.write(message);
 }
