@@ -17,10 +17,13 @@ costs_to_use = ['tracking', 'goal', 'energy']
 
 ####################################################
 
-bo_solver_parameters  = {'max_iter':50, 'tolfun':0.01, 'par':10.0}
+# bo_solver_parameters  = {'max_iter':50, 'tolfun':0.01, 'par':10.0}
+bo_solver_parameters  = {'max_iter':50, 'tolfun':0.01, 'par':0.004, 'length_scale':1e4, 'length_scale_bounds':(1e-2, 1e10), 'nu':15.0, 'max_sigma':0.1, 'adaptive_par':False}
+
+
 bo_test_path = root_path + "/bo/"
 
-cma_solver_parameters  = {'max_iter':100, 'tolfun':1e-15, 'par':0.1}
+cma_solver_parameters  = {'max_iter':100, 'tolfun':1e-15, 'par':0.001}
 cma_test_path = root_path + "/cma/"
 
 ####################################################
@@ -32,12 +35,12 @@ solver.returnSolution(show_simulation=False)
 
 ####################################################
 
-# first_test = StandUpTest(cma_test_path, com_starting_waypoints, costs_to_use)
-# solver = CmaSolver(first_test, cma_solver_parameters)
-# solver.optimize()
-# solver.returnSolution(show_simulation=False)
+first_test = StandUpTest(cma_test_path, com_starting_waypoints, costs_to_use)
+solver = CmaSolver(first_test, cma_solver_parameters)
+solver.optimize()
+solver.returnSolution(show_simulation=False)
 
 ####################################################
 
-replayOriginalAndOptimalStandingSimulation(getSortedTestDirs(bo_tests_path, test_name="StandUpTest")[-1])
-# replayOriginalAndOptimalStandingSimulation(getSortedTestDirs(cma_tests_path, test_name="StandUpTest")[-1])
+replayOriginalAndOptimalStandingSimulation(getSortedTestDirs(bo_test_path, test_name="StandUpTest")[-1])
+replayOriginalAndOptimalStandingSimulation(getSortedTestDirs(cma_test_path, test_name="StandUpTest")[-1])
