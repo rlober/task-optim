@@ -135,6 +135,13 @@ private:
     bool usingGazeboSim;
     bool sentVisPortMessage;
     yarp::os::Bottle posBottle;
+    yarp::os::RpcClient gazeboRpcPort;
+    std::string case_label;
+
+    std::string getSdf(const Eigen::Vector3d& pose, const std::string& label);
+    std::string getSdfColorString(const std::string& label);
+
+
 
 
 };

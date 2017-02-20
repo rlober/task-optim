@@ -158,15 +158,25 @@ bool ReachClient::configure(yarp::os::ResourceFinder &rf)
         }
 
         sentVisPortMessage = false;
-        usingGazeboSim = yarp.exists("/Gazebo/RightHandTarget:i");
-        usingGazeboSim &= yarp.exists("/Gazebo/TaskOptim/RightHandTarget/change_color:i");
+        usingGazeboSim = yarp.exists("/Gazebo/OcraGuiPlugin/rpc:i");
+        // usingGazeboSim = yarp.exists("/Gazebo/RightHandTarget:i");
+        // usingGazeboSim &= yarp.exists("/Gazebo/TaskOptim/RightHandTarget/change_color:i");
         if (usingGazeboSim) {
-            std::string posPortName("/ReachClient/target/position:o");
-            std::string visPortName("/ReachClient/target/visual:o");
-            posPort.open(posPortName);
-            visPort.open(visPortName);
-            yarp.connect(posPortName, "/Gazebo/RightHandTarget:i");
-            yarp.connect(visPortName, "/Gazebo/TaskOptim/RightHandTarget/change_color:i");
+            if (rf.check("case")) {
+                case_label = rf.find("case").asString().c_str();
+            } else {
+                std::cout << "[ERROR] You have to provide a case label!!!!" << std::endl;
+                case_label = "unknown";
+            }
+            std::string gazeboRpcPortName("/ReachClient/gazebo/rpc:o");
+            gazeboRpcPort.open(gazeboRpcPortName);
+            yarp.connect(gazeboRpcPortName, "/Gazebo/OcraGuiPlugin/rpc:i");
+            // std::string posPortName("/ReachClient/target/position:o");
+            // std::string visPortName("/ReachClient/target/visual:o");
+            // posPort.open(posPortName);
+            // visPort.open(visPortName);
+            // yarp.connect(posPortName, "/Gazebo/RightHandTarget:i");
+            // yarp.connect(visPortName, "/Gazebo/TaskOptim/RightHandTarget/change_color:i");
         } else {
             std::cout << "\n\n\nUsing real robot.\n\n" << std::endl;
         }
@@ -187,6 +197,51 @@ bool ReachClient::configure(yarp::os::ResourceFinder &rf)
         return false;
     }
 }
+
+std::string ReachClient::getSdfColorString(const std::string& label)
+{
+    std::string rgbString;
+    if (label == "reachable") {
+        rgbString = "0.192156862745 0.639215686275 0.329411764706";
+    } else if (label=="possibly_reachable") {
+        rgbString = "0.901960784314 0.333333333333 0.0509803921569";
+    } else if (label=="unreachable") {
+        rgbString = "0.870588235294 0.176470588235 0.149019607843";
+    } else {
+        rgbString = "0.1 0.1 0.1";
+    }
+    std::string colorString =   "<ambient> " + rgbString +" 0.9 </ambient>\
+                                <diffuse> " + rgbString +" 0.9 </diffuse>\
+                                <specular> " + rgbString +" 0.9 </specular>\
+                                <emissive> " + rgbString +" 0.9 </emissive>\n";
+    return colorString;
+}
+
+std::string ReachClient::getSdf(const Eigen::Vector3d& pose, const std::string& label)
+{
+    std::string color = getSdfColorString(label);
+    std::string pose_string = std::to_string(pose(0))+" "+std::to_string(pose(1))+" "+std::to_string(pose(2))+" 0 0 0";
+    std::string sdf_string = "<?xml version='1.0' ?>\
+    <sdf version='1.5'>\
+      <model name='right_hand_target'>\
+        <static>true</static>\
+        <link name='link'>\
+          <visual name='visual'>\
+            <pose>"+pose_string+"</pose>\
+            <geometry>\
+              <sphere>\
+                  <radius>0.03</radius>\
+              </sphere>\
+            </geometry>\
+            <material>"+color+"</material>\
+            <transparency>0.2</transparency>\
+          </visual>\
+        </link>\
+      </model>\
+    </sdf>";
+    return sdf_string;
+}
+
 
 bool ReachClient::getWaypointDataFromFile(const std::string& filePath, std::list<Eigen::VectorXd>& waypointList)
 {
@@ -255,11 +310,31 @@ bool ReachClient::initialize()
     getJointLimits();
 
     if (usingGazeboSim) {
-        Eigen::Vector3d l_sole_center(0.0, 0.135, 0.0);// = model->getSegmentPosition("l_sole").getTranslation();
-        Eigen::Vector3d rh_target_gazebo = rightHandGoalPosition + l_sole_center;
-        posBottle.addDouble(rh_target_gazebo(0));
-        posBottle.addDouble(rh_target_gazebo(1));
-        posBottle.addDouble(rh_target_gazebo(2));
+        yarp::os::Bottle message, reply;
+        message.addString("getRobotWorldPose");
+        gazeboRpcPort.write(message, reply);
+        Eigen::Vector3d gazebo_offset(reply.get(0).asDouble(), reply.get(1).asDouble(), reply.get(2).asDouble());
+        std::cout << "gazebo_offset = " << gazebo_offset.transpose() << std::endl;
+        Eigen::Vector3d rh_target_gazebo = rightHandGoalPosition + gazebo_offset;
+
+        std::string sdf_string = getSdf(rh_target_gazebo, case_label);
+
+        message.clear();
+        reply.clear();
+
+        message.addString("addSdfToWorld");
+        message.addString(sdf_string);
+
+        gazeboRpcPort.write(message, reply);
+
+
+
+        // Eigen::Vector3d l_sole_center(0.0, 0.135, 0.0);// = model->getSegmentPosition("l_sole").getTranslation();
+        // Eigen::Vector3d rh_target_gazebo = rightHandGoalPosition + l_sole_center;
+        //
+        // posBottle.addDouble(rh_target_gazebo(0));
+        // posBottle.addDouble(rh_target_gazebo(1));
+        // posBottle.addDouble(rh_target_gazebo(2));
     }
     if (recordSimulation) {
         startRecording();
@@ -331,8 +406,9 @@ void ReachClient::release()
         cameraPort.close();
     }
     if (usingGazeboSim) {
-        posPort.close();
-        visPort.close();
+        gazeboRpcPort.close();
+        // posPort.close();
+        // visPort.close();
     }
     if(rightHandTrajThread){rightHandTrajThread->stop();}
     if (usingComTask) {
@@ -344,12 +420,12 @@ void ReachClient::release()
 
 void ReachClient::changeTargetColor()
 {
-    if (usingGazeboSim && !sentVisPortMessage) {
-        yarp::os::Bottle b;
-        b.addInt(1);
-        visPort.write(b);
-        sentVisPortMessage = true;
-    }
+    // if (usingGazeboSim && !sentVisPortMessage) {
+    //     yarp::os::Bottle b;
+    //     b.addInt(1);
+    //     visPort.write(b);
+    //     sentVisPortMessage = true;
+    // }
 }
 
 void ReachClient::loop()
@@ -363,9 +439,9 @@ void ReachClient::loop()
         setLoopTimeLimit();
         trigger = false;
     }
-    if (usingGazeboSim) {
-        posPort.write(posBottle);
-    }
+    // if (usingGazeboSim) {
+    //     posPort.write(posBottle);
+    // }
     relativeTime = yarp::os::Time::now() - startTime;
 
     if (rightHandTrajThread->goalAttained() || (rightHandTrajThread->isReturningHome() && !returningHome) ) {
