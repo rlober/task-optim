@@ -11,11 +11,40 @@ class BayesOptSolver(BaseSolver):
         self.par = 1.0
         if 'par' in solver_parameters:
             self.par = solver_parameters['par']
+
+        self.length_scale = 1000.0
+        if 'length_scale' in solver_parameters:
+            self.length_scale = solver_parameters['length_scale']
+
+        self.length_scale_bounds = (1e-1, 1e8)
+        if 'length_scale_bounds' in solver_parameters:
+            self.length_scale_bounds = solver_parameters['length_scale_bounds']
+
+        self.nu = 10.0
+        if 'nu' in solver_parameters:
+            self.nu = solver_parameters['nu']
+
+        self.max_sigma = 0.5
+        if 'max_sigma' in solver_parameters:
+            self.max_sigma = solver_parameters['max_sigma']
+
+        self.n_restarts_optimizer = 10
+        if 'n_restarts_optimizer' in solver_parameters:
+            self.n_restarts_optimizer = solver_parameters['n_restarts_optimizer']
+
+        self.adaptive_par = False
+        if 'adaptive_par' in solver_parameters:
+            self.adaptive_par = solver_parameters['adaptive_par']
+
+
+
         super(BayesOptSolver, self).__init__(test, solver_parameters)
 
     def initializeSolver(self):
-        self.kernel = 0.5*gaussian_process.kernels.Matern(length_scale=100.0, length_scale_bounds=(1e-1, 1e6), nu=16.0)
-        self.gp = gaussian_process.GaussianProcessRegressor(self.kernel, n_restarts_optimizer=10)
+        # self.kernel = 0.5*gaussian_process.kernels.Matern(length_scale=100.0, length_scale_bounds=(1e-1, 1e6), nu=16.0)
+        self.kernel = self.max_sigma * gaussian_process.kernels.Matern(length_scale=self.length_scale, length_scale_bounds=self.length_scale_bounds, nu=self.nu)
+
+        self.gp = gaussian_process.GaussianProcessRegressor(self.kernel, n_restarts_optimizer=self.n_restarts_optimizer)
 
     def updateSolver(self):
         # Save old incumbent
@@ -38,8 +67,9 @@ class BayesOptSolver(BaseSolver):
         print('getIncumbent:\n', self.getIncumbent())
         self.X = np.vstack((self.X, X_new))
         self.Y = np.vstack((self.Y, Y_new))
-        self.par *= 0.7
-        print('par:', self.par)
+        if self.adaptive_par:
+            self.par *= 0.5
+            print('par:', self.par)
 
 
     def chooseNext(self, X, Y):
