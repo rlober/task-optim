@@ -2,3 +2,4 @@ cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
 add_subdirectory(task_optimization_change_color)
 add_subdirectory(seat_contact_plugin)
+add_subdirectory(apply_wrist_force)
