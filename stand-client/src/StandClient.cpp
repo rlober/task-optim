@@ -66,11 +66,11 @@ bool StandClient::configure(yarp::os::ResourceFinder &rf)
         recordSimulation = false;
     }
 
-
-    std::string gazeboApplyForcePortName("/ReachClient/gazebo/rpc:o");
-    gazeboForcePort.open(gazeboApplyForcePortName);
-    connectedToForcePort = yarp.connect(gazeboApplyForcePortName, "/Gazebo/ApplyWristForce:i");
-
+    if (rf.check("applyForce")) {
+        std::string gazeboApplyForcePortName("/ReachClient/gazebo/rpc:o");
+        gazeboForcePort.open(gazeboApplyForcePortName);
+        connectedToForcePort = yarp.connect(gazeboApplyForcePortName, "/Gazebo/ApplyWristForce:i");
+    }
 
 
     return true;
@@ -156,8 +156,7 @@ void StandClient::loop()
         stop();
     }
 
-    gazeboForcePort.close();
-    
+
 
 }
 
@@ -176,6 +175,10 @@ void StandClient::release()
 
     if(comTrajThread) {
         comTrajThread->stop();
+    }
+
+    if (connectedToForcePort) {
+        gazeboForcePort.close();
     }
 }
 
