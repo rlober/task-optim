@@ -4,6 +4,7 @@ StandClient::StandClient(std::shared_ptr<ocra::Model> modelPtr, const int loopPe
 , LOOP_TIME_LIMIT(5.0)
 , logData(false)
 , contactReleaseDelay(2.0)
+, connectedToForcePort(false)
 {
 
 }
@@ -65,6 +66,13 @@ bool StandClient::configure(yarp::os::ResourceFinder &rf)
         recordSimulation = false;
     }
 
+
+    std::string gazeboApplyForcePortName("/ReachClient/gazebo/rpc:o");
+    gazeboForcePort.open(gazeboApplyForcePortName);
+    connectedToForcePort = yarp.connect(gazeboApplyForcePortName, "/Gazebo/ApplyWristForce:i");
+
+
+
     return true;
 }
 
@@ -109,6 +117,14 @@ bool StandClient::initialize()
         startRecording();
     }
 
+    if ( connectedToForcePort ) {
+        yarp::os::Bottle b;
+        b.addDouble(3.7);
+        b.addDouble(0.0);
+        b.addDouble(3.7);
+        gazeboForcePort.write(b);
+    }
+
     comTrajThread->start();
 
     setLoopTimeLimit();
@@ -139,6 +155,9 @@ void StandClient::loop()
         std::cout << "Loop time limit exceeded. Stopping." << std::endl;
         stop();
     }
+
+    gazeboForcePort.close();
+    
 
 }
 

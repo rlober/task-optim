@@ -109,6 +109,10 @@ private:
     std::string recordName;
     double recordDelay;
 
+
+    yarp::os::Port gazeboForcePort;
+    bool connectedToForcePort;
+
 };
 
 
