@@ -3,8 +3,9 @@ from .base_test import *
 
 class StandUpTest(BaseTest):
     """docstring for StandUpTest."""
-    def __init__(self, root_path, com_starting_waypoints, costs, skip_init=False, trial_dir=None, cost_weights=None):
+    def __init__(self, root_path, com_starting_waypoints, costs, skip_init=False, trial_dir=None, cost_weights=None, apply_force=False):
         self.com_waypoints = com_starting_waypoints
+        self.apply_force = apply_force
         super(StandUpTest, self).__init__(root_path, costs, skip_init, trial_dir, cost_weights)
 
 
@@ -31,7 +32,9 @@ class StandUpTest(BaseTest):
 
     def getClientArgs(self, isOptimal=False):
         args = "stand-client --comWptFile " + self.com_waypoint_file_path
-
+        if self.apply_force:
+            args += " --applyForce"
+            
         return args
 
     def getGazeboWorld(self):
