@@ -2878,6 +2878,7 @@
       <plugin name='apply_external_wrench' filename='libgazebo_yarp_externalwrench.so'>
         <robotNamefromConfigFile>model://icub/conf/gazebo_icub_robotname.ini</robotNamefromConfigFile>
       </plugin>
+      <plugin name='apply_wrist_force' filename='libapply_wrist_force.so'/>
     </model>
     <state world_name='default'>
       <sim_time>1591 833000000</sim_time>
