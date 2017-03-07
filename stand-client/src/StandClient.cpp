@@ -54,13 +54,13 @@ bool StandClient::configure(yarp::os::ResourceFinder &rf)
         cameraPort.open(cameraPortName);
         yarp.connect(cameraPortName, "/Gazebo/yarp_camera_sensor/rpc:i");
 
-        std::string contactPortName("/StandClient/contact:o");
-        contactPort.open(contactPortName);
-        yarp.connect(contactPortName, "/Gazebo/SeatContactPlugin/l_foot_contact_sensor:i");
-        yarp.connect(contactPortName, "/Gazebo/SeatContactPlugin/r_foot_contact_sensor:i");
-        yarp.connect(contactPortName, "/Gazebo/SeatContactPlugin/r_upper_leg_contact_sensor:i");
-        yarp.connect(contactPortName, "/Gazebo/SeatContactPlugin/l_upper_leg_contact_sensor:i");
-        yarp.connect(contactPortName, "/Gazebo/SeatContactPlugin/ground_contact_sensor:i");
+        // std::string contactPortName("/StandClient/contact:o");
+        // contactPort.open(contactPortName);
+        // yarp.connect(contactPortName, "/Gazebo/SeatContactPlugin/l_foot_contact_sensor:i");
+        // yarp.connect(contactPortName, "/Gazebo/SeatContactPlugin/r_foot_contact_sensor:i");
+        // yarp.connect(contactPortName, "/Gazebo/SeatContactPlugin/r_upper_leg_contact_sensor:i");
+        // yarp.connect(contactPortName, "/Gazebo/SeatContactPlugin/l_upper_leg_contact_sensor:i");
+        // yarp.connect(contactPortName, "/Gazebo/SeatContactPlugin/ground_contact_sensor:i");
 
     } else {
         recordSimulation = false;
@@ -170,7 +170,7 @@ void StandClient::release()
     if (recordSimulation) {
         stopRecording();
         cameraPort.close();
-        contactPort.close();
+        // contactPort.close();
     }
 
     if(comTrajThread) {
@@ -436,9 +436,9 @@ void StandClient::startRecording()
     }
     yarp::os::Time::delay(recordDelay);
 
-    message.clear();
-    message.addInt(1);
-    contactPort.write(message);
+    // message.clear();
+    // message.addInt(1);
+    // contactPort.write(message);
 }
 
 void StandClient::stopRecording()
@@ -454,7 +454,7 @@ void StandClient::stopRecording()
         std::cout << "[ERROR] Failed to stop simulation recording." << std::endl;
     }
 
-    message.clear();
-    message.addInt(0);
-    contactPort.write(message);
+    // message.clear();
+    // message.addInt(0);
+    // contactPort.write(message);
 }

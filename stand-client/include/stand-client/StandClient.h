@@ -102,7 +102,7 @@ private:
     bool contactsReleased;
 
     yarp::os::RpcClient cameraPort;
-    yarp::os::Port contactPort;
+    // yarp::os::Port contactPort;
     yarp::os::Network yarp;
     bool recordSimulation;
     std::string recordDir;
