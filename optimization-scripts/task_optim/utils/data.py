@@ -3,7 +3,7 @@ import numpy as np
 
 class TaskData(object):
     """docstring for TestData"""
-    def __init__(self, time, expectedDuration, real, ref, waypoints, torques, comBounds, jacobians, jointPositions, jointLimits, name="", contactLocations=None, attainedGoal=None):
+    def __init__(self, time, expectedDuration, real, ref, waypoints, torques, comBounds, jacobians=None, jointPositions=None, jointLimits=None, name="", contactLocations=None, attainedGoal=None):
         self.data_truncated = False
         self.name = name
         self.time = time
@@ -31,16 +31,19 @@ class TaskData(object):
         else:
             nRows = 6
 
-        nCols = int(np.size(jacobians[0]) / nRows)
-        # print('jacobians have', nRows, 'rows and', nCols, 'columns.')
-        self.jacobians = []
-        for j in jacobians:
-            self.jacobians.append(j.reshape((nRows, nCols)))
+        if jacobians is not None:
+            nCols = int(np.size(jacobians[0]) / nRows)
+            # print('jacobians have', nRows, 'rows and', nCols, 'columns.')
+            self.jacobians = []
+            for j in jacobians:
+                self.jacobians.append(j.reshape((nRows, nCols)))
 
+        if jointPositions is not None:
+            self.jointPositions = jointPositions
 
-        self.jointPositions = jointPositions
-        self.lower_joint_limits = jointLimits[0,:]
-        self.upper_joint_limits = jointLimits[1,:]
+        if jointLimits is not None:
+            self.lower_joint_limits = jointLimits[0,:]
+            self.upper_joint_limits = jointLimits[1,:]
 
         self.setBetaFactor(1.0)
         self.setEnergyScalingFactor(1e-4)

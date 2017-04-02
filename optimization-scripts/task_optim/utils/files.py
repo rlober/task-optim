@@ -38,9 +38,25 @@ def getDataFromFiles(root_dir):
     comWaypoints = np.loadtxt(root_dir_path + "/comWaypoints.txt")
     torques = np.loadtxt(root_dir_path + "/torques.txt")
     comBounds = np.loadtxt(root_dir_path + "/comBounds.txt")
-    comJacobians = np.loadtxt(root_dir_path + "/comJacobians.txt")
-    jointPositions = np.loadtxt(root_dir_path + "/jointPositions.txt")
-    jointLimits = np.loadtxt(root_dir_path + "/jointLimits.txt")
+
+    try:
+        comJacobians = np.loadtxt(root_dir_path + "/comJacobians.txt")
+    except:
+        print("No comJacobians file found. Setting to None")
+        comJacobians = None
+        
+    try:
+        jointPositions = np.loadtxt(root_dir_path + "/jointPositions.txt")
+    except:
+        print("No jointPositions file found. Setting to None")
+        jointPositions = None
+        
+    try:
+        jointLimits = np.loadtxt(root_dir_path + "/jointLimits.txt")
+    except:
+        print("No jointLimits file found. Setting to None")
+        jointLimits = None
+        
     try:
         contactLocations = np.loadtxt(root_dir_path + "/contactLocations.txt")
         comData = TaskData(timeline, comExpectedDuration, comPositionReal, comPositionRef, comWaypoints, torques, comBounds, comJacobians, jointPositions, jointLimits, "CoM", contactLocations=contactLocations)
@@ -53,7 +69,7 @@ def getDataFromFiles(root_dir):
             rightHandData = TaskData(timeline, rightHandExpectedDuration, rightHandPositionReal, rightHandPositionRef, rightHandWaypoints, torques, comBounds, rightHandJacobians, jointPositions, jointLimits, "Right_Hand", attainedGoal=attainedGoal)
         except:
             rightHandData = TaskData(timeline, rightHandExpectedDuration, rightHandPositionReal, rightHandPositionRef, rightHandWaypoints, torques, comBounds, rightHandJacobians, jointPositions, jointLimits, "Right_Hand")
-            
+
         return [comData, rightHandData]
     else:
         return [comData]
