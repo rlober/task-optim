@@ -65,6 +65,10 @@ private:
     std::string jointLimitsFilePath;
     std::string contactLocationsFilePath;
 
+    std::string l_footForceTorqueFilePath;
+    std::string r_footForceTorqueFilePath;
+    std::string chairForceTorqueFilePath;
+
     std::ofstream comPositionRealFile;
     std::ofstream comPositionRefFile;
     std::ofstream torquesFile;
@@ -76,6 +80,10 @@ private:
     std::ofstream jointPositionsFile;
     std::ofstream jointLimitsFile;
     std::ofstream contactLocationsFile;
+
+    std::ofstream l_footForceTorqueFile;
+    std::ofstream r_footForceTorqueFile;
+    std::ofstream chairForceTorqueFile;
 
     // Waypoint lists
     std::list<Eigen::VectorXd> comWaypointList;
@@ -112,6 +120,10 @@ private:
 
     yarp::os::Port gazeboForcePort;
     bool connectedToForcePort;
+
+    yarp::os::BufferedPort<yarp::os::Bottle> l_foot_FT_port;
+    yarp::os::BufferedPort<yarp::os::Bottle> r_foot_FT_port;
+    yarp::os::BufferedPort<yarp::os::Bottle> chair_FT_port;
 
 };
 

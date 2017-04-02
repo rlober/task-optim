@@ -23,6 +23,27 @@ bool StandClient::configure(yarp::os::ResourceFinder &rf)
         savePath = boost::filesystem::canonical(savePath).string();
         std::cout << "savePath: \n" << savePath << std::endl;
 
+
+        std::string l_foot_FT_port_name("/StandClient/l_foot_FT_port:i");
+        std::string r_foot_FT_port_name("/StandClient/r_foot_FT_port:i");
+        std::string chair_FT_port_name("/StandClient/chair_FT_port:i");
+
+        l_foot_FT_port.open(l_foot_FT_port_name);
+        r_foot_FT_port.open(r_foot_FT_port_name);
+        chair_FT_port.open(chair_FT_port_name);
+
+        if( !yarp.connect("/icubSim/left_foot/analog:o", l_foot_FT_port_name) ) {
+            std::cout << "[ERROR] Could not connect to l_foot_FT_port!" << std::endl;
+            return false;
+        }
+        if( !yarp.connect("/icubSim/right_foot/analog:o", r_foot_FT_port_name) ) {
+            std::cout << "[ERROR] Could not connect to r_foot_FT_port!" << std::endl;
+            return false;
+        }
+        if( !yarp.connect("/chair/FT_sensor/analog:o/forceTorque", chair_FT_port_name) ) {
+            std::cout << "[ERROR] Could not connect to chair_FT_port!" << std::endl;
+            return false;
+        }
     }
 
     if (rf.check("record")) {
@@ -165,6 +186,9 @@ void StandClient::release()
     if (logData) {
         writeWaypointsToFile();
         closeDataFiles();
+        l_foot_FT_port.close();
+        r_foot_FT_port.close();
+        chair_FT_port.close();
     }
 
     if (recordSimulation) {
@@ -229,6 +253,10 @@ bool StandClient::createDataFiles()
     jointLimitsFilePath = savePath + "/jointLimits.txt";
     contactLocationsFilePath = savePath + "/contactLocations.txt";
 
+    l_footForceTorqueFilePath = savePath + "/l_footForceTorques.txt";
+    r_footForceTorqueFilePath = savePath + "/r_footForceTorques.txt";
+    chairForceTorqueFilePath = savePath + "/chairForceTorques.txt";
+
     comPositionRealFile.open(comPositionRealFilePath);
     comPositionRefFile.open(comPositionRefFilePath);
     torquesFile.open(torquesFilePath);
@@ -241,6 +269,10 @@ bool StandClient::createDataFiles()
     jointPositionsFile.open(jointPositionsFilePath);
     jointLimitsFile.open(jointLimitsFilePath);
     contactLocationsFile.open(contactLocationsFilePath);
+
+    l_footForceTorqueFile.open(l_footForceTorqueFilePath);
+    r_footForceTorqueFile.open(r_footForceTorqueFilePath);
+    chairForceTorqueFile.open(chairForceTorqueFilePath);
 
 
     bool ok = true;
@@ -255,6 +287,10 @@ bool StandClient::createDataFiles()
     ok &= jointPositionsFile.is_open();
     ok &= jointLimitsFile.is_open();
     ok &= contactLocationsFile.is_open();
+
+    ok &= l_footForceTorqueFile.is_open();
+    ok &= r_footForceTorqueFile.is_open();
+    ok &= chairForceTorqueFile.is_open();
     return ok;
 }
 
@@ -272,6 +308,10 @@ void StandClient::closeDataFiles()
     jointPositionsFile.close();
     jointLimitsFile.close();
     contactLocationsFile.close();
+
+    l_footForceTorqueFile.close();
+    r_footForceTorqueFile.close();
+    chairForceTorqueFile.close();
 }
 
 
@@ -396,6 +436,41 @@ void StandClient::logClientData()
     comJacobiansFile << Eigen::VectorXd( Eigen::Map<Eigen::VectorXd>(comJacobian.data(), comJacobian.rows()*comJacobian.cols()) ).transpose() << "\n";
 
     jointPositionsFile << model->getJointPositions().transpose() << "\n";
+
+
+    yarp::os::Bottle *l_foot_btl = l_foot_FT_port.read(false);
+    if ( (l_foot_btl!=NULL) && (l_foot_btl->size()==6) ) {
+        l_footForceTorqueFile << relativeTime                  << "\t";
+        l_footForceTorqueFile << l_foot_btl->get(0).asDouble() << "\t";
+        l_footForceTorqueFile << l_foot_btl->get(1).asDouble() << "\t";
+        l_footForceTorqueFile << l_foot_btl->get(2).asDouble() << "\t";
+        l_footForceTorqueFile << l_foot_btl->get(3).asDouble() << "\t";
+        l_footForceTorqueFile << l_foot_btl->get(4).asDouble() << "\t";
+        l_footForceTorqueFile << l_foot_btl->get(5).asDouble() << "\n";
+    }
+
+    yarp::os::Bottle *r_foot_btl = r_foot_FT_port.read(false);
+    if ( (r_foot_btl!=NULL) && (r_foot_btl->size()==6) ) {
+        r_footForceTorqueFile << relativeTime                  << "\t";
+        r_footForceTorqueFile << r_foot_btl->get(0).asDouble() << "\t";
+        r_footForceTorqueFile << r_foot_btl->get(1).asDouble() << "\t";
+        r_footForceTorqueFile << r_foot_btl->get(2).asDouble() << "\t";
+        r_footForceTorqueFile << r_foot_btl->get(3).asDouble() << "\t";
+        r_footForceTorqueFile << r_foot_btl->get(4).asDouble() << "\t";
+        r_footForceTorqueFile << r_foot_btl->get(5).asDouble() << "\n";
+    }
+
+    yarp::os::Bottle *chair_btl = chair_FT_port.read(false);
+    if ( (chair_btl!=NULL) && (chair_btl->size()==6) ) {
+        chairForceTorqueFile << relativeTime                   << "\t";
+        chairForceTorqueFile << chair_btl->get(0).asDouble() << "\t";
+        chairForceTorqueFile << chair_btl->get(1).asDouble() << "\t";
+        chairForceTorqueFile << chair_btl->get(2).asDouble() << "\t";
+        chairForceTorqueFile << chair_btl->get(3).asDouble() << "\t";
+        chairForceTorqueFile << chair_btl->get(4).asDouble() << "\t";
+        chairForceTorqueFile << chair_btl->get(5).asDouble() << "\n";
+    }
+
 }
 
 void StandClient::writeWaypointsToFile()
