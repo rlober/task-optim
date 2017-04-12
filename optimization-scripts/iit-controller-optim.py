@@ -12,13 +12,21 @@ if __name__ == "__main__":
 
     ####################################################
 
-    com_starting_waypoints = np.array([[0.0799, -0.09, 0.1501]])
+    # com_starting_waypoints = np.array([[0.045, -0.08, 0.25]]) # Straight line
+    com_starting_waypoints = np.array([[0.064, -0.08, 0.25]]) # Straight line
+    # com_starting_waypoints = np.array([[0.12, -0.08, 0.16]]) # move over feet then up
     # com_starting_waypoints = np.array([[0.15, -0.09, 0.1]]) # Works
     costs_to_use = ['tracking', 'goal', 'energy']
 
     ####################################################
 
-    bo_solver_parameters  = {'max_iter':2, 'tolfun':0.01, 'par':0.004, 'length_scale':1e4, 'length_scale_bounds':(1e-2, 1e10), 'nu':15.0, 'max_sigma':0.1, 'adaptive_par':False}
+    # Working
+    # bo_solver_parameters  = {'max_iter':30, 'tolfun':0.01, 'par':0.1, 'length_scale':1, 'length_scale_bounds':(1e-2, 1e10), 'nu':(6./2.), 'max_sigma':0.5, 'adaptive_par':False}
+    # working with leaning forward
+    # bo_solver_parameters  = {'max_iter':30, 'tolfun':0.01, 'par':0.05, 'length_scale':1, 'length_scale_bounds':(1e-2, 1e10), 'nu':(6./2.), 'max_sigma':0.4, 'adaptive_par':False}
+    # bo_solver_parameters  = {'max_iter':30, 'tolfun':0.01, 'par':0.05, 'length_scale':1, 'length_scale_bounds':(1e-2, 1e10), 'nu':(6./2.), 'max_sigma':0.3, 'adaptive_par':False}
+    bo_solver_parameters  = {'max_iter':30, 'tolfun':0.01, 'par':0.1, 'length_scale':1, 'length_scale_bounds':(1e-2, 1e10), 'nu':(6./2.), 'max_sigma':0.1, 'adaptive_par':False}
+
 
     ####################################################
 
