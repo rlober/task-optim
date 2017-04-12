@@ -135,7 +135,11 @@ class BayesOptSolver(BaseSolver):
 
 
     def solverFinished(self):
-        if self.X.shape[0] >= 2:
+        factor = 4
+        if self.using_existing_data:
+            factor = 1
+
+        if self.test.optimization_iteration > factor:
             # check for tolerance:
             if 'tolfun' in self.solver_parameters:
                 deltaSol = np.linalg.norm(self.X[-1,:] - self.old_incumbent)
@@ -143,6 +147,24 @@ class BayesOptSolver(BaseSolver):
                 if deltaSol <= self.solver_parameters['tolfun']:
                     print("Solution tolerance,", self.solver_parameters['tolfun'], "reached. Stopping optimization.")
                     return True
+                else:
+                    if (self.test.optimization_iteration-1) % 5 == 0:
+                        print("\n\n\n================================================\n")
+                        print("You have run", (self.test.optimization_iteration-1), "optimization iterations, without converging.")
+                        inc_data = self.getIncumbent()
+                        print("The current best waypoint is:", inc_data[0], "with the following parameters:")
+                        print("\tObserved Cost:", inc_data[1])
+                        print("\tPredicted Cost:", inc_data[2])
+                        print("\tPredicted Variance:", inc_data[3])
+                        print("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n")
+                        inp_var = input("Do you wish to continue optimizing? [(y)/n]:")
+                        if inp_var=="n" or inp_var=="N":
+                            print("Stopping Optimization.")
+                            print("\n================================================\n")
+                            return True
+                        else:
+                            print("Continuing Optimization.")
+                            print("\n================================================\n")
 
 
         if (self.test.optimization_iteration <= self.solver_parameters['max_iter']):
