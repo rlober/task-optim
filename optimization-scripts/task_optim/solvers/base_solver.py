@@ -3,13 +3,10 @@ import pickle
 
 class BaseSolver(object):
     """docstring for BaseSolver."""
-    def __init__(self, test, solver_parameters):
+    def __init__(self, test, solver_parameters, X=None, Y=None):
 
         self.test = test
         self.solver_parameters = solver_parameters
-        self.X = self.test.X_init
-        self.Y = (self.test.Y_init / self.test.Y_init)
-        self.original_cost = self.Y.copy()
 
         self.base_pickle_path = self.test.trial_dir_path
         self.param_pickle_path = self.base_pickle_path + "/solver_parameters.pickle"
@@ -19,6 +16,18 @@ class BaseSolver(object):
         print("Initializing "+self.__class__.__name__+" with the following parameters:")
         print(self.solver_parameters)
         print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+
+        if X is None or Y is None:
+            self.X = self.test.X_init
+            self.Y = (self.test.Y_init / self.test.Y_init)
+            self.original_cost = self.Y.copy()
+            self.using_existing_data = False
+        else:
+            self.X = X
+            self.Y = Y
+            self.original_cost = self.Y[[0],:]
+            self.using_existing_data = True
+
 
         self.initializeSolver()
 
