@@ -137,6 +137,12 @@ class GazeboSimulation():
         self.rpc_port = yarp.RpcClient()
         self.rpc_port_name = "/python/GazeboSimulation/wholeBodyDynamicsTree/rpc:o"
         self.rpc_port.open(self.rpc_port_name)
+        self.connection_style = yarp.ContactStyle()
+        self.connection_style.persistent = True
+        self.wbdt_port_name = "/wholeBodyDynamicsTree/rpc:i"
+
+        self.yarp_net.connect(self.rpc_port_name, self.wbdt_port_name, self.connection_style)
+
         self.force_port = yarp.Port()
 
         if self.apply_force:
@@ -176,17 +182,26 @@ class GazeboSimulation():
             # Connect apply force port
         # time.sleep(5.0)
 
-        if self.yarp_net.connect(self.rpc_port_name, "/wholeBodyDynamicsTree/rpc:i"):
-            self.recalibrateWBDTree()
-        else:
-            print("[ERROR] Couldn't re-calibrate the wholeBodyDynamicsTree.")
+
 
     def recalibrateWBDTree(self):
+        if self.wbdtree.poll() is not None:
+            print("[WARNING] wholeBodyDynamicsTree has exited... Restarting")
+            self.wbdtree = subprocess.Popen(["wholeBodyDynamicsTree"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+        if self.rpc_port.getOutputCount() < 1:
+            print("-- Connecting to WBT rpc port.")
+            while self.rpc_port.getOutputCount() < 1:
+                time.sleep(0.1)
+
         msg_btl = yarp.Bottle()
         reply_btl = yarp.Bottle()
         msg_btl.addString("resetOffset")
         msg_btl.addString("all")
+        print("-- Sending 'resetOffset all'.")
         self.rpc_port.write(msg_btl, reply_btl)
+        print("-- Received:", reply_btl.toString())
 
     def reset(self):
         if self.apply_force:
@@ -196,7 +211,9 @@ class GazeboSimulation():
             print("-- Resetting gazebo simulation environment.")
         subprocess.Popen(["gz", "world", "-r"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         self.cleanUpYarp()
-        time.sleep(1.0)
+
+        if self.verbose:
+            print("-- Recalibrating wholeBodyDynamicsTree.")
         self.recalibrateWBDTree()
 
         if self.apply_force:
@@ -212,6 +229,7 @@ class GazeboSimulation():
 
     def close(self):
         timeout = 5.0
+        self.yarp_net.disconnect(self.rpc_port_name, self.wbdt_port_name, self.connection_style)
         self.rpc_port.close()
         if self.apply_force:
             self.yarp_net.disconnect(self.force_port_name, self.gazebo_force_port_name, self.connection_style)
