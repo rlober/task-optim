@@ -7,7 +7,7 @@ from task_optim.sim_tools.simulate import GazeboSimulation
 
 class IitStandUpTest(BaseTest):
     """docstring for IitStandUpTest."""
-    def __init__(self, root_path, com_starting_waypoints, costs, skip_init=False, trial_dir=None, cost_weights=None, apply_force=False, using_real_robot=False):
+    def __init__(self, root_path, com_starting_waypoints, costs, skip_init=False, trial_dir=None, cost_weights=None, apply_force=False, using_real_robot=False, com_bounds=None):
         self.com_waypoints = com_starting_waypoints
         self.apply_force = apply_force
         self.yarp_net = yarp.Network()
@@ -17,15 +17,26 @@ class IitStandUpTest(BaseTest):
         self.data_out_port_name = "/WBIController/learningData:o"
         self.data_port_name = "/TaskOptim/data:i"
         self.data_port.open(self.data_port_name)
+        self.connection_style = yarp.ContactStyle()
+        self.connection_style.persistent = True
+        self.yarp_net.connect(self.data_out_port_name, self.data_port_name, self.connection_style)
+
+        self.matlab_out_port = yarp.Port()
+        self.matlab_in_port_name = "/matlab/launchSimulink:i"
+        self.matlab_out_port_name = "/TaskOptim/matlab:o"
+        self.matlab_out_port.open(self.matlab_out_port_name)
+        self.yarp_net.connect(self.matlab_out_port_name, self.matlab_in_port_name, self.connection_style)
+
+        self.matlab_dir_out_port = yarp.Port()
+        self.matlab_dir_in_port_name = "/matlab/logDir:i"
+        self.matlab_dir_out_port_name = "/TaskOptim/matlab/logDir:o"
+        self.matlab_dir_out_port.open(self.matlab_dir_out_port_name)
+        self.yarp_net.connect(self.matlab_dir_out_port_name, self.matlab_dir_in_port_name, self.connection_style)
 
         self.using_real_robot = using_real_robot
 
         self.data_bottle = yarp.Bottle()
 
-        self.com_real = []
-        self.com_ref = []
-        self.torques = []
-        self.time = []
 
         self.traj_gen = None
         self.simulink_ctrl = None
@@ -37,24 +48,53 @@ class IitStandUpTest(BaseTest):
 
         # Create com bounds:
         # self.com_bounds = np.array([[-0.106483, 0.08], [-0.226473, 0.02], [0.220648, 0.52]])
-        self.com_bounds = np.array([[-0.106483, 0.2], [-0.226473, 0.02], [0.1, 0.52]])
+        # self.com_bounds = np.array([[0.0, 0.18], [-0.2, 0.0], [0.0, 0.3]])
+
+        # self.com_bounds = np.array([[0.0, 0.16], [-0.18, -0.02], [0.0, 0.3]])
+        # self.com_bounds = np.array([[0.0, 0.16], [-0.18, -0.02], [0.02, 0.3]])
+
+        if com_bounds is None:
+            self.com_bounds = np.array([[0.0, 0.16], [-0.18, -0.02], [0.05, 0.3]])
+        else:
+            self.com_bounds = com_bounds
         super(IitStandUpTest, self).__init__(root_path, costs, skip_init, trial_dir, cost_weights)
 
     def __del__(self):
-        self.traj_gen.kill()
+        btl = yarp.Bottle()
+        btl.addInt(0)
+        self.matlab_out_port.write(btl)
+
+        self.yarp_net.disconnect(self.data_out_port_name, self.data_port_name, self.connection_style)
+        self.yarp_net.disconnect(self.matlab_out_port_name, self.matlab_in_port_name, self.connection_style)
+        self.yarp_net.disconnect(self.matlab_dir_out_port_name, self.matlab_dir_in_port_name, self.connection_style)
+        try:
+            self.traj_gen.wait(1.0)
+        except:
+            self.traj_gen.kill()
         self.data_port.close()
+        self.matlab_out_port.close()
+        self.matlab_dir_out_port.close()
 
     def waitForDataPortConnection(self):
-        self.yarp_net.init()
-        while not self.yarp_net.connect(self.data_out_port_name, self.data_port_name):
-            time.sleep(0.01)
+        print("\n\n----------------------------------------------")
+        print(" --> Waiting for connection to data port. <-- ")
+        print("----------------------------------------------\n\n")
+        # while not self.yarp_net.connect(self.data_out_port_name, self.data_port_name):
+        while self.data_port.getInputCount() < 1:
+            time.sleep(0.05)
 
-        print("Data port connected.")
+
+        print("-- Data port connected.")
 
 
     def listenForData(self):
-        print("Listening for data.")
-        while self.yarp_net.isConnected(self.data_out_port_name, self.data_port_name):
+        print("-- Listening for data.")
+        # while self.yarp_net.isConnected(self.data_out_port_name, self.data_port_name):
+        self.com_real = []
+        self.com_ref = []
+        self.torques = []
+        self.time = []
+        while self.data_port.getInputCount() > 0:
             self.data_bottle = self.data_port.read(False)
             if self.data_bottle is not None:
                 real = []
@@ -76,7 +116,8 @@ class IitStandUpTest(BaseTest):
 
                 self.data_bottle.clear()
 
-        print("Ports disconnected. Listening stopped. Converting to numpy arrays.")
+        print("-- Ports disconnected. Listening stopped. Converting to numpy arrays.")
+        self.yarp_net.disconnect(self.data_out_port_name, self.data_port_name)
         com_real_np = np.array(self.com_real)
         com_ref_np = np.array(self.com_ref)
         torques_np = np.array(self.torques)
@@ -87,7 +128,7 @@ class IitStandUpTest(BaseTest):
         print("torques_np shape:", torques_np.shape)
         print("time_np shape:", time_np.shape)
         print("-------------------------------")
-        print("Saving to file.")
+        print("-- Saving to file.")
         np.savetxt(self.iteration_dir_path + "/comPositionReal.txt", com_real_np)
         np.savetxt(self.iteration_dir_path + "/comPositionRef.txt", com_ref_np)
         np.savetxt(self.iteration_dir_path + "/torques.txt", torques_np)
@@ -100,7 +141,7 @@ class IitStandUpTest(BaseTest):
 
     def extractTaskWaypointsFromSolutionVector(self, x):
         self.com_waypoints = np.array([x])
-        print("New parameters to test:\nCOM [x, y, z]\n", self.com_waypoints)
+        print("\n\n-- New parameters to test:\nCOM [x, y, z]\n", self.com_waypoints)
 
 
     def setBounds(self):
@@ -133,8 +174,12 @@ class IitStandUpTest(BaseTest):
 
     def launchTrajectoryGenerator(self):
         if self.traj_gen is not None:
-            print("killing old traj gen")
-            self.traj_gen.kill()
+            try:
+                self.traj_gen.wait(1.0)
+            except:
+                print("-- Killing old traj gen.")
+                self.traj_gen.kill()
+
 
         traj_gen_args =  "com-traj-gen "
         traj_gen_args += "--x " + str(self.com_waypoints[0,0]) + " "
@@ -147,26 +192,43 @@ class IitStandUpTest(BaseTest):
         self.traj_gen = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     def startSimulinkController(self):
-        pass
-        #
-        # if self.simulink_ctrl is not None:
-        #     print("killing old simulink_ctrl")
-        #     self.simulink_ctrl.kill()
-        #
-        # args = shlex.split("matlab -nodisplay -nosplash -nodesktop -r '/home/ryan/Code/codyco-superbuild/main/WBIToolboxControllers/controllers/torqueBalancing/launchStandUpController.m'; exit;")
-        # self.simulink_ctrl = subprocess.Popen(args)#, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if self.matlab_out_port.getOutputCount() < 1:
+            print("-------------------------------------------------")
+            print("\t\tSTART MATLAB SCRIPT")
+            print("-------------------------------------------------")
+            while self.matlab_out_port.getOutputCount() < 1:
+                time.sleep(0.1)
+
+        btl = yarp.Bottle()
+        btl.addInt(1)
+        print("-- Telling simulink controller to start.")
+        self.matlab_out_port.write(btl)
+
+    def sendDirInfo(self):
+        if self.matlab_dir_out_port.getOutputCount() > 0:
+            btl = yarp.Bottle()
+            btl.addString(self.iteration_dir_path)
+            print("-- Sending iteration_dir_path to matlab.\n--> ", self.iteration_dir_path)
+            self.matlab_dir_out_port.write(btl)
+
+        else:
+            print("[ERROR] Not connected to matlab dir port.")
 
     def trySimulation(self):
         self.launchTrajectoryGenerator()
 
         if not self.using_real_robot:
             self.gazebo.reset()
-            self.startSimulinkController()
+        else:
+            print("\n\n====================================")
+            input("Press ENTER to start the controller.\n====================================\n\n")
 
+        self.startSimulinkController()
         self.waitForDataPortConnection()
         self.listenForData()
+        self.sendDirInfo()
         try:
-            print("Parsing task data.")
+            print("-- Parsing task data.")
             self.task_data = getDataFromFiles(self.iteration_dir_path)
         except:
             print("[ERROR] Couldn't parse task data from files.")
