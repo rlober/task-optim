@@ -5,7 +5,7 @@ import cma
 
 class BayesOptSolver(BaseSolver):
     """docstring for BayesOptSolver."""
-    def __init__(self, test, solver_parameters):
+    def __init__(self, test, solver_parameters, X=None, Y=None):
         assert(solver_parameters['max_iter'] != None)
 
         self.par = 1.0
@@ -38,7 +38,7 @@ class BayesOptSolver(BaseSolver):
 
 
 
-        super(BayesOptSolver, self).__init__(test, solver_parameters)
+        super(BayesOptSolver, self).__init__(test, solver_parameters, X, Y)
 
     def initializeSolver(self):
         # self.kernel = 0.5*gaussian_process.kernels.Matern(length_scale=100.0, length_scale_bounds=(1e-1, 1e6), nu=16.0)
