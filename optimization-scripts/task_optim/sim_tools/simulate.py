@@ -126,16 +126,27 @@ def simulate(controllerArgs, clientArgs, icubWorldPath, savePath=None, verbose=F
 
 class GazeboSimulation():
     """A persistant yarp and gazebo process manager"""
-    def __init__(self, world_file_path, verbose=False, visual=False):
+    def __init__(self, world_file_path, verbose=False, visual=False, apply_force=False):
         assert(world_file_path is not None)
         self.world_file_path = world_file_path
         self.verbose = verbose
         self.visual = visual
+        self.apply_force = apply_force
         self.yarp_net = yarp.Network()
         self.yarp_net.init()
         self.rpc_port = yarp.RpcClient()
         self.rpc_port_name = "/python/GazeboSimulation/wholeBodyDynamicsTree/rpc:o"
         self.rpc_port.open(self.rpc_port_name)
+        self.force_port = yarp.Port()
+
+        if self.apply_force:
+            self.force_port_name = "/python/GazeboSimulation/ApplyWristForce:o"
+            self.force_port.open(self.force_port_name)
+
+            self.gazebo_force_port_name = "/Gazebo/ApplyWristForce:i"
+            self.yarp_net.connect(self.force_port_name, self.gazebo_force_port_name, self.connection_style)
+
+
 
         self.launch()
 
@@ -160,7 +171,10 @@ class GazeboSimulation():
             print('-- Launching wholeBodyDynamicsTree.')
         self.wbdtree = subprocess.Popen(["wholeBodyDynamicsTree"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-        time.sleep(5.0)
+        if self.apply_force:
+            pass
+            # Connect apply force port
+        # time.sleep(5.0)
 
         if self.yarp_net.connect(self.rpc_port_name, "/wholeBodyDynamicsTree/rpc:i"):
             self.recalibrateWBDTree()
@@ -175,6 +189,9 @@ class GazeboSimulation():
         self.rpc_port.write(msg_btl, reply_btl)
 
     def reset(self):
+        if self.apply_force:
+            self.removeForce()
+
         if self.verbose:
             print("-- Resetting gazebo simulation environment.")
         subprocess.Popen(["gz", "world", "-r"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -182,6 +199,8 @@ class GazeboSimulation():
         time.sleep(1.0)
         self.recalibrateWBDTree()
 
+        if self.apply_force:
+            self.applyForce()
 
     def cleanUpYarp(self):
         if self.verbose:
@@ -194,6 +213,10 @@ class GazeboSimulation():
     def close(self):
         timeout = 5.0
         self.rpc_port.close()
+        if self.apply_force:
+            self.yarp_net.disconnect(self.force_port_name, self.gazebo_force_port_name, self.connection_style)
+            self.force_port.close()
+
         if self.verbose:
             print('-- Terminating gzserver')
 
@@ -223,3 +246,18 @@ class GazeboSimulation():
                 self.gzclient.wait(timeout)
             except:
                 self.gzclient.kill()
+
+
+    def applyForce(self):
+        print("-- Applying force to wrists.")
+        btl = yarp.Bottle()
+        btl.addDouble(self.x_force)
+        btl.addDouble(self.y_force)
+        btl.addDouble(self.z_force)
+        self.force_port.write(btl)
+
+    def removeForce(self):
+        print("-- Removing force from wrists.")
+        btl = yarp.Bottle()
+        btl.addDouble(0.0)
+        self.force_port.write(btl)
