@@ -55,20 +55,38 @@ class BayesOptSolver(BaseSolver):
         next_solution_to_test = self.chooseNext(X_scaled, self.Y)
         # The provided solution is scaled bectween 0-1 so we retransform it back to physical coordinates
         X_new = self.test.retransform(next_solution_to_test)
-        # test X_new
-        Y_new = self.test.objective_function(X_new)
-        # scale the cost wrt the original cost
-        Y_new = ( Y_new / self.test.Y_init )
+
         thresh = 2.0
-        if Y_new > thresh:
-            Y_new = np.array([[thresh]])
+        skip_this_solution_candidate = False
+        if self.test.using_real_robot:
+            print("\n===================================================\n")
+            print("Current CoM waypoint to test:")
+            print(X_new)
+            print("\n===================================================\n")
+            usr_input = input("Should we try this solution? ([y]/n):")
+            if usr_input == '' or usr_input == 'y' or usr_input == 'Y':
+                print("Trying...")
+            else:
+                print("Skipping...")
+                skip_this_solution_candidate = True
+
+        if skip_this_solution_candidate:
+            self.test.optimization_iteration += 1
+            Y_new = np.array([[1.0]])
+        else:
+            # test X_new
+            Y_new = self.test.objective_function(X_new)
+            # scale the cost wrt the original cost
+            Y_new = ( Y_new / self.test.Y_init )
+            if Y_new > thresh:
+                Y_new = np.array([[thresh]])
 
         print('nextSolutionToTest:\n', X_new, '\nPredicted cost mean and variance:', self.gp.predict(next_solution_to_test, return_std=True), '\nLCB:', self.LCB(next_solution_to_test))
         print('getIncumbent:\n', self.getIncumbent())
         self.X = np.vstack((self.X, X_new))
         self.Y = np.vstack((self.Y, Y_new))
         if self.adaptive_par:
-            self.par *= 0.5
+            self.par *= 0.1
             print('par:', self.par)
 
 
