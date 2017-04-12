@@ -171,7 +171,7 @@ class GazeboSimulation():
                 print('-- Launching visuals with gzclient.')
             self.gzclient = subprocess.Popen(["gzclient"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-        time.sleep(2.0)
+        time.sleep(5.0)
 
         if self.verbose:
             print('-- Launching wholeBodyDynamicsTree.')
@@ -209,7 +209,14 @@ class GazeboSimulation():
 
         if self.verbose:
             print("-- Resetting gazebo simulation environment.")
-        subprocess.Popen(["gz", "world", "-r"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        gz_reset = subprocess.Popen(["gz", "world", "-r"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        try:
+            gz_reset.wait(5.0)
+        except:
+            if self.verbose:
+                print('-- Killing gz world reset')
+            gz_reset.kill()
+
         self.cleanUpYarp()
 
         if self.verbose:
@@ -222,9 +229,17 @@ class GazeboSimulation():
     def cleanUpYarp(self):
         if self.verbose:
             print('-- Cleaning up ports')
-        args1 = "yarp clean --timeout 0.1"
+        time.sleep(1.0)
+        args1 = "yarp clean --timeout 0.5"
         args = shlex.split(args1)
         cleanYarp = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        try:
+            cleanYarp.wait(5.0)
+        except:
+            if self.verbose:
+                print('-- Killing yarp clean')
+
+            cleanYarp.kill()
 
 
     def close(self):
@@ -264,6 +279,8 @@ class GazeboSimulation():
                 self.gzclient.wait(timeout)
             except:
                 self.gzclient.kill()
+
+        self.cleanUpYarp()
 
 
     def applyForce(self):
