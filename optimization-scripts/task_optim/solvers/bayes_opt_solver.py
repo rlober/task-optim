@@ -148,7 +148,7 @@ class BayesOptSolver(BaseSolver):
                     print("Solution tolerance,", self.solver_parameters['tolfun'], "reached. Stopping optimization.")
                     return True
                 else:
-                    if (self.test.optimization_iteration-1) % 5 == 0:
+                    if ((self.test.optimization_iteration-1) % 5 == 0) and (self.test.optimization_iteration <= self.solver_parameters['max_iter']):
                         print("\n\n\n================================================\n")
                         print("You have run", (self.test.optimization_iteration-1), "optimization iterations, without converging.")
                         inc_data = self.getIncumbent()
