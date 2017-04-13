@@ -77,15 +77,16 @@ class BaseSolver(object):
         np.set_printoptions(precision=3)
         i = 0
         for p,c in zip(self.X, self.Y):
+            np.set_printoptions(precision=4)
             if i == np.argmin(self.Y):
-                print("iteration:", str(i).zfill(3), "\t", p," --> ", c, " << current best")
+                print("iteration:", str(i).zfill(3), "\t", p," --> %4.3f" % (c), " << current best")
             else:
-                print("iteration:", str(i).zfill(3), "\t", p," --> ", c)
+                print("iteration:", str(i).zfill(3), "\t", p," --> %4.3f" % (c))
             i+=1
         print("---------------------------------------------------------------------")
 
     def compileAndSaveOptimizationData(self):
-        self.opt_data = {'solver':self.__class__.__name__, 'X':self.X, 'Y':self.Y, 'Y_init':self.test.Y_init, 'opt_row':self.opt_row, 'optimal_params':self.optimal_params, 'optimal_cost':self.optimal_cost, 'original_cost':self.original_cost, 'n_iter':self.test.optimization_iteration-1}
+        self.opt_data = {'solver':self.__class__.__name__, 'X':self.X, 'Y':self.Y, 'Y_init':self.test.Y_init, 'opt_row':self.opt_row, 'optimal_params':self.optimal_params, 'optimal_cost':self.optimal_cost, 'original_cost':self.original_cost, 'n_iter':(self.test.optimization_iteration-1), 'observed_optimal_cost':self.observed_optimal_cost}
 
         self.opt_data_pickle_path = self.base_pickle_path + "/opt_data.pickle"
         pickle.dump(self.opt_data, open( self.opt_data_pickle_path, "wb" ) )
