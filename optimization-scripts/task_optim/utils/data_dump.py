@@ -4,7 +4,7 @@ import yarp
 import shlex
 import subprocess
 
-icub_data_ports = ["/icub/torso/stateExt:o", "/icub/left_leg/stateExt:o", "/icub/right_leg/stateExt:o", "/icub/left_arm/stateExt:o", "/icub/right_arm/stateExt:o", "/wholeBodyDynamics/left_arm/endEffectorWrench:o", "/wholeBodyDynamics/right_arm/endEffectorWrench:o", "/amti/first/analog:o", "/amti/second/analog:o", "/xsens/frames:o", "/human-state-provider/state:o", "/human-forces-provider/forces:o", "/human-dynamics-estimator/dynamicsEstimation:o", "/WBIController/time:o"]
+icub_data_ports = ["/icub/torso/stateExt:o", "/icub/left_leg/stateExt:o", "/icub/right_leg/stateExt:o", "/icub/left_arm/stateExt:o", "/icub/right_arm/stateExt:o", "/wholeBodyDynamics/left_arm/endEffectorWrench:o", "/wholeBodyDynamics/right_arm/endEffectorWrench:o", "/amti/first/analog:o", "/amti/second/analog:o", "/xsens/frames:o", "/human-state-provider/state:o", "/human-forces-provider/forces:o", "/human-dynamics-estimator/dynamicsEstimation:o"]
 
 def convertPortNamesToDirNames(port_names):
     dir_names = []
