@@ -68,7 +68,7 @@ if __name__ == "__main__":
 
 
 
-    test = IitStandUpTest(root_path, com_starting_waypoints, costs_used, using_real_robot=False, com_bounds=bounds)
+    test = IitStandUpTest(root_path, com_starting_waypoints, costs_used, using_real_robot=True, com_bounds=bounds)
     X = opt_data['X']
     Y = opt_data['Y']
 
