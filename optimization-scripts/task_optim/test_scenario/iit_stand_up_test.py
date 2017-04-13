@@ -4,6 +4,7 @@ import subprocess
 import time
 import shlex
 from task_optim.sim_tools.simulate import GazeboSimulation
+from task_optim.utils.data_dump import DataDumper, icub_data_ports
 
 class IitStandUpTest(BaseTest):
     """docstring for IitStandUpTest."""
@@ -94,6 +95,11 @@ class IitStandUpTest(BaseTest):
         self.com_ref = []
         self.torques = []
         self.time = []
+        dumpers = []
+        for p in icub_data_ports:
+            dumpers.append(DataDumper(self.iteration_dir_path, p))
+        for d in dumpers:
+            d.startLogging()
         while self.data_port.getInputCount() > 0:
             self.data_bottle = self.data_port.read(False)
             if self.data_bottle is not None:
@@ -116,6 +122,8 @@ class IitStandUpTest(BaseTest):
 
                 self.data_bottle.clear()
 
+        for d in dumpers:
+            d.stopLogging()
         print("-- Ports disconnected. Listening stopped. Converting to numpy arrays.")
         self.yarp_net.disconnect(self.data_out_port_name, self.data_port_name)
         com_real_np = np.array(self.com_real)
