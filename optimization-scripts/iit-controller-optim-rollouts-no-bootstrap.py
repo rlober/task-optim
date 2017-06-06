@@ -20,7 +20,7 @@ if __name__ == "__main__":
 
     if data_set == 2:
         sim_optim_data_path = root_path + "/simulation_optimization_data_02/"
-        bo_solver_parameters  = {'max_iter':10, 'tolfun':0.01, 'par':0.01, 'length_scale':1, 'length_scale_bounds':(1e-2, 1e10), 'nu':(6./2.), 'max_sigma':0.1, 'adaptive_par':False}
+        bo_solver_parameters  = {'max_iter':20, 'tolfun':0.01, 'par':0.01, 'length_scale':1, 'length_scale_bounds':(1e-2, 1e10), 'nu':(6./2.), 'max_sigma':0.1, 'adaptive_par':False}
         # bo_solver_parameters  = {'max_iter':10, 'tolfun':0.01, 'par':0.1, 'length_scale':1, 'length_scale_bounds':(1e-2, 1e10), 'nu':(6./2.), 'max_sigma':0.1, 'adaptive_par':False}
 
 
