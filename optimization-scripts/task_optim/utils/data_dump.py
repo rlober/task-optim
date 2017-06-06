@@ -47,7 +47,7 @@ class DataDumper(object):
             self.port_dir_name = port_name[1:-2].replace("/", "_")
             self.makeDataSaveDir()
         else:
-            print("Port", port_name, "doesn't exist! Doing nothing.")
+            print(" [DataDumper] --> Port", port_name, "doesn't exist! Doing nothing.")
 
     def __del__(self):
         self.called_from_destructor = True
@@ -58,7 +58,7 @@ class DataDumper(object):
         try:
             os.makedirs(self.port_dir_abs_path)
         except(FileExistsError):
-            print("Not making dir for:", self.port_dir_name, " --> Directory already exists.")
+            print(" [DataDumper] --> Not making dir for:", self.port_dir_name, " --> Directory already exists.")
 
         self.port_dir_rel_path = os.path.relpath(self.port_dir_abs_path)
 
@@ -73,13 +73,13 @@ class DataDumper(object):
 
                 self.loggingStarted = True
                 self.yarp_dd_proc = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                print("------------")
-                print("Logging started on port:", self.port_name)
-                print("------------")
+
+                print(" [DataDumper] --> Logging started on port:", self.port_name)
+
             else:
-                print("Logging already started on port:", self.port_name, "Stop before restarting.")
+                print(" [DataDumper] --> Logging already started on port:", self.port_name, "Stop before restarting.")
         else:
-            print("Port:", self.port_name, "doesn't exist so I can't log!")
+            print(" [DataDumper] --> Port:", self.port_name, "doesn't exist so I can't log!")
 
     def stopLogging(self):
         if self.loggingStarted:
@@ -91,12 +91,13 @@ class DataDumper(object):
             except:
                 self.yarp_dd_proc.kill()
                 self.loggingStarted = False
-            print("------------")
-            print("Logging finished on port:", self.port_name, "\nData stored at:", self.port_dir_abs_path)
-            print("------------")
+
+            print(" [DataDumper] --> Logging finished on port:", self.port_name)
+            print("              --> Data stored at:", self.port_dir_abs_path)
+
         else:
             if not self.called_from_destructor:
-                print("Logging has not been started on port:", self.port_name, "yet. Doing nothing.")
+                print(" [DataDumper] --> Logging has not been started on port:", self.port_name, "yet. Doing nothing.")
 
 if __name__ == "__main__":
     # port_dir_names = convertPortNamesToDirNames(icub_data_ports)
@@ -105,12 +106,23 @@ if __name__ == "__main__":
     # print(makeDataSaveDir(iter_dir, port_dir_names[0]))
     import time
     iter_dir = os.path.expanduser("~") + "/fake_test/"
-    d = DataDumper(iter_dir, icub_data_ports[0])
-    d2 = DataDumper(iter_dir, "/blawdawhd")
-    d.startLogging()
-    d2.startLogging()
+    # d = DataDumper(iter_dir, icub_data_ports[0])
+    # d2 = DataDumper(iter_dir, "/blawdawhd")
+    # d.startLogging()
+    # d2.startLogging()
+    #
+    # time.sleep(3.0)
+    #
+    # d2.stopLogging()
+    # # d.stopLogging()
 
-    time.sleep(3.0)
+    dumpers = []
+    for p in icub_data_ports:
+        dumpers.append(DataDumper(iter_dir, p))
+    for d in dumpers:
+        d.startLogging()
 
-    d2.stopLogging()
-    # d.stopLogging()
+    time.sleep(4.0)
+
+    for d in dumpers:
+        d.stopLogging()
