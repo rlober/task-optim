@@ -152,6 +152,15 @@ class GazeboSimulation():
             self.gazebo_force_port_name = "/Gazebo/ApplyWristForce:i"
             self.yarp_net.connect(self.force_port_name, self.gazebo_force_port_name, self.connection_style)
 
+        self.camera_rpc_port = yarp.RpcClient()
+        self.camera_rpc_port_name = "/python/GazeboSimulation/camera/rpc:o"
+        self.camera_rpc_port.open(self.camera_rpc_port_name)
+        self.camera_input_port_name = "/Gazebo/yarp_camera_sensor/rpc:i"
+
+        if self.yarp_net.connect(self.camera_rpc_port_name, self.camera_input_port_name, self.connection_style):
+            self.camera_connected = True
+        else:
+            self.camera_connected = False
 
 
         self.launch()
@@ -296,3 +305,31 @@ class GazeboSimulation():
         btl = yarp.Bottle()
         btl.addDouble(0.0)
         self.force_port.write(btl)
+
+    def startRecording(self, save_dir, file_name):
+        if self.camera_connected:
+            msg = yarp.Bottle()
+            reply = yarp.Bottle()
+            msg.addString("record")
+            msg.addInt(1)
+            msg.addString(save_dir)
+            msg.addString(file_name)
+            self.camera_rpc_port.write(msg, reply)
+            if reply.get(0).asBool():
+                print("Recording Started")
+                print("Saving to dir:", reply.get(1).asString())
+                print("Saving stills to dir:", reply.get(2).asString())
+                print("Saving video as:", reply.get(3).asString())
+
+    def stopRecording(self):
+        if self.camera_connected:
+            msg = yarp.Bottle()
+            reply = yarp.Bottle()
+            msg.addString("record")
+            msg.addInt(0)
+            self.camera_rpc_port.write(msg, reply)
+            if reply.get(0).asBool():
+                print("Recording Stopped")
+                print("Saving to dir:", reply.get(1).asString())
+                print("Saving stills to dir:", reply.get(2).asString())
+                print("Saving video as:", reply.get(3).asString())

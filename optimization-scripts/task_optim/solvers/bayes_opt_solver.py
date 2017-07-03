@@ -36,6 +36,10 @@ class BayesOptSolver(BaseSolver):
         if 'adaptive_par' in solver_parameters:
             self.adaptive_par = solver_parameters['adaptive_par']
 
+        self.running_interactively = True
+        if 'running_interactively' in solver_parameters:
+            self.running_interactively = solver_parameters['running_interactively']
+
 
 
         super(BayesOptSolver, self).__init__(test, solver_parameters, X, Y)
@@ -147,7 +151,7 @@ class BayesOptSolver(BaseSolver):
                 if deltaSol <= self.solver_parameters['tolfun']:
                     print("Solution tolerance,", self.solver_parameters['tolfun'], "reached. Stopping optimization.")
                     return True
-                else:
+                elif self.running_interactively:
                     if ((self.test.optimization_iteration-1) % 5 == 0) and (self.test.optimization_iteration <= self.solver_parameters['max_iter']):
                         print("\n\n\n================================================\n")
                         print("You have run", (self.test.optimization_iteration-1), "optimization iterations, without converging.")

@@ -227,14 +227,21 @@ class IitStandUpTest(BaseTest):
 
         if not self.using_real_robot:
             self.gazebo.reset()
+
         else:
             print("\n\n====================================")
             input("Press ENTER to start the controller.\n====================================\n\n")
 
         self.startSimulinkController()
         self.waitForDataPortConnection()
+        if not self.using_real_robot:
+            video_name = "rollout_" + str(self.optimization_iteration).zfill(3)
+            self.gazebo.startRecording(save_dir=self.iteration_dir_path, file_name=video_name)
+
         self.listenForData()
         self.sendDirInfo()
+        if not self.using_real_robot:
+            self.gazebo.stopRecording()
         try:
             print("-- Parsing task data.")
             self.task_data = getDataFromFiles(self.iteration_dir_path)

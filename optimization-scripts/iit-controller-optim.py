@@ -25,7 +25,7 @@ if __name__ == "__main__":
     # working with leaning forward
     # bo_solver_parameters  = {'max_iter':30, 'tolfun':0.01, 'par':0.05, 'length_scale':1, 'length_scale_bounds':(1e-2, 1e10), 'nu':(6./2.), 'max_sigma':0.4, 'adaptive_par':False}
     # bo_solver_parameters  = {'max_iter':30, 'tolfun':0.01, 'par':0.05, 'length_scale':1, 'length_scale_bounds':(1e-2, 1e10), 'nu':(6./2.), 'max_sigma':0.3, 'adaptive_par':False}
-    bo_solver_parameters  = {'max_iter':30, 'tolfun':0.01, 'par':0.1, 'length_scale':1, 'length_scale_bounds':(1e-2, 1e10), 'nu':(6./2.), 'max_sigma':0.1, 'adaptive_par':False}
+    bo_solver_parameters  = {'max_iter':30, 'tolfun':0.01, 'par':0.1, 'length_scale':1, 'length_scale_bounds':(1e-2, 1e10), 'nu':(6./2.), 'max_sigma':0.1, 'adaptive_par':False, 'running_interactively':False}
 
 
     ####################################################
