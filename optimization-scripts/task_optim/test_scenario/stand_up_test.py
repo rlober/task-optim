@@ -34,7 +34,7 @@ class StandUpTest(BaseTest):
         args = "stand-client --comWptFile " + self.com_waypoint_file_path
         if self.apply_force:
             args += " --applyForce"
-            
+
         return args
 
     def getGazeboWorld(self):

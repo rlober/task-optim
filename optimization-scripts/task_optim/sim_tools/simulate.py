@@ -38,6 +38,8 @@ def simulate(controllerArgs, clientArgs, icubWorldPath, savePath=None, verbose=F
             os.environ["DISPLAY"] = ":0"
 
         gz_args.append(icubWorldPath)
+        gz_args.append("-s")
+        gz_args.append("libgazebo_yarp_clock.so")
         gzserver = subprocess.Popen(gz_args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
         if visual:
@@ -63,7 +65,7 @@ def simulate(controllerArgs, clientArgs, icubWorldPath, savePath=None, verbose=F
             print('-- Launching client with args: ', clArgs)
         client = subprocess.Popen(clArgs, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-        timeout = 40.0
+        timeout = 4000.0
         try:
             client.wait(timeout)
         except:

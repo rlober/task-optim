@@ -58,6 +58,7 @@ private:
     std::string torquesFilePath;
     std::string comWaypointsFilePath;
     std::string timelineFilePath;
+    std::string startStopTimesFilePath;
     std::string comExpectedDurationFilePath;
     std::string comBoundsFilePath;
     std::string comJacobiansFilePath;
@@ -74,6 +75,7 @@ private:
     std::ofstream torquesFile;
     std::ofstream comWaypointsFile;
     std::ofstream timelineFile;
+    std::ofstream startStopTimesFile;
     std::ofstream comExpectedDurationFile;
     std::ofstream comBoundsFile;
     std::ofstream comJacobiansFile;

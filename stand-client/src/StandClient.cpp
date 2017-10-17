@@ -150,7 +150,7 @@ bool StandClient::initialize()
 
     setLoopTimeLimit();
     startTime = yarp::os::Time::now();
-
+    startStopTimesFile << startTime << "\n";
 
     return true;
 }
@@ -184,6 +184,8 @@ void StandClient::loop()
 void StandClient::release()
 {
     if (logData) {
+        startStopTimesFile << yarp::os::Time::now() << "\n";
+
         writeWaypointsToFile();
         closeDataFiles();
         l_foot_FT_port.close();
@@ -245,6 +247,7 @@ bool StandClient::createDataFiles()
     torquesFilePath = savePath + "/torques.txt";
     comWaypointsFilePath = savePath + "/comWaypoints.txt";
     timelineFilePath = savePath + "/timeline.txt";
+    startStopTimesFilePath = savePath + "/absoluteStartStopTimes.txt";
     comExpectedDurationFilePath = savePath + "/comExpectedDuration.txt";
     comBoundsFilePath = savePath + "/comBounds.txt";
 
@@ -262,6 +265,7 @@ bool StandClient::createDataFiles()
     torquesFile.open(torquesFilePath);
     comWaypointsFile.open(comWaypointsFilePath);
     timelineFile.open(timelineFilePath);
+    startStopTimesFile.open(startStopTimesFilePath);
     comExpectedDurationFile.open(comExpectedDurationFilePath);
     comBoundsFile.open(comBoundsFilePath);
 
@@ -281,6 +285,7 @@ bool StandClient::createDataFiles()
     ok &= torquesFile.is_open();
     ok &= comWaypointsFile.is_open();
     ok &= timelineFile.is_open();
+    ok &= startStopTimesFile.is_open();
     ok &= comExpectedDurationFile.is_open();
     ok &= comBoundsFile.is_open();
     ok &= comJacobiansFile.is_open();
@@ -302,6 +307,7 @@ void StandClient::closeDataFiles()
     torquesFile.close();
     comWaypointsFile.close();
     timelineFile.close();
+    startStopTimesFile.close();
     comExpectedDurationFile.close();
     comBoundsFile.close();
     comJacobiansFile.close();

@@ -158,7 +158,7 @@ class BaseTest(BaseTask):
         max_trials = 20
         while number_of_trials <= max_trials:
             try:
-                simulate(self.getControllerArgs(), self.getClientArgs(), self.getGazeboWorld(), self.iteration_dir_path, verbose=False, visual=False)
+                simulate(self.getControllerArgs(), self.getClientArgs(), self.getGazeboWorld(), self.iteration_dir_path, verbose=True, visual=True)
                 self.task_data = getDataFromFiles(self.iteration_dir_path)
                 break
             except:
